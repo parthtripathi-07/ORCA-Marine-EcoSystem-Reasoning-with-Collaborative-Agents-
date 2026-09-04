@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ORCA — Maritime Portal Login | Photorealistic 3D Ocean Hazard Simulation</title>
+    <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
+    
+    <!-- Tailwind CSS with custom theme configuration -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Material Design Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+    
+    <!-- Three.js 3D Engine CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#00264b",
+                        "deep-navy": "#001830",
+                        "ocean-cyan": "#0284c7",
+                        "ocean-emerald": "#10b981",
+                        "alert-amber": "#F29400"
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #01070e;
+        }
+        #webgl-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        /* Ultra-Transparent Frosted Glass Login Panel */
+        .ultra-transparent-glass {
+            background: rgba(2, 10, 22, 0.22);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(2, 132, 199, 0.12);
+        }
+        .ultra-transparent-glass:hover {
+            border-color: rgba(56, 189, 248, 0.5);
+        }
+        /* Camera Lens Water Droplets Effect */
+        #lens-droplets {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 15;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.15) 0%, transparent 8%),
+                        radial-gradient(circle at 70% 60%, rgba(255,255,255,0.12) 0%, transparent 6%),
+                        radial-gradient(circle at 45% 75%, rgba(255,255,255,0.18) 0%, transparent 10%),
+                        radial-gradient(circle at 80% 25%, rgba(255,255,255,0.1) 0%, transparent 7%);
+        }
+    </style>
+</head>
+
+<body class="text-white min-h-screen flex items-center justify-center lg:justify-end relative font-sans select-none overflow-hidden">
+
+    <!-- 🌊 THREE.JS 3D PHOTOREALISTIC OCEAN & CYCLONE HAZARD WEBGL CANVAS -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- 💦 REALISTIC CAMERA LENS WATER SPRAY DROPLETS -->
+    <div id="lens-droplets"></div>
+
+    <!-- 🌌 ATMOSPHERIC STORM LIGHTING & VIGNETTE -->
+    <div class="absolute inset-0 bg-gradient-to-t from-[#01070e]/85 via-transparent to-[#01070e]/40 pointer-events-none z-10"></div>
+    <div class="absolute inset-0 bg-radial from-transparent via-transparent to-[#01070e]/65 pointer-events-none z-10"></div>
+
+    <!-- 🛰️ TOP NAVIGATION & TELEMETRY HUD -->
+    <header class="absolute top-0 left-0 right-0 z-30 p-4 sm:p-6 flex justify-between items-center pointer-events-auto">
+        <div class="flex items-center gap-3 bg-black/40 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 shadow-lg">
+            <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-9 h-9 rounded-lg object-cover ring-2 ring-cyan-400/60 shadow-xs"/>
+            <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-extrabold tracking-wider text-white uppercase">ORCA MARITIME</span>
+                    <span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 px-2 py-0.5 rounded-full font-mono font-bold">ISRO AI</span>
+                </div>
+                <span class="text-[10px] text-cyan-200/80">Department of Space · Indian Space Research Organisation</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+            <!-- Live Realistic Wave & Sinking Status -->
+            <div id="sim-status-badge" class="hidden sm:flex items-center gap-2 bg-rose-950/60 backdrop-blur-md border border-rose-500/40 text-rose-300 text-xs px-3.5 py-1.5 rounded-xl font-mono shadow-md">
+                <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                <span>HAZARD ALERT: <strong id="wave-height-hud" class="text-white font-bold">8.2M ROGUE WAVE APPROACHING</strong></span>
+            </div>
+
+            <!-- Hide/Show UI Toggle for Pure Cinema View -->
+            <button onclick="toggleUiVisibility()" class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer" title="Toggle Fullscreen 3D Cinema View">
+                <span class="material-symbols-outlined text-sm text-cyan-300" id="ui-eye-icon">visibility</span>
+                <span id="ui-eye-label" class="hidden sm:inline">Cinema Mode</span>
+            </button>
+
+            <!-- Storm / Calm Mode Switcher -->
+            <button onclick="toggleStormMode()" class="px-3 py-1.5 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/40 text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer">
+                <span class="material-symbols-outlined text-sm text-cyan-300">cyclone</span>
+                <span id="storm-btn-label">Storm Surge</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- 🔐 ULTRA-TRANSPARENT FLOATING LOGIN PANEL (CLEARLY REVEALS THE REALISTIC BOAT & CRASHING WAVE BEHIND IT) -->
+    <div id="login-container" class="relative z-30 w-full max-w-md p-3 sm:p-6 mx-3 lg:mr-14 transition-all duration-500">
+        <div class="ultra-transparent-glass rounded-3xl p-5 sm:p-7 flex flex-col gap-4 border border-white/25 shadow-2xl relative overflow-hidden">
+            
+            <!-- Card Header -->
+            <div class="flex flex-col items-center text-center gap-1 relative z-10">
+                <div class="flex items-center gap-2">
+                    <img src="assets/orca_logo.jpg" alt="ORCA Emblem" class="w-10 h-10 rounded-xl object-cover ring-2 ring-cyan-400/50 shadow-md"/>
+                    <div class="text-left">
+                        <h2 class="text-base sm:text-lg font-black text-white tracking-tight leading-tight">ORCA LOGIN PORTAL</h2>
+                        <p class="text-[10px] text-cyan-200/90 font-medium">ISRO Oceansat-3 &amp; Coastal Fleet Intelligence</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dual Role Switcher Tabs -->
+            <div class="flex p-1 bg-black/40 backdrop-blur-md rounded-xl border border-white/15 text-xs font-bold relative z-10">
+                <button id="tab-fisher-btn" onclick="switchLoginRole('fisher')" class="flex-1 py-2 rounded-lg bg-cyan-600/90 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">sailing</span>
+                    <span>Fisherman / नाव</span>
+                </button>
+                <button id="tab-officer-btn" onclick="switchLoginRole('officer')" class="flex-1 py-2 rounded-lg text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">local_police</span>
+                    <span>Coast Guard</span>
+                </button>
+            </div>
+
+            <!-- 🎣 FISHERMAN LOGIN FORM -->
+            <form id="form-fisher" onsubmit="handleAuthSubmit(event, 'fisher')" class="flex flex-col gap-3 relative z-10">
+                <div>
+                    <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Vessel Registration No. / नाव पंजीकरण</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-2 text-cyan-400 text-sm">directions_boat</span>
+                        <input type="text" id="fisher-vessel-no" required value="IND-TN-02-MM-4421" class="w-full pl-9 pr-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none font-mono tracking-wider font-bold" placeholder="e.g. IND-TN-02-MM-4421"/>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Captain / Fisher Name</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-2 text-cyan-400 text-sm">person</span>
+                        <input type="text" id="fisher-captain-name" required value="Capt. R. Murugan" class="w-full pl-9 pr-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none" placeholder="Enter Full Name"/>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Home Harbor</label>
+                        <select id="fisher-harbor" class="w-full px-2 py-1.5 bg-[#001428] border border-white/20 rounded-xl text-xs text-cyan-100 outline-none focus:border-cyan-400">
+                            <option value="chennai">Chennai (Kasimedu)</option>
+                            <option value="rameswaram">Rameswaram</option>
+                            <option value="kochi">Kochi</option>
+                            <option value="goa">Goa</option>
+                            <option value="mumbai">Mumbai</option>
+                            <option value="veraval">Veraval</option>
+                            <option value="visakhapatnam">Vizag</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Security PIN</label>
+                        <input type="password" id="fisher-pin" required value="2026" maxlength="6" class="w-full px-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white text-center font-mono font-bold tracking-widest outline-none focus:border-cyan-400" placeholder="****"/>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full mt-1.5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/40 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">verified_user</span>
+                    <span>Authenticate &amp; Enter Platform</span>
+                </button>
+            </form>
+
+            <!-- 🛡️ COAST GUARD OFFICER LOGIN FORM -->
+            <form id="form-officer" onsubmit="handleAuthSubmit(event, 'officer')" class="flex flex-col gap-3 relative z-10 hidden">
+                <div>
+                    <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Officer Service ID / बैज नंबर</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-2 text-cyan-400 text-sm">badge</span>
+                        <input type="text" id="officer-id" required value="ICG-SZ-4089" class="w-full pl-9 pr-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono font-bold focus:border-cyan-400 outline-none" placeholder="e.g. ICG-SZ-4089"/>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Official NIC / Gov Email</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-2 text-cyan-400 text-sm">mail</span>
+                        <input type="email" id="officer-email" required value="duty.officer@nic.in" class="w-full pl-9 pr-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none" placeholder="officer@nic.in"/>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Department Access Token</label>
+                    <input type="password" id="officer-token" required value="GOV-SECURE-2026" class="w-full px-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono outline-none focus:border-cyan-400" placeholder="Security Token"/>
+                </div>
+
+                <button type="submit" class="w-full mt-1.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-700 via-primary to-deep-navy hover:from-blue-600 hover:to-primary text-white font-bold text-xs shadow-lg shadow-blue-700/40 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">shield</span>
+                    <span>Verify Officer Credentials</span>
+                </button>
+            </form>
+
+            <!-- Card Bottom Options -->
+            <div class="border-t border-white/15 pt-2.5 flex justify-between items-center text-[11px] text-cyan-200/80 relative z-10">
+                <button type="button" onclick="quickFillDemo()" class="hover:text-cyan-300 font-bold underline flex items-center gap-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-xs">bolt</span> Fast Demo Login
+                </button>
+                <a href="index.html" class="hover:text-white transition-colors flex items-center gap-1 font-semibold">
+                    <span>Direct Dashboard</span>
+                    <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ⚓ BOTTOM 3D NARRATIVE OVERLAY HUD -->
+    <div class="absolute bottom-4 left-4 z-20 hidden md:flex items-center gap-2 pointer-events-auto text-xs text-cyan-200/90 font-mono bg-black/50 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15">
+        <span class="material-symbols-outlined text-cyan-400 text-sm animate-pulse">tsunami</span>
+        <span><strong>PHYSICAL SIMULATION:</strong> Gerstner 3D Wave Dynamics, Ship Buoyancy &amp; Atmospheric Lightning</span>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- 🌊 THREE.JS 3D PHOTOREALISTIC OCEAN, VESSEL & CYCLONE SIMULATION SCRIPT -->
+    <!-- ========================================================================= -->
+    <script>
+        let scene, camera, renderer;
+        let oceanMesh, oceanGeometry;
+        let boatGroup, fishermanGroup, giantWaveGroup;
+        let rainParticles, foamParticles, splashParticles;
+        let lightningLight, moonLight, waterLight;
+        let isStormMode = true;
+        let isUiVisible = true;
+        let clock = new THREE.Clock();
+
+        // 1. Initialize Photorealistic 3D Marine Environment
+        function init3D() {
+            const canvas = document.getElementById('webgl-canvas');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x011222, 0.011);
+
+            // Close-up cinematic perspective camera
+            camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(-3.2, 5.0, 19.0);
+            camera.lookAt(-0.2, 1.6, 0);
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.15;
+
+            // Photorealistic Atmospheric Lighting Rig
+            const ambientLight = new THREE.AmbientLight(0x0a2a48, 1.8);
+            scene.add(ambientLight);
+
+            // Direct Moon / Sky Glow
+            moonLight = new THREE.DirectionalLight(0x7dd3fc, 2.6);
+            moonLight.position.set(20, 35, 25);
+            moonLight.castShadow = true;
+            moonLight.shadow.mapSize.width = 1024;
+            moonLight.shadow.mapSize.height = 1024;
+            scene.add(moonLight);
+
+            // Water Specular Light
+            waterLight = new THREE.SpotLight(0x38bdf8, 2.2, 70, Math.PI / 3, 0.5);
+            waterLight.position.set(-12, 22, 18);
+            waterLight.target.position.set(0, 1.5, 0);
+            scene.add(waterLight);
+            scene.add(waterLight.target);
+
+            // Lightning Flash Light
+            lightningLight = new THREE.PointLight(0xe0f2fe, 0, 150);
+            lightningLight.position.set(5, 30, -10);
+            scene.add(lightningLight);
+
+            // Create 3D Scene Assets
+            createRealisticOcean();
+            createPhotorealisticBoatAndFisherman();
+            createVolumetricMonsterWave();
+            createVolumetricFoamAndRainParticles();
+
+            // Resize & Mouse Parallax
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('mousemove', onDocumentMouseMove);
+        }
+
+        // 2. High-Fidelity Gerstner Wave Ocean Surface
+        function createRealisticOcean() {
+            const size = 180;
+            const segments = 120;
+            oceanGeometry = new THREE.PlaneGeometry(size, size, segments, segments);
+            oceanGeometry.rotateX(-Math.PI / 2);
+
+            // High specular wet-water PBR material
+            const oceanMaterial = new THREE.MeshStandardMaterial({
+                color: 0x012745,
+                roughness: 0.08,
+                metalness: 0.92,
+                flatShading: true
+            });
+
+            oceanMesh = new THREE.Mesh(oceanGeometry, oceanMaterial);
+            oceanMesh.position.y = -0.4;
+            oceanMesh.receiveShadow = true;
+            scene.add(oceanMesh);
+        }
+
+        // 3. Create Detailed Photorealistic Fishing Vessel & Fisherman
+        function createPhotorealisticBoatAndFisherman() {
+            boatGroup = new THREE.Group();
+
+            // Wooden/Fiberglass Deep-V Hull
+            const hullGeo = new THREE.BoxGeometry(4.8, 2.2, 11.2, 4, 2, 8);
+            const pos = hullGeo.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+                let z = pos.getZ(i);
+                let x = pos.getX(i);
+                let y = pos.getY(i);
+                if (z > 2.2) {
+                    pos.setX(i, x * (1 - (z - 2.2) * 0.17)); // Sleek Bow
+                }
+                if (y < 0) {
+                    pos.setX(i, x * 0.6); // Deep V-Keel
+                }
+            }
+            hullGeo.computeVertexNormals();
+
+            const hullMat = new THREE.MeshStandardMaterial({ color: 0x082038, roughness: 0.25, metalness: 0.3 });
+            const hull = new THREE.Mesh(hullGeo, hullMat);
+            hull.position.y = 0.7;
+            hull.castShadow = true;
+            hull.receiveShadow = true;
+            boatGroup.add(hull);
+
+            // Vibrant Marine Safety Orange Stripe
+            const stripeGeo = new THREE.BoxGeometry(4.9, 0.35, 11.3);
+            const stripeMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.2 });
+            const stripe = new THREE.Mesh(stripeGeo, stripeMat);
+            stripe.position.y = 1.35;
+            boatGroup.add(stripe);
+
+            // Deck Wood Planks Floor
+            const deckGeo = new THREE.BoxGeometry(4.5, 0.1, 10.8);
+            const deckMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.6 });
+            const deck = new THREE.Mesh(deckGeo, deckMat);
+            deck.position.y = 1.55;
+            boatGroup.add(deck);
+
+            // Wheelhouse Cabin
+            const cabinGeo = new THREE.BoxGeometry(3.0, 2.4, 3.8);
+            const cabinMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.2, metalness: 0.1 });
+            const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+            cabin.position.set(0, 2.5, -1.0);
+            cabin.castShadow = true;
+            boatGroup.add(cabin);
+
+            // Illuminated Blue Marine Bridge Windows
+            const winGeo = new THREE.BoxGeometry(3.05, 1.0, 2.0);
+            const winMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.8 });
+            const win = new THREE.Mesh(winGeo, winMat);
+            win.position.set(0, 2.8, -0.6);
+            boatGroup.add(win);
+
+            // Navigation Running Lights (Port: Red, Starboard: Green)
+            const portLightMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 1.2 });
+            const portLight = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), portLightMat);
+            portLight.position.set(-1.55, 2.6, 0.4);
+            boatGroup.add(portLight);
+
+            const stbdLightMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x22c55e, emissiveIntensity: 1.2 });
+            const stbdLight = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), stbdLightMat);
+            stbdLight.position.set(1.55, 2.6, 0.4);
+            boatGroup.add(stbdLight);
+
+            // Red Emergency Lifebuoys with White Bands
+            const buoyGeo = new THREE.TorusGeometry(0.42, 0.12, 10, 20);
+            const buoyMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3 });
+            const buoyLeft = new THREE.Mesh(buoyGeo, buoyMat);
+            buoyLeft.position.set(-1.55, 2.6, -1.0);
+            buoyLeft.rotation.y = Math.PI / 2;
+            boatGroup.add(buoyLeft);
+
+            const buoyRight = buoyLeft.clone();
+            buoyRight.position.set(1.55, 2.6, -1.0);
+            boatGroup.add(buoyRight);
+
+            // Steel Trawler Mast & Radar
+            const mastGeo = new THREE.CylinderGeometry(0.09, 0.15, 7.0, 8);
+            const mastMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 });
+            const mast = new THREE.Mesh(mastGeo, mastMat);
+            mast.position.set(0, 4.8, 1.5);
+            mast.castShadow = true;
+            boatGroup.add(mast);
+
+            // Rotating Radar Scanner
+            const radarBarGeo = new THREE.BoxGeometry(1.6, 0.18, 0.25);
+            const radarBarMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.5 });
+            const radarBar = new THREE.Mesh(radarBarGeo, radarBarMat);
+            radarBar.position.set(0, 8.2, 1.5);
+            radarBar.name = "radarBar";
+            boatGroup.add(radarBar);
+
+            // 🎣 3D FISHERMAN CHARACTER ON DECK
+            fishermanGroup = new THREE.Group();
+
+            // Yellow Commercial Oilskin Bib Overalls
+            const legsMat = new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.35 });
+            const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 1.4, 8), legsMat);
+            legs.position.y = 1.8;
+            fishermanGroup.add(legs);
+
+            // High-Visibility Orange Safety Parka Jacket
+            const jacketMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.3 });
+            const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.42, 1.3, 8), jacketMat);
+            torso.position.y = 2.65;
+            fishermanGroup.add(torso);
+
+            // Head & Sou'wester Waterproof Rain Hat
+            const headMat = new THREE.MeshStandardMaterial({ color: 0xc2410c });
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 12), headMat);
+            head.position.y = 3.45;
+            fishermanGroup.add(head);
+
+            const hat = new THREE.Mesh(new THREE.ConeGeometry(0.65, 0.45, 12), legsMat);
+            hat.position.y = 3.75;
+            hat.rotation.x = -0.2; // Brim angled against wind
+            fishermanGroup.add(hat);
+
+            // Arms gripping deck safety railing
+            const armGeo = new THREE.CylinderGeometry(0.14, 0.14, 1.0);
+            const armL = new THREE.Mesh(armGeo, jacketMat);
+            armL.rotation.z = Math.PI / 4;
+            armL.position.set(-0.5, 2.65, 0.35);
+            fishermanGroup.add(armL);
+
+            const armR = new THREE.Mesh(armGeo, jacketMat);
+            armR.rotation.z = -Math.PI / 4;
+            armR.position.set(0.5, 2.65, 0.35);
+            fishermanGroup.add(armR);
+
+            fishermanGroup.position.set(0, 0, 2.6);
+            boatGroup.add(fishermanGroup);
+
+            // Place boat in the scene viewport
+            boatGroup.position.set(-0.8, 0, 3.5);
+            scene.add(boatGroup);
+        }
+
+        // 4. Create Volumetric Monster Crashing Wave (Steep Hydraulic Curl)
+        function createVolumetricMonsterWave() {
+            giantWaveGroup = new THREE.Group();
+
+            // Massive Barrel Wave Curve
+            const waveGeo = new THREE.CylinderGeometry(20, 28, 80, 40, 20, true, 0, Math.PI * 0.95);
+            waveGeo.rotateZ(Math.PI / 2);
+            waveGeo.rotateX(-Math.PI / 3.2);
+
+            const waveMat = new THREE.MeshStandardMaterial({
+                color: 0x0284c7,
+                roughness: 0.08,
+                metalness: 0.85,
+                transparent: true,
+                opacity: 0.92,
+                flatShading: true
+            });
+
+            const waveMesh = new THREE.Mesh(waveGeo, waveMat);
+            giantWaveGroup.add(waveMesh);
+
+            // Frothing White Sea Foam Crest
+            const foamGeo = new THREE.TorusGeometry(28, 1.6, 8, 36, Math.PI * 0.9);
+            foamGeo.rotateY(Math.PI / 2);
+            const foamMat = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                roughness: 0.2,
+                emissive: 0xbae6fd,
+                emissiveIntensity: 0.5
+            });
+            const foamCrest = new THREE.Mesh(foamGeo, foamMat);
+            foamCrest.position.set(0, 7.5, 0);
+            giantWaveGroup.add(foamCrest);
+
+            giantWaveGroup.position.set(0, -35, -55);
+            scene.add(giantWaveGroup);
+        }
+
+        // 5. Realistic Sea Foam & Rain Particle Emitters
+        function createVolumetricFoamAndRainParticles() {
+            // A. Rain Particles
+            const rainCount = 1800;
+            const rainGeo = new THREE.BufferGeometry();
+            const rainPos = new Float32Array(rainCount * 3);
+
+            for (let i = 0; i < rainCount * 3; i += 3) {
+                rainPos[i] = (Math.random() - 0.5) * 130;
+                rainPos[i + 1] = Math.random() * 55;
+                rainPos[i + 2] = (Math.random() - 0.5) * 130;
+            }
+            rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+            const rainMat = new THREE.PointsMaterial({ color: 0xbae6fd, size: 0.35, transparent: true, opacity: 0.65 });
+            rainParticles = new THREE.Points(rainGeo, rainMat);
+            scene.add(rainParticles);
+
+            // B. Sea Foam Splash Particles on Boat Deck
+            const foamCount = 600;
+            const foamGeo = new THREE.BufferGeometry();
+            const foamPos = new Float32Array(foamCount * 3);
+            for (let i = 0; i < foamCount * 3; i += 3) {
+                foamPos[i] = (Math.random() - 0.5) * 8.0 - 0.8;
+                foamPos[i + 1] = Math.random() * 3.0 + 1.0;
+                foamPos[i + 2] = (Math.random() - 0.5) * 12.0 + 3.5;
+            }
+            foamGeo.setAttribute('position', new THREE.BufferAttribute(foamPos, 3));
+            const foamSprayMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.45, transparent: true, opacity: 0.75 });
+            foamParticles = new THREE.Points(foamGeo, foamSprayMat);
+            scene.add(foamParticles);
+        }
+
+        // 6. Photorealistic Gerstner Wave Formula
+        function getGerstnerWaterHeight(x, z, t) {
+            const multiplier = isStormMode ? 3.2 : 0.75;
+            // Wave 1: Primary deep swell
+            const w1 = Math.sin(x * 0.08 + t * 2.5) * 1.6 * multiplier;
+            // Wave 2: Cross sea swell
+            const w2 = Math.cos(z * 0.07 + t * 2.1) * 1.4 * multiplier;
+            // Wave 3: Choppy secondary crests
+            const w3 = Math.sin((x * 0.06 + z * 0.06) + t * 3.2) * 0.9 * multiplier;
+            return w1 + w2 + w3;
+        }
+
+        // 7. Mouse Perspective Parallax
+        let mouseX = 0, mouseY = 0;
+        function onDocumentMouseMove(e) {
+            mouseX = (e.clientX - window.innerWidth / 2) * 0.01;
+            mouseY = (e.clientY - window.innerHeight / 2) * 0.01;
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // 8. 60-FPS Realistic Physics & Dynamic Sinking Loop
+        let lastLightningTime = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            const t = clock.getElapsedTime();
+
+            // A. Gerstner Wave Surface Dynamic Deform
+            if (oceanGeometry) {
+                const pos = oceanGeometry.attributes.position;
+                for (let i = 0; i < pos.count; i++) {
+                    const vx = pos.getX(i);
+                    const vz = pos.getZ(i);
+                    const vy = getGerstnerWaterHeight(vx, vz, t);
+                    pos.setY(i, vy);
+                }
+                pos.needsUpdate = true;
+                oceanGeometry.computeVertexNormals();
+            }
+
+            // B. Random Atmospheric Lightning Flash (Every 6-10s)
+            if (isStormMode && t - lastLightningTime > 7.0 && Math.random() < 0.03) {
+                lastLightningTime = t;
+                lightningLight.intensity = 8.0;
+                setTimeout(() => { lightningLight.intensity = 0; }, 120);
+                setTimeout(() => { lightningLight.intensity = 4.0; }, 180);
+                setTimeout(() => { lightningLight.intensity = 0; }, 260);
+            }
+
+            // C. Realistic Sinking (Dubna) & Buoyancy Physics Cycle
+            if (boatGroup) {
+                const bx = boatGroup.position.x;
+                const bz = boatGroup.position.z;
+                const baseWaterY = getGerstnerWaterHeight(bx, bz, t);
+
+                const cycleTime = 12.0; // 12-second dramatic cycle
+                const progress = (t % cycleTime) / cycleTime; // 0.0 to 1.0
+
+                let submersionY = 0;
+                let pitchAngle = 0;
+                let rollAngle = 0;
+
+                const dropletsEl = document.getElementById('lens-droplets');
+
+                if (isStormMode) {
+                    if (progress >= 0.52 && progress <= 0.82) {
+                        // 🌊 MONSTER TSUNAMI WAVE STRIKES & SINKS BOAT!
+                        const strike = (progress - 0.52) / 0.30; // 0.0 to 1.0
+
+                        // Deep Plunge: 6.2 meters underwater!
+                        submersionY = -Math.sin(strike * Math.PI) * 6.2;
+                        
+                        // Violent nose dip & 70° capsize roll
+                        pitchAngle = -Math.sin(strike * Math.PI * 2) * 0.95;
+                        rollAngle = Math.sin(strike * Math.PI) * 0.85;
+
+                        // Fisherman looks up at giant wave & braces
+                        if (fishermanGroup) {
+                            fishermanGroup.rotation.x = Math.sin(t * 12) * 0.5 - 0.4;
+                            fishermanGroup.rotation.z = Math.cos(t * 9) * 0.4;
+                        }
+
+                        // Water Droplets Splash on Screen Lens
+                        if (dropletsEl) dropletsEl.style.opacity = '1.0';
+
+                        // HUD alert
+                        const hud = document.getElementById('wave-height-hud');
+                        if (hud) hud.textContent = "VESSEL CAPSIZING & FULLY SINKING (6.2M DEPTH)";
+                    } else {
+                        // Normal heavy storm pitching on water surface
+                        submersionY = 0;
+                        pitchAngle = Math.sin(t * 2.3) * 0.35;
+                        rollAngle = Math.cos(t * 1.9) * 0.28;
+
+                        if (fishermanGroup) {
+                            fishermanGroup.rotation.set(0, 0, 0);
+                        }
+
+                        if (dropletsEl) dropletsEl.style.opacity = '0.0';
+
+                        const hud = document.getElementById('wave-height-hud');
+                        if (hud) hud.textContent = "8.2M ROGUE SWELL APPROACHING";
+                    }
+                } else {
+                    // Calm water
+                    submersionY = 0;
+                    pitchAngle = Math.sin(t * 1.2) * 0.08;
+                    rollAngle = Math.cos(t * 0.9) * 0.06;
+                    if (dropletsEl) dropletsEl.style.opacity = '0.0';
+                }
+
+                // Smooth Buoyancy Interpolation
+                boatGroup.position.y += (baseWaterY + submersionY + 0.25 - boatGroup.position.y) * 0.15;
+                boatGroup.rotation.x += (pitchAngle - boatGroup.rotation.x) * 0.12;
+                boatGroup.rotation.z += (rollAngle - boatGroup.rotation.z) * 0.12;
+                boatGroup.rotation.y = Math.sin(t * 0.4) * 0.14;
+
+                // Spin Radar Scanner
+                const radar = boatGroup.getObjectByName("radarBar");
+                if (radar) radar.rotation.y = t * 6.0;
+            }
+
+            // D. Monster Wave Approaches and Overwashes Boat
+            if (giantWaveGroup) {
+                const cycleTime = 12.0;
+                const progress = (t % cycleTime) / cycleTime;
+
+                if (isStormMode) {
+                    const waveZ = -55 + progress * 80;
+                    const waveY = Math.sin(progress * Math.PI) * 11.0 - 2.5; // Rises 11m high!
+                    giantWaveGroup.position.set(-0.8, waveY, waveZ);
+                    giantWaveGroup.scale.set(1 + progress * 0.7, 1 + progress * 0.9, 1);
+                } else {
+                    giantWaveGroup.position.y = -40;
+                }
+            }
+
+            // E. Rain Fall Physics
+            if (rainParticles) {
+                const p = rainParticles.geometry.attributes.position;
+                for (let i = 1; i < p.count * 3; i += 3) {
+                    p.array[i] -= isStormMode ? 1.8 : 0.4;
+                    if (p.array[i] < -4) p.array[i] = 50;
+                }
+                p.needsUpdate = true;
+            }
+
+            // F. Camera Perspective Motion
+            camera.position.x += (-3.2 + mouseX * 1.4 - camera.position.x) * 0.03;
+            camera.position.y += (5.0 - mouseY * 0.7 - camera.position.y) * 0.03;
+            camera.lookAt(-0.2, 1.6, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        // 9. Interactive UI Functions
+        window.toggleUiVisibility = function() {
+            isUiVisible = !isUiVisible;
+            const container = document.getElementById('login-container');
+            const eyeIcon = document.getElementById('ui-eye-icon');
+            const eyeLabel = document.getElementById('ui-eye-label');
+
+            if (isUiVisible) {
+                container.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
+                container.classList.add('opacity-100', 'scale-100');
+                if (eyeIcon) eyeIcon.textContent = "visibility";
+                if (eyeLabel) eyeLabel.textContent = "Cinema Mode";
+            } else {
+                container.classList.remove('opacity-100', 'scale-100');
+                container.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
+                if (eyeIcon) eyeIcon.textContent = "visibility_off";
+                if (eyeLabel) eyeLabel.textContent = "Show Login";
+            }
+        };
+
+        window.toggleStormMode = function() {
+            isStormMode = !isStormMode;
+            const badge = document.getElementById('sim-status-badge');
+            const label = document.getElementById('storm-btn-label');
+
+            if (isStormMode) {
+                if (badge) badge.className = "hidden sm:flex items-center gap-2 bg-rose-950/60 backdrop-blur-md border border-rose-500/40 text-rose-300 text-xs px-3.5 py-1.5 rounded-xl font-mono shadow-md";
+                if (label) label.textContent = "Storm Surge";
+                scene.fog.color.setHex(0x011222);
+            } else {
+                if (badge) badge.className = "hidden sm:flex items-center gap-2 bg-emerald-950/60 backdrop-blur-md border border-emerald-500/40 text-emerald-300 text-xs px-3.5 py-1.5 rounded-xl font-mono shadow-md";
+                if (label) label.textContent = "Calm Water";
+                scene.fog.color.setHex(0x042440);
+            }
+        };
+
+        window.switchLoginRole = function(role) {
+            const fisherBtn = document.getElementById('tab-fisher-btn');
+            const officerBtn = document.getElementById('tab-officer-btn');
+            const formFisher = document.getElementById('form-fisher');
+            const formOfficer = document.getElementById('form-officer');
+
+            if (role === 'fisher') {
+                fisherBtn.className = "flex-1 py-2 rounded-lg bg-cyan-600/90 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                officerBtn.className = "flex-1 py-2 rounded-lg text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                formFisher.classList.remove('hidden');
+                formOfficer.classList.add('hidden');
+            } else {
+                officerBtn.className = "flex-1 py-2 rounded-lg bg-cyan-600/90 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                fisherBtn.className = "flex-1 py-2 rounded-lg text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                formOfficer.classList.remove('hidden');
+                formFisher.classList.add('hidden');
+            }
+        };
+
+        window.handleAuthSubmit = function(e, role) {
+            e.preventDefault();
+            let user = {};
+            if (role === 'fisher') {
+                user = {
+                    role: 'fisher',
+                    name: document.getElementById('fisher-captain-name').value,
+                    vessel: document.getElementById('fisher-vessel-no').value,
+                    harbor: document.getElementById('fisher-harbor').value
+                };
+            } else {
+                user = {
+                    role: 'officer',
+                    name: `Officer (${document.getElementById('officer-id').value})`,
+                    email: document.getElementById('officer-email').value,
+                    harbor: 'all'
+                };
+            }
+
+            localStorage.setItem('orca_user', JSON.stringify(user));
+            window.location.href = "index.html";
+        };
+
+        window.quickFillDemo = function() {
+            const demoUser = {
+                role: 'fisher',
+                name: 'Capt. R. Murugan',
+                vessel: 'IND-TN-02-MM-4421',
+                harbor: 'chennai'
+            };
+            localStorage.setItem('orca_user', JSON.stringify(demoUser));
+            window.location.href = "index.html";
+        };
+
+        // Start Photorealistic 3D Engine on load
+        window.addEventListener('DOMContentLoaded', () => {
+            init3D();
+            animate();
+        });
+    </script>
+</body>
+</html>

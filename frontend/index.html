@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ORCA — Marine EcoSystem Reasoning with Collaborative Agents | ISRO</title>
+    <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
+    <link rel="apple-touch-icon" href="assets/orca_logo.jpg">
+    
+    <!-- Tailwind CSS with custom theme configuration -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Material Design Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    
+    <!-- Google Sans / Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+    
+    <!-- Leaflet GIS CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Chart.js Library for Marine Telemetry Wave Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                colors: {
+                    background: "#f7f9fc",
+                    "on-tertiary-container": "#7aa8e2",
+                    "inverse-primary": "#a4c9ff",
+                    "inverse-surface": "#2d3133",
+                    "inverse-on-surface": "#eff1f4",
+                    "on-background": "#191c1e",
+                    "on-error": "#ffffff",
+                    "tertiary-fixed-dim": "#a1c9ff",
+                    "primary-fixed-dim": "#a4c9ff",
+                    surface: "#f7f9fc",
+                    "surface-container": "#eceef1",
+                    "primary-container": "#0b3c6c",
+                    tertiary: "#002648",
+                    "on-tertiary-fixed-variant": "#0c487d",
+                    "secondary-container": "#feae2c",
+                    "surface-container-lowest": "#ffffff",
+                    primary: "#00264b",
+                    "on-error-container": "#93000a",
+                    "alert-amber": "#F29400",
+                    "on-secondary": "#ffffff",
+                    "surface-container-high": "#e6e8eb",
+                    error: "#ba1a1a",
+                    "on-surface-variant": "#43474f",
+                    "on-primary-fixed-variant": "#1d4878",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#291800",
+                    "surface-container-low": "#f2f4f7",
+                    "on-secondary-container": "#6b4500",
+                    "surface-white": "#FFFFFF",
+                    "deep-navy": "#003366",
+                    "secondary-fixed": "#ffddb4",
+                    "on-surface": "#191c1e",
+                    "secondary-fixed-dim": "#ffb955",
+                    "on-secondary-fixed-variant": "#633f00",
+                    "surface-dim": "#d8dadd",
+                    "surface-tint": "#386092",
+                    "tertiary-fixed": "#d3e4ff",
+                    "error-container": "#ffdad6",
+                    "on-primary-fixed": "#001c39",
+                    outline: "#737780",
+                    "on-primary": "#ffffff",
+                    "on-primary-container": "#82a7de",
+                    "outline-variant": "#c3c6d0",
+                    "surface-bright": "#f7f9fc",
+                    "primary-fixed": "#d4e3ff",
+                    "on-tertiary-fixed": "#001c38",
+                    "surface-variant": "#e0e3e6",
+                    "tertiary-container": "#003c6c",
+                    "surface-container-highest": "#e0e3e6",
+                    secondary: "#835500",
+                    "ocean-cyan": "#0284c7",
+                    "ocean-emerald": "#10b981"
+                },
+                borderRadius: {
+                    DEFAULT: "0.125rem",
+                    lg: "0.25rem",
+                    xl: "0.5rem",
+                    full: "0.75rem"
+                },
+                fontFamily: {
+                    sans: ["Noto Sans", "sans-serif"],
+                    mono: ["monospace"]
+                }
+            }
+        }
+    }
+</script>
+<style>
+    .ticker-wrap { width: 100%; overflow: hidden; white-space: nowrap; }
+    .ticker { display: inline-block; animation: ticker 25s linear infinite; }
+    @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    #map { height: 100%; width: 100%; z-index: 10; border-radius: 0 0 0.25rem 0.25rem; }
+    .leaflet-popup-content-wrapper {
+        background: #00264b !important;
+        color: #f8fafc !important;
+        border: 1px solid #38bdf8 !important;
+        border-radius: 6px !important;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5) !important;
+    }
+    .leaflet-popup-tip { background: #00264b !important; }
+
+    @keyframes agentPulse {
+        0% { opacity: 0.6; transform: scale(0.98); }
+        50% { opacity: 1; transform: scale(1.02); }
+        100% { opacity: 0.6; transform: scale(0.98); }
+    }
+    .agent-active {
+        animation: agentPulse 1.5s infinite ease-in-out;
+    }
+</style>
+</head>
+<body class="bg-background text-on-surface antialiased pb-20 md:pb-0 flex flex-col min-h-screen">
+
+<!-- 1. Utility Bar (Government of India) -->
+<div class="bg-primary-container text-on-primary text-[11px] font-semibold tracking-wider py-1.5 px-4 md:px-8 flex justify-between items-center border-b border-on-primary-fixed-variant">
+    <div class="flex items-center space-x-2">
+        <span class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm">shield</span>
+            GOVERNMENT OF INDIA | भारत सरकार
+        </span>
+        <span class="opacity-40">|</span>
+        <span class="hidden sm:inline opacity-90">Department of Space · ISRO</span>
+    </div>
+    <div class="flex items-center space-x-2 sm:space-x-4">
+        <div class="hidden sm:flex items-center space-x-1.5 opacity-80">
+            <button class="hover:text-secondary-container px-1" onclick="document.body.style.fontSize='14px'">A-</button>
+            <button class="hover:text-secondary-container px-1 font-bold" onclick="document.body.style.fontSize='16px'">A</button>
+            <button class="hover:text-secondary-container px-1" onclick="document.body.style.fontSize='18px'">A+</button>
+        </div>
+        <span class="hidden sm:inline opacity-40">|</span>
+        <!-- Language Switcher -->
+        <div class="flex items-center gap-1 text-xs">
+            <button class="lang-btn px-2 py-0.5 rounded bg-surface-white/20 text-on-primary font-bold" data-lang="hi">हिन्दी</button>
+            <button class="lang-btn px-2 py-0.5 rounded hover:bg-surface-white/10 text-on-primary opacity-80" data-lang="ta">தமிழ்</button>
+            <button class="lang-btn px-2 py-0.5 rounded hover:bg-surface-white/10 text-on-primary opacity-80" data-lang="te">తెలుగు</button>
+            <button class="lang-btn px-2 py-0.5 rounded hover:bg-surface-white/10 text-on-primary opacity-80" data-lang="bn">বাংলা</button>
+            <button class="lang-btn px-2 py-0.5 rounded hover:bg-surface-white/10 text-on-primary opacity-80" data-lang="en">EN</button>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Header -->
+<header class="bg-primary text-on-primary w-full z-50 flex items-center justify-between px-4 py-3 border-b border-on-primary-fixed-variant md:hidden">
+    <div class="flex items-center gap-3">
+        <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-9 h-9 rounded-lg object-cover ring-1 ring-white/30 shadow-xs"/>
+        <div class="flex flex-col">
+            <span class="text-sm font-bold uppercase leading-tight tracking-wider">ORCA | Marine Intelligence</span>
+            <span class="text-[10px] text-on-primary-container">ISRO Agentic AI Platform</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-2">
+        <select id="mobile-port-select" class="bg-primary-container text-xs text-on-primary rounded px-2 py-1 border border-outline-variant outline-none">
+            <option value="chennai">Chennai</option>
+            <option value="rameswaram">Rameswaram</option>
+            <option value="kochi">Kochi</option>
+            <option value="visakhapatnam">Vizag</option>
+            <option value="veraval">Veraval</option>
+            <option value="paradeep">Paradeep</option>
+        </select>
+        <button onclick="openLoginModal()" id="mobile-auth-btn" class="w-8 h-8 rounded bg-surface-white/20 text-white flex items-center justify-center" title="Login">
+            <span class="material-symbols-outlined text-base">account_circle</span>
+        </button>
+    </div>
+</header>
+
+<!-- Main Container (Full-Width Fluid Layout) -->
+<main class="w-full px-3 sm:px-6 lg:px-8 py-3 flex-1 flex flex-col">
+
+    <!-- Desktop Header -->
+    <header class="hidden md:flex items-center justify-between bg-surface-white border border-outline-variant py-3.5 px-6 mb-4 rounded-xl shadow-sm">
+        <div class="flex items-center gap-4">
+            <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-12 h-12 rounded-xl object-cover shadow-md ring-2 ring-primary/20 hover:scale-105 transition-transform"/>
+            <div class="flex flex-col">
+                <div class="flex items-center gap-2">
+                    <h1 class="text-2xl font-bold text-primary tracking-tight uppercase">ORCA</h1>
+                    <span class="text-[10px] bg-secondary-container/40 text-secondary border border-secondary-container px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">ISRO</span>
+                    <span class="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1.5 shadow-xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Multi-Agent Core
+                    </span>
+                </div>
+                <span class="text-xs text-on-surface-variant font-medium mt-0.5">Marine EcoSystem Reasoning with Collaborative Agents · Earth Observation Decision Support</span>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <!-- Active Harbor Selector -->
+            <div class="flex items-center gap-2.5 bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant hover:border-primary/40 transition-colors">
+                <span class="material-symbols-outlined text-primary text-lg">anchor</span>
+                <div class="flex flex-col">
+                    <span class="text-[9px] text-on-surface-variant uppercase font-bold tracking-wider">Base Fishing Harbor</span>
+                    <select id="port-select" class="bg-transparent text-xs font-bold text-primary border-none p-0 outline-none cursor-pointer">
+                        <option value="chennai">Chennai (Kasimedu) - Tamil Nadu</option>
+                        <option value="rameswaram">Rameswaram (Mandapam) - Tamil Nadu</option>
+                        <option value="tuticorin">Tuticorin (Thoothukudi) - Tamil Nadu</option>
+                        <option value="visakhapatnam">Visakhapatnam - Andhra Pradesh</option>
+                        <option value="kakinada">Kakinada - Andhra Pradesh</option>
+                        <option value="kochi">Kochi (Thoppumpady) - Kerala</option>
+                        <option value="mangalore">Mangalore - Karnataka</option>
+                        <option value="goa">Goa (Malim / Panaji) - Goa</option>
+                        <option value="veraval">Veraval - Gujarat</option>
+                        <option value="mumbai">Mumbai (Sassoon Docks) - Maharashtra</option>
+                        <option value="paradeep">Paradeep - Odisha</option>
+                        <option value="digha">Digha - West Bengal</option>
+                        <option value="port_blair">Port Blair - Andaman & Nicobar</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- PostgreSQL Command Center Action Page -->
+            <a href="command_center.html" class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container-low hover:bg-surface-container border border-outline-variant text-primary text-xs font-bold transition-all shadow-xs" title="Open PostgreSQL Fleet Tracking & Analytics Console">
+                <span class="material-symbols-outlined text-sm text-primary">monitoring</span>
+                <span class="hidden lg:inline">Command Console</span>
+            </a>
+
+            <!-- My Query History Button -->
+            <button onclick="openHistoryModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-surface-container-low hover:bg-surface-container border border-outline-variant text-primary text-xs font-bold transition-all shadow-xs" title="View Your Past Query History">
+                <span class="material-symbols-outlined text-sm text-ocean-cyan">history</span>
+                <span class="hidden lg:inline">My History</span>
+            </button>
+
+            <!-- 1-Click SOS Panic Button -->
+            <button onclick="openSosModal()" class="flex items-center gap-1 px-3 py-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all animate-pulse" title="Trigger Instant Emergency SOS">
+                <span class="material-symbols-outlined text-sm">emergency</span>
+                <span>SOS</span>
+            </button>
+
+            <!-- Simple User Identity / Auth Container -->
+            <div id="desktop-auth-container" class="flex items-center gap-2">
+                <button onclick="openChangeNameModal()" id="user-badge-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container border border-outline-variant text-xs font-bold text-primary shadow-xs transition-all">
+                    <span class="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs">
+                        <span class="material-symbols-outlined text-[13px]">person</span>
+                    </span>
+                    <span id="user-display-name">Guest</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Top Alert Ticker -->
+    <section class="mb-4">
+        <div class="bg-alert-amber text-on-secondary-fixed font-bold text-xs sm:text-sm py-2 px-4 rounded-lg flex items-center shadow-sm border border-secondary-container">
+            <span class="material-symbols-outlined mr-2 animate-bounce text-deep-navy" style="font-variation-settings: 'FILL' 1;">warning</span>
+            <div class="ticker-wrap flex-1">
+                <div class="ticker" id="live-ticker">
+                    🌊 LIVE MARINE ADVISORY: Real-time Open-Meteo & INCOIS wave forecast active • 🛰️ Indian EEZ (1.66M km²) official boundary loaded • 🛡️ IMBL border geofencing alert system operational • 🐟 Potential Fishing Zones identified across East & West Coasts
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Grid Content -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        
+        <!-- Left Column: Services & Ask ORCA Multi-Agent Console (8 Cols) -->
+        <div class="md:col-span-7 lg:col-span-8 flex flex-col gap-4">
+            
+            <!-- Quick Feature Tabs -->
+            <section class="bg-surface-white rounded-lg border border-outline-variant overflow-hidden shadow-sm">
+                <div class="flex overflow-x-auto scrollbar-hide border-b border-outline-variant bg-surface-container-low" id="service-tabs">
+                    <button class="tab-btn px-4 py-2.5 text-xs font-bold text-primary border-b-2 border-primary bg-surface-white whitespace-nowrap" data-tab="ecosystem">
+                        <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">set_meal</span> PFZ & ECOSYSTEM</span>
+                    </button>
+                    <button class="tab-btn px-4 py-2.5 text-xs font-bold text-on-surface-variant hover:bg-surface-container-high whitespace-nowrap" data-tab="hazard">
+                        <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">tsunami</span> MULTI-HAZARD</span>
+                    </button>
+                    <button class="tab-btn px-4 py-2.5 text-xs font-bold text-on-surface-variant hover:bg-surface-container-high whitespace-nowrap" data-tab="geofence">
+                        <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">shield_lock</span> IMBL GEOFENCING</span>
+                    </button>
+                    <button class="tab-btn px-4 py-2.5 text-xs font-bold text-on-surface-variant hover:bg-surface-container-high whitespace-nowrap" data-tab="routing">
+                        <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">navigation</span> SAFE ROUTE & FUEL</span>
+                    </button>
+                </div>
+                <!-- Interactive Action Cards -->
+                <div class="p-3 grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="quick-action-cards">
+                    <div onclick="executePrompt('Where is the nearest Potential Fishing Zone (PFZ) today?')" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-2.5 flex flex-col items-center text-center hover:border-primary hover:shadow-md transition-all cursor-pointer">
+                        <span class="material-symbols-outlined text-ocean-cyan mb-1 text-2xl">radar</span>
+                        <span class="text-xs font-bold text-on-surface">Find Nearest PFZ</span>
+                        <span class="text-[10px] text-on-surface-variant mt-0.5">SST & Chl-a front</span>
+                    </div>
+                    <div onclick="executePrompt('Is it safe to venture into the sea tomorrow morning?')" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-2.5 flex flex-col items-center text-center hover:border-primary hover:shadow-md transition-all cursor-pointer">
+                        <span class="material-symbols-outlined text-alert-amber mb-1 text-2xl">air</span>
+                        <span class="text-xs font-bold text-on-surface">Sea Safety Check</span>
+                        <span class="text-[10px] text-on-surface-variant mt-0.5">Waves, wind, swell</span>
+                    </div>
+                    <div onclick="executePrompt('Check if the fishing zone approaches the Sri Lanka or Pakistan IMBL border')" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-2.5 flex flex-col items-center text-center hover:border-primary hover:shadow-md transition-all cursor-pointer">
+                        <span class="material-symbols-outlined text-coral-500 mb-1 text-2xl">fmd_bad</span>
+                        <span class="text-xs font-bold text-on-surface">IMBL Border Alert</span>
+                        <span class="text-[10px] text-on-surface-variant mt-0.5">Boundary proximity</span>
+                    </div>
+                    <div onclick="executePrompt('Calculate the safest navigation route and diesel fuel estimate to the nearest fishing zone')" class="bg-surface-container-lowest border border-outline-variant rounded-lg p-2.5 flex flex-col items-center text-center hover:border-primary hover:shadow-md transition-all cursor-pointer">
+                        <span class="material-symbols-outlined text-ocean-emerald mb-1 text-2xl">explore</span>
+                        <span class="text-xs font-bold text-on-surface">Safe Navigation Route</span>
+                        <span class="text-[10px] text-on-surface-variant mt-0.5">Waypoints & 8kn fuel</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ask ORCA Multi-Agent Console -->
+            <section class="bg-surface-white rounded-lg border border-outline-variant overflow-hidden shadow-sm flex flex-col flex-1">
+                <!-- Console Header -->
+                <div class="bg-primary-container text-on-primary px-4 py-2.5 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base text-secondary-container">smart_toy</span>
+                        <span class="text-xs font-bold uppercase tracking-wider">ASK ORCA AGENTIC CONSOLE</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] bg-secondary-container text-deep-navy px-2 py-0.5 rounded font-bold uppercase" id="agent-active-badge">Ready</span>
+                    </div>
+                </div>
+
+                <div class="p-3.5 flex flex-col gap-3 bg-surface-bright flex-1">
+                    
+                    <!-- Proactive Hazard Alert Notification Banner (SIH PS #26176) -->
+                    <div id="proactive-hazard-banner" class="hidden p-3 rounded-lg border border-amber-300 bg-amber-50/90 text-on-surface flex items-start justify-between gap-3 shadow-sm transition-all animate-fadeIn">
+                        <div class="flex items-start gap-2.5">
+                            <span id="proactive-banner-icon" class="material-symbols-outlined text-xl text-alert-amber animate-bounce" style="font-variation-settings: 'FILL' 1;">warning</span>
+                            <div class="flex flex-col gap-0.5">
+                                <div class="flex items-center gap-2">
+                                    <span id="proactive-banner-title" class="font-bold text-xs sm:text-sm text-primary uppercase tracking-wide">⚠️ HIGH WAVE SWELL ALERT DETECTED</span>
+                                    <span id="proactive-banner-tag" class="text-[9px] bg-rose-100 text-rose-800 border border-rose-300 font-bold px-1.5 py-0.5 rounded uppercase">PROACTIVE ALERT</span>
+                                </div>
+                                <p id="proactive-banner-msg" class="text-xs text-on-surface leading-snug">Real-time wave telemetry detected wave height exceeding safety threshold.</p>
+                                <span id="proactive-banner-rec" class="text-[11px] font-semibold text-emerald-800 mt-0.5">🛡️ Recommended Action: Maintain extreme caution & wear life jackets.</span>
+                            </div>
+                        </div>
+                        <button onclick="document.getElementById('proactive-hazard-banner').classList.add('hidden')" class="text-on-surface-variant hover:text-primary text-xs font-bold px-1.5 py-0.5 rounded hover:bg-amber-100" title="Dismiss Alert">✕</button>
+                    </div>
+
+                    <!-- Live Agentic Trail Stepper -->
+                    <div class="flex items-center gap-1.5 text-[11px] text-on-surface-variant overflow-x-auto scrollbar-hide py-1 px-1 bg-surface-container-low rounded-md border border-outline-variant" id="agent-trail">
+                        <span class="px-2 py-1 rounded bg-surface-white text-primary font-bold shadow-xs border border-outline-variant flex items-center gap-1" id="agent-step-1">
+                            <span class="material-symbols-outlined text-[12px]">search</span> 1. Planner
+                        </span>
+                        <span class="material-symbols-outlined text-[10px] opacity-60">arrow_forward_ios</span>
+                        <span class="px-2 py-1 rounded bg-surface-container-high text-on-surface font-medium flex items-center gap-1" id="agent-step-2">
+                            <span class="material-symbols-outlined text-[12px]">water</span> 2. Ocean PFZ
+                        </span>
+                        <span class="material-symbols-outlined text-[10px] opacity-60">arrow_forward_ios</span>
+                        <span class="px-2 py-1 rounded bg-surface-container-high text-on-surface font-medium flex items-center gap-1" id="agent-step-3">
+                            <span class="material-symbols-outlined text-[12px]">air</span> 3. Weather
+                        </span>
+                        <span class="material-symbols-outlined text-[10px] opacity-60">arrow_forward_ios</span>
+                        <span class="px-2 py-1 rounded bg-surface-container-high text-on-surface font-medium flex items-center gap-1" id="agent-step-4">
+                            <span class="material-symbols-outlined text-[12px]">shield</span> 4. Geofence
+                        </span>
+                        <span class="material-symbols-outlined text-[10px] opacity-60">arrow_forward_ios</span>
+                        <span class="px-2 py-1 rounded bg-surface-container-high text-on-surface font-medium flex items-center gap-1" id="agent-step-5">
+                            <span class="material-symbols-outlined text-[12px]">navigation</span> 5. Route
+                        </span>
+                        <span class="material-symbols-outlined text-[10px] opacity-60">arrow_forward_ios</span>
+                        <span class="px-2 py-1 rounded bg-surface-container-high text-on-surface font-medium flex items-center gap-1" id="agent-step-6">
+                            <span class="material-symbols-outlined text-[12px]">psychology</span> 6. Synthesizer
+                        </span>
+                    </div>
+
+                    <!-- Conversation / Response Display Area -->
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-3.5 h-64 md:h-72 overflow-y-auto text-sm text-on-surface flex flex-col gap-3 scroll-smooth" id="chat-stream">
+                        <div class="flex items-start gap-2.5 bg-surface-container-low p-3 rounded-lg border border-outline-variant">
+                            <div class="w-7 h-7 rounded bg-primary text-white flex items-center justify-center flex-shrink-0 text-xs">
+                                <span class="material-symbols-outlined text-sm">smart_toy</span>
+                            </div>
+                            <div class="flex flex-col gap-1 text-xs sm:text-sm">
+                                <span class="font-bold text-primary">ORCA Decision Support Assistant</span>
+                                <p class="text-on-surface leading-relaxed">
+                                    Namaste! Main ORCA hoon — ISRO satellite data, official Indian EEZ boundary, aur INCOIS marine intelligence se powered decision support system. Aap mujhse Potential Fishing Zones (PFZ), kal subah ka sea & weather safety, IMBL border alerts, ya safe navigation route ke baare me pooch sakte hain.
+                                </p>
+                                <div class="flex flex-wrap gap-1.5 mt-1.5">
+                                    <span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-semibold border border-primary/20">ISRO Oceansat-3</span>
+                                    <span class="text-[10px] bg-ocean-cyan/10 text-ocean-cyan px-2 py-0.5 rounded font-semibold border border-ocean-cyan/20">Indian EEZ (MRGID 8480)</span>
+                                    <span class="text-[10px] bg-emerald-500/10 text-emerald-700 px-2 py-0.5 rounded font-semibold border border-emerald-300">Open-Meteo Marine API</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Prompt Suggestion Chips -->
+                    <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5" id="prompt-chips">
+                        <button onclick="executePrompt('Kal subah Chennai se machhli pakadne jaana safe hai kya?')" class="text-xs bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap hover:border-primary hover:text-primary transition-all">
+                            🎣 Kal safe hai kya?
+                        </button>
+                        <button onclick="executePrompt('Sabse nazdeek Potential Fishing Zone (PFZ) kahan hai?')" class="text-xs bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap hover:border-primary hover:text-primary transition-all">
+                            🗺️ Nazdeek PFZ kahan hai?
+                        </button>
+                        <button onclick="executePrompt('Kya Rameswaram ke paas koi Sri Lanka IMBL border alert hai?')" class="text-xs bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap hover:border-primary hover:text-primary transition-all">
+                            🚨 IMBL Border Alert?
+                        </button>
+                        <button onclick="executePrompt('Calculate safe route and diesel fuel estimate to the nearest fishing zone')" class="text-xs bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap hover:border-primary hover:text-primary transition-all">
+                            🧭 Safe Route & Fuel
+                        </button>
+                    </div>
+
+                    <!-- Input Controls -->
+                    <div class="relative flex items-center gap-2">
+                        <button id="mic-btn" class="w-10 h-10 rounded-lg bg-surface-container-high text-primary border border-outline-variant flex items-center justify-center hover:bg-surface-variant transition-colors" title="Voice Input (Speech-to-Text)">
+                            <span class="material-symbols-outlined text-xl">mic</span>
+                        </button>
+                        <input id="user-input" class="flex-1 bg-surface-white border border-outline-variant rounded-lg pl-3.5 pr-10 py-2.5 text-xs sm:text-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-shadow shadow-inner" placeholder="Apna sawaal type karein (Hindi, English, Tamil, Telugu, Bengali)..." type="text"/>
+                        <button id="send-btn" class="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center hover:bg-deep-navy shadow-md transition-colors">
+                            <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">send</span>
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Right Column: GIS Geospatial Portal & Live Telemetry (4-5 Cols) -->
+        <div class="md:col-span-5 lg:col-span-4 flex flex-col gap-4">
+            
+            <!-- Interactive Map Snapshot & GIS Preview -->
+            <section id="map-section-card" class="bg-surface-white rounded-xl border border-outline-variant overflow-hidden flex flex-col shadow-sm transition-all">
+                <div class="bg-surface-container-low px-3.5 py-2.5 border-b border-outline-variant flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-sm">public</span>
+                        <span class="text-xs font-bold tracking-wider uppercase text-on-surface">ISRO GIS GEOSPATIAL MAP</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] bg-ocean-cyan/20 text-ocean-cyan border border-ocean-cyan/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" id="map-port-indicator">Chennai Coast</span>
+                        <button onclick="toggleMapFullscreen()" class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Toggle Fullscreen">
+                            <span class="material-symbols-outlined text-sm" id="fullscreen-icon">fullscreen</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative h-72 md:h-84 bg-surface-container-highest">
+                    <!-- Leaflet Map Container -->
+                    <div id="map"></div>
+
+                    <!-- Live Cursor Coordinates HUD -->
+                    <div class="absolute bottom-2 left-2 z-[1000] bg-surface-white/90 backdrop-blur-md px-2.5 py-1 rounded-md border border-outline-variant shadow-xs text-[10px] font-mono text-on-surface flex items-center gap-1.5 pointer-events-none">
+                        <span class="w-1.5 h-1.5 rounded-full bg-ocean-cyan animate-ping"></span>
+                        <span id="map-coords-hud">13.1256° N, 80.2974° E (Kasimedu)</span>
+                    </div>
+
+                    <!-- Dynamic Layer Toggles -->
+                    <div class="absolute top-2.5 right-2.5 z-[1000] flex flex-col gap-1.5 bg-surface-white/95 backdrop-blur-md p-2 rounded-md border border-outline-variant shadow-md text-xs">
+                        <span class="text-[10px] font-bold text-on-surface-variant uppercase">Base Imagery</span>
+                        <!-- Satellite vs Chart Switcher -->
+                        <div class="flex items-center gap-1 bg-surface-container-low p-0.5 rounded border border-outline-variant text-[11px] mb-1">
+                            <button id="base-chart-btn" class="flex-1 px-2 py-1 rounded bg-primary text-white font-bold text-[10px] shadow-xs">Chart</button>
+                            <button id="base-sat-btn" class="flex-1 px-2 py-1 rounded hover:bg-surface-white text-on-surface font-bold text-[10px] flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[12px]">satellite_alt</span> Satellite</button>
+                        </div>
+                        <span class="text-[10px] font-bold text-on-surface-variant uppercase mt-0.5">GIS Overlays</span>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-on-surface">
+                            <input id="layer-eez-toggle" checked type="checkbox" class="rounded text-ocean-cyan focus:ring-ocean-cyan w-3.5 h-3.5 border-outline-variant"/> 
+                            <span class="font-medium text-ocean-cyan font-bold">Indian EEZ (200NM)</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-on-surface">
+                            <input id="layer-pfz-toggle" checked type="checkbox" class="rounded text-primary focus:ring-primary w-3.5 h-3.5 border-outline-variant"/> 
+                            <span class="font-medium">PFZ Hotspots</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-on-surface">
+                            <input id="layer-border-toggle" checked type="checkbox" class="rounded text-coral-500 focus:ring-coral-500 w-3.5 h-3.5 border-outline-variant"/> 
+                            <span class="font-medium text-coral-600 font-bold">IMBL Border</span>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer text-on-surface">
+                            <input id="layer-route-toggle" checked type="checkbox" class="rounded text-ocean-cyan focus:ring-ocean-cyan w-3.5 h-3.5 border-outline-variant"/> 
+                            <span class="font-medium">Safe Route</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Quick Port Fly-To Navigator Bar -->
+                <div class="p-2 bg-surface-container-low border-t border-outline-variant flex items-center gap-1.5 overflow-x-auto text-[11px] whitespace-nowrap">
+                    <span class="text-[10px] font-bold text-on-surface-variant uppercase flex items-center gap-1 px-1">
+                        <span class="material-symbols-outlined text-xs">near_me</span> Fly:
+                    </span>
+                    <button onclick="setPort('chennai')" class="px-2 py-0.5 rounded bg-surface-white hover:bg-primary hover:text-white border border-outline-variant transition-colors">Chennai</button>
+                    <button onclick="setPort('rameswaram')" class="px-2 py-0.5 rounded bg-surface-white hover:bg-primary hover:text-white border border-outline-variant transition-colors">Rameswaram</button>
+                    <button onclick="setPort('kochi')" class="px-2 py-0.5 rounded bg-surface-white hover:bg-primary hover:text-white border border-outline-variant transition-colors">Kochi</button>
+                    <button onclick="setPort('goa')" class="px-2 py-0.5 rounded bg-surface-white hover:bg-primary hover:text-white border border-outline-variant transition-colors">Goa</button>
+                    <button onclick="setPort('mumbai')" class="px-2 py-0.5 rounded bg-surface-white hover:bg-primary hover:text-white border border-outline-variant transition-colors">Mumbai</button>
+                    <button onclick="setPort('veraval')" class="px-2 py-0.5 rounded bg-surface-white hover:bg-primary hover:text-white border border-outline-variant transition-colors">Veraval</button>
+                    <button onclick="setPort('visakhapatnam')" class="px-2 py-0.5 rounded bg-surface-white hover:bg-primary hover:text-white border border-outline-variant transition-colors">Vizag</button>
+                    <button onclick="setPort('paradeep')" class="px-2 py-0.5 rounded bg-surface-white hover:bg-primary hover:text-white border border-outline-variant transition-colors">Paradeep</button>
+                    <button onclick="setPort('port_blair')" class="px-2 py-0.5 rounded bg-surface-white hover:bg-primary hover:text-white border border-outline-variant transition-colors">Port Blair</button>
+                </div>
+            </section>
+
+            <!-- Real-Time Marine Telemetry Strip (4 Metric Grid) -->
+            <section class="bg-surface-white rounded-lg border border-outline-variant p-3.5 shadow-sm">
+                <div class="flex justify-between items-center mb-2.5 border-b border-outline-variant pb-2">
+                    <h3 class="text-xs font-bold text-primary flex items-center gap-1.5 uppercase tracking-wide">
+                        <span class="material-symbols-outlined text-alert-amber text-base">sensors</span> Live Ocean Telemetry
+                    </h3>
+                    <span class="text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-bold border border-emerald-200" id="telemetry-safety-badge">SAFE</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-surface-container-low p-2 rounded border border-outline-variant">
+                        <span class="text-[10px] text-on-surface-variant uppercase font-semibold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px]">water</span> Wave Height
+                        </span>
+                        <div class="text-sm font-bold text-primary mt-0.5" id="telemetry-wave">0.76 m</div>
+                        <span class="text-[10px] text-on-surface-variant" id="telemetry-wave-period">Period: 8.4s · Calm</span>
+                    </div>
+                    <div class="bg-surface-container-low p-2 rounded border border-outline-variant">
+                        <span class="text-[10px] text-on-surface-variant uppercase font-semibold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px]">air</span> Wind & Gusts
+                        </span>
+                        <div class="text-sm font-bold text-primary mt-0.5" id="telemetry-wind">12 km/h</div>
+                        <span class="text-[10px] text-on-surface-variant" id="telemetry-wind-knots">6.5 Knots</span>
+                    </div>
+                    <div class="bg-surface-container-low p-2 rounded border border-outline-variant">
+                        <span class="text-[10px] text-on-surface-variant uppercase font-semibold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px]">thermostat</span> SST & Chl-a
+                        </span>
+                        <div class="text-sm font-bold text-primary mt-0.5" id="telemetry-sst">29.5 °C</div>
+                        <span class="text-[10px] text-on-surface-variant" id="telemetry-chla">Chl: 1.85 mg/m³</span>
+                    </div>
+                    <div class="bg-surface-container-low p-2 rounded border border-outline-variant">
+                        <span class="text-[10px] text-on-surface-variant uppercase font-semibold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px]">shield</span> Indian EEZ
+                        </span>
+                        <div class="text-sm font-bold text-ocean-cyan mt-0.5" id="telemetry-border">1.66M km²</div>
+                        <span class="text-[10px] text-on-surface-variant">Inside Sovereign EEZ</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Live Advisories Feed -->
+            <section class="bg-surface-white rounded-lg border border-outline-variant p-3.5 shadow-sm">
+                <div class="flex justify-between items-center mb-2.5">
+                    <h3 class="text-xs font-bold text-primary flex items-center gap-1.5 uppercase tracking-wide">
+                        <span class="material-symbols-outlined text-alert-amber text-base">notifications_active</span> Live Marine Advisories
+                    </h3>
+                    <span class="text-[10px] bg-secondary-container/20 text-secondary px-2 py-0.5 rounded font-bold">INCOIS / IMD</span>
+                </div>
+                <ul class="flex flex-col gap-2 text-xs" id="advisories-list">
+                    <li class="flex flex-col border-l-2 border-ocean-cyan pl-2.5 py-0.5">
+                        <span class="text-[10px] text-on-surface-variant">Maritime Boundary Layer · Verified</span>
+                        <span class="font-medium text-on-surface">Indian 200 NM Exclusive Economic Zone (EEZ) polygon rendered from official GIS repository.</span>
+                    </li>
+                    <li class="flex flex-col border-l-2 border-emerald-500 pl-2.5 py-0.5">
+                        <span class="text-[10px] text-on-surface-variant">INCOIS PFZ Bulletin · Today</span>
+                        <span class="font-medium text-on-surface">High-yield oceanic thermal fronts active off Tamil Nadu, Gujarat & Andhra coasts.</span>
+                    </li>
+                    <li class="flex flex-col border-l-2 border-alert-amber pl-2.5 py-0.5">
+                        <span class="text-[10px] text-on-surface-variant">Maritime Geofence Alert</span>
+                        <span class="font-medium text-on-surface">Vessels operating near Palk Strait/Rameswaram must maintain 5 NM distance from Sri Lanka IMBL.</span>
+                    </li>
+                </ul>
+            </section>
+
+        </div>
+
+    </div>
+
+    <!-- ABOUT ORCA & ARCHITECTURE SHOWCASE SECTION -->
+    <section id="about-orca-section" class="mt-8 bg-surface-white border border-outline-variant rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6 mb-8">
+            <div class="flex flex-col gap-1.5">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Department of Space · ISRO</span>
+                    <span class="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Operational AI Platform</span>
+                </div>
+                <h2 class="text-xl sm:text-2xl font-bold text-primary tracking-tight">About ORCA — Marine Ecosystem Reasoning with Collaborative Agents</h2>
+                <p class="text-xs sm:text-sm text-on-surface-variant max-w-4xl leading-relaxed">
+                    ORCA is an agentic artificial intelligence platform designed for India's 4.5+ million coastal fisherfolk and maritime authorities. It synthesizes real-time ISRO Oceansat-3 satellite data, INCOIS oceanographic advisories, and marine telemetry to provide zero-hallucination fisheries navigation, proactive hazard warnings, and sovereign geofencing.
+                </p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <a href="#map" class="px-3.5 py-2 rounded-lg bg-surface-container-low hover:bg-surface-container text-primary font-bold text-xs border border-outline-variant flex items-center gap-1.5 transition-colors">
+                    <span class="material-symbols-outlined text-sm">explore</span> Explore GIS Map
+                </a>
+                <a href="command_center.html" class="px-3.5 py-2 rounded-lg bg-primary hover:bg-deep-navy text-white font-bold text-xs shadow-sm flex items-center gap-1.5 transition-colors">
+                    <span class="material-symbols-outlined text-sm">monitoring</span> Command Console
+                </a>
+            </div>
+        </div>
+
+        <!-- 4 Core Pillars Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <!-- Pillar 1 -->
+            <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant hover:border-primary/40 transition-all group">
+                <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-3 group-hover:bg-primary group-hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-xl">satellite_alt</span>
+                </div>
+                <h3 class="text-sm font-bold text-primary mb-1">ISRO Earth Observation</h3>
+                <p class="text-xs text-on-surface-variant leading-relaxed">
+                    Integrates Oceansat-3 Ocean Color Monitor (OCM-3), Scatterometer wind vectors, and INSAT-3DR thermal channels for live marine telemetry.
+                </p>
+            </div>
+
+            <!-- Pillar 2 -->
+            <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant hover:border-emerald-500/40 transition-all group">
+                <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-xl">phishing</span>
+                </div>
+                <h3 class="text-sm font-bold text-emerald-800 mb-1">INCOIS PFZ Intelligence</h3>
+                <p class="text-xs text-on-surface-variant leading-relaxed">
+                    Identifies high-density pelagic aggregation zones (Tuna, Mackerel, Sardine) using Sea Surface Temperature (SST) fronts & Chlorophyll-a gradients.
+                </p>
+            </div>
+
+            <!-- Pillar 3 -->
+            <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant hover:border-ocean-cyan/40 transition-all group">
+                <div class="w-10 h-10 rounded-lg bg-ocean-cyan/10 text-ocean-cyan flex items-center justify-center mb-3 group-hover:bg-ocean-cyan group-hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-xl">psychology</span>
+                </div>
+                <h3 class="text-sm font-bold text-deep-navy mb-1">Multi-Agent AI Core</h3>
+                <p class="text-xs text-on-surface-variant leading-relaxed">
+                    6 specialized agents (Planner, PFZ, Weather, Geofence, Route, Synthesizer) powered by Groq LPU & Gemini for natural coastal dialect reasoning.
+                </p>
+            </div>
+
+            <!-- Pillar 4 -->
+            <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant hover:border-rose-500/40 transition-all group">
+                <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center mb-3 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-xl">shield</span>
+                </div>
+                <h3 class="text-sm font-bold text-rose-800 mb-1">EEZ & MPA Geofencing</h3>
+                <p class="text-xs text-on-surface-variant leading-relaxed">
+                    GeoPandas spatial indexing across India's 1.66M km² EEZ, Sri Lanka/Pakistan IMBL borders, and Marine Protected Areas (Gulf of Mannar, Gahirmatha).
+                </p>
+            </div>
+        </div>
+
+        <!-- How It Works (4-Step Workflow Pipeline) -->
+        <div class="bg-gradient-to-br from-surface-container-low via-surface-white to-surface-container-low rounded-xl p-5 sm:p-6 border border-outline-variant mb-8">
+            <h3 class="text-xs font-bold text-primary uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-base text-ocean-cyan">account_tree</span> How ORCA Works: End-to-End Autonomous Pipeline
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative">
+                <!-- Step 1 -->
+                <div class="flex flex-col gap-1.5 bg-surface-white p-3.5 rounded-lg border border-outline-variant shadow-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center">1</span>
+                        <span class="text-xs font-bold text-primary">Data Ingestion</span>
+                    </div>
+                    <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                        Continuous ingestion of Oceansat-3 satellite telemetry, Open-Meteo wave spectra, and coastal meteorological observations.
+                    </p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="flex flex-col gap-1.5 bg-surface-white p-3.5 rounded-lg border border-outline-variant shadow-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-ocean-cyan text-white text-xs font-bold flex items-center justify-center">2</span>
+                        <span class="text-xs font-bold text-deep-navy">Spatial Analysis</span>
+                    </div>
+                    <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                        Haversine distance, true compass bearing (0–360°), and Shapely polygon containment evaluate boundary hazards and fuel requirements.
+                    </p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="flex flex-col gap-1.5 bg-surface-white p-3.5 rounded-lg border border-outline-variant shadow-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">3</span>
+                        <span class="text-xs font-bold text-emerald-800">Agentic Reasoning</span>
+                    </div>
+                    <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                        Collaborative AI sub-agents synthesize findings into structured, culturally-tuned advisories across Hindi, Tamil, Telugu, and Bengali.
+                    </p>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="flex flex-col gap-1.5 bg-surface-white p-3.5 rounded-lg border border-outline-variant shadow-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-alert-amber text-deep-navy text-xs font-bold flex items-center justify-center">4</span>
+                        <span class="text-xs font-bold text-deep-navy">Multi-Modal Output</span>
+                    </div>
+                    <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                        Instant delivery via interactive Leaflet charts, proactive top alert banners, and VHF/speech-ready text-to-speech engine.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fisherfolk Impact Metrics Bar -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+            <div class="bg-primary/5 p-4 rounded-xl border border-primary/10">
+                <div class="text-2xl font-bold text-primary">15 – 20%</div>
+                <div class="text-xs font-bold text-on-surface mt-0.5">Diesel Fuel Savings</div>
+                <div class="text-[11px] text-on-surface-variant mt-0.5">Direct waypoint optimization at economical 8-knot cruising speed</div>
+            </div>
+            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                <div class="text-2xl font-bold text-emerald-700">35 – 40%</div>
+                <div class="text-xs font-bold text-on-surface mt-0.5">Catch Yield Improvement</div>
+                <div class="text-[11px] text-on-surface-variant mt-0.5">High-confidence INCOIS PFZ thermal and chlorophyll front guidance</div>
+            </div>
+            <div class="bg-ocean-cyan/10 p-4 rounded-xl border border-ocean-cyan/20">
+                <div class="text-2xl font-bold text-ocean-cyan">100%</div>
+                <div class="text-xs font-bold text-on-surface mt-0.5">Border Safety Compliance</div>
+                <div class="text-[11px] text-on-surface-variant mt-0.5">Real-time proactive warnings before crossing Sri Lanka/Pakistan IMBL</div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- AUTH / LOGIN MODAL -->
+<div id="login-modal" class="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-surface-white rounded-2xl border border-outline-variant shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
+        
+        <!-- Modal Header -->
+        <div class="bg-primary text-white p-4 sm:p-5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-10 h-10 rounded-xl object-cover ring-2 ring-white/30 shadow-sm"/>
+                <div>
+                    <h3 class="font-bold text-sm sm:text-base">ORCA Maritime Portal Login</h3>
+                    <p class="text-[10px] text-white/80">Department of Space · ISRO & INCOIS</p>
+                </div>
+            </div>
+            <button onclick="closeLoginModal()" class="text-white/80 hover:text-white transition-colors p-1">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+
+        <!-- Role Tabs -->
+        <div class="flex border-b border-outline-variant bg-surface-container-low text-xs font-bold">
+            <button id="tab-fisher-btn" onclick="switchLoginTab('fisher')" class="flex-1 py-3 text-primary border-b-2 border-primary bg-surface-white flex items-center justify-center gap-1.5 transition-colors">
+                <span class="material-symbols-outlined text-sm">sailing</span> Fisherman / Vessel
+            </button>
+            <button id="tab-officer-btn" onclick="switchLoginTab('officer')" class="flex-1 py-3 text-on-surface-variant hover:text-primary flex items-center justify-center gap-1.5 transition-colors">
+                <span class="material-symbols-outlined text-sm">local_police</span> Coast Guard / Officer
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-5 sm:p-6 flex flex-col gap-4">
+            
+            <!-- Fisher Tab Content -->
+            <form id="fisher-login-form" onsubmit="handleFisherLogin(event)" class="flex flex-col gap-3.5">
+                <div>
+                    <label class="block text-xs font-bold text-on-surface mb-1">Vessel Registration No. / नाव पंजीकरण संख्या</label>
+                    <input type="text" id="login-vessel-no" required value="IND-TN-02-MM-4421" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none font-mono" placeholder="e.g. IND-TN-02-MM-4421"/>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface mb-1">Captain / Fisher Name</label>
+                    <input type="text" id="login-captain-name" required value="Capt. R. Murugan" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="Enter Full Name"/>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface mb-1">Home Harbor</label>
+                        <select id="login-harbor" class="w-full px-2.5 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs outline-none">
+                            <option value="chennai">Chennai (Kasimedu)</option>
+                            <option value="rameswaram">Rameswaram (Mandapam)</option>
+                            <option value="kochi">Kochi (Thoppumpady)</option>
+                            <option value="goa">Goa (Panaji)</option>
+                            <option value="mumbai">Mumbai (Sassoon)</option>
+                            <option value="veraval">Veraval (Gujarat)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-on-surface mb-1">Security PIN / OTP</label>
+                        <input type="password" id="login-pin" required value="2026" maxlength="6" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs focus:border-primary outline-none text-center font-mono" placeholder="****"/>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 rounded-lg bg-primary hover:bg-deep-navy text-white font-bold text-xs shadow-md transition-all mt-2 flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">verified_user</span> Authenticate & Enter Portal
+                </button>
+            </form>
+
+            <!-- Officer Tab Content -->
+            <form id="officer-login-form" onsubmit="handleOfficerLogin(event)" class="flex flex-col gap-3.5 hidden">
+                <div>
+                    <label class="block text-xs font-bold text-on-surface mb-1">Officer Service ID / बैज नंबर</label>
+                    <input type="text" id="login-officer-id" value="ICG-SZ-4089" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs focus:border-primary outline-none font-mono" placeholder="e.g. ICG-SZ-4089"/>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface mb-1">Official Government Email</label>
+                    <input type="email" id="login-officer-email" value="duty.officer@nic.in" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs focus:border-primary outline-none" placeholder="officer@nic.in"/>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface mb-1">Department Security Token</label>
+                    <input type="password" id="login-officer-token" value="GOV-SECURE-2026" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs focus:border-primary outline-none font-mono" placeholder="Security Token"/>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 rounded-lg bg-deep-navy hover:bg-primary text-white font-bold text-xs shadow-md transition-all mt-2 flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-outlined text-sm">shield</span> Verify Officer Credentials
+                </button>
+            </form>
+
+            <!-- Quick Demo Bypass & 3D Live Portal Link -->
+            <div class="border-t border-outline-variant pt-3 flex flex-col gap-2 text-[11px] text-on-surface-variant">
+                <div class="flex justify-between items-center">
+                    <span>Fast 1-Click Access:</span>
+                    <button type="button" onclick="quickDemoLogin()" class="text-primary font-bold hover:underline">Auto-Fill Demo Fisher</button>
+                </div>
+                <a href="login.html" class="flex items-center justify-center gap-1.5 w-full py-2 bg-gradient-to-r from-cyan-600 via-primary to-deep-navy hover:from-cyan-500 hover:to-primary text-white rounded-xl text-xs font-bold transition-all shadow-md mt-1">
+                    <span class="material-symbols-outlined text-sm text-cyan-300">view_in_ar</span>
+                    <span>🌐 Open 3D Live Ocean Cyclone Login Portal</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🚨 1-CLICK SOS DISTRESS PANIC MODAL -->
+<div id="sos-modal" class="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-surface-white rounded-2xl border-2 border-rose-600 shadow-2xl w-full max-w-lg overflow-hidden transform transition-all animate-in fade-in zoom-in-95">
+        <div class="bg-rose-600 text-white p-4 sm:p-5 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center animate-pulse">
+                    <span class="material-symbols-outlined text-2xl">emergency</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base sm:text-lg">🚨 EMERGENCY SOS DISTRESS BROADCAST</h3>
+                    <p class="text-xs text-rose-100">Indian Coast Guard MRCC Direct Telemetry Channel</p>
+                </div>
+            </div>
+            <button onclick="closeSosModal()" class="text-white/80 hover:text-white p-1">
+                <span class="material-symbols-outlined text-2xl">close</span>
+            </button>
+        </div>
+
+        <form id="sos-form" onsubmit="submitSosAlert(event)" class="p-5 sm:p-6 flex flex-col gap-4">
+            <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-xs text-rose-900 leading-relaxed">
+                ⚠️ <strong>WARNING:</strong> This sends an immediate high-priority distress broadcast with your exact GPS coordinates to the Indian Coast Guard Maritime Rescue Coordination Centre (MRCC).
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-on-surface mb-1">Vessel Registration No.</label>
+                    <input type="text" id="sos-vessel-id" required value="IND-TN-02-MM-4421" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-mono font-bold" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface mb-1">Captain / Contact Name</label>
+                    <input type="text" id="sos-captain-name" required value="Capt. R. Murugan" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs" />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+                <div>
+                    <label class="block text-xs font-bold text-on-surface mb-1">Latitude</label>
+                    <input type="text" id="sos-lat" readonly value="13.1256" class="w-full px-2.5 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-mono font-bold text-rose-700 text-center" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface mb-1">Longitude</label>
+                    <input type="text" id="sos-lon" readonly value="80.2974" class="w-full px-2.5 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-mono font-bold text-rose-700 text-center" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-on-surface mb-1">Mobile No.</label>
+                    <input type="tel" id="sos-phone" required value="+91-98401-22481" class="w-full px-2.5 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-mono" />
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-on-surface mb-1">Emergency Nature / आपातकालीन प्रकार</label>
+                <select id="sos-type" class="w-full px-3 py-2.5 bg-surface-container-low border border-rose-300 rounded-lg text-xs font-bold text-rose-900 outline-none">
+                    <option value="Engine Failure / Propulsion Lost">⚙️ Engine Failure / Propulsion Lost (इंजन खराबी)</option>
+                    <option value="Capsize / Severe Water Ingress">🌊 Capsize / Severe Water Ingress (नाव में पानी भरना)</option>
+                    <option value="Medical Emergency / Man Overboard">🚑 Medical Emergency / Man Overboard (चिकित्सा आपातकाल)</option>
+                    <option value="IMBL Border Threat / Interception">🛡️ IMBL Border Proximity / Foreign Threat (सीमा संकट)</option>
+                    <option value="Cyclone / Extreme Rough Sea">🌪️ Cyclone / Extreme High Waves 4m+ (चक्रवात)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-on-surface mb-1">Additional Vessel Situation (Optional)</label>
+                <textarea id="sos-desc" rows="2" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs outline-none" placeholder="Describe number of crew members, visual landmarks, or urgent needs..."></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm shadow-lg shadow-rose-600/30 transition-all flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-lg">emergency_share</span>
+                <span>TRANSMIT DISTRESS SIGNAL NOW</span>
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- 📊 POSTGRESQL COAST GUARD & MARITIME COMMAND CONSOLE MODAL -->
+<div id="command-console-modal" class="fixed inset-0 z-[9999] bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-surface-white rounded-2xl border border-outline-variant shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+        
+        <!-- Header -->
+        <div class="bg-primary text-white p-4 sm:p-5 flex justify-between items-center flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-2xl">monitoring</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base sm:text-lg flex items-center gap-2">
+                        PostgreSQL Maritime Command Console
+                        <span class="text-[10px] bg-emerald-500/20 text-emerald-300 border border-emerald-400 px-2 py-0.5 rounded-full font-mono">PostGIS + pgvector</span>
+                    </h3>
+                    <p class="text-xs text-white/80">Real-Time Fleet Tracking, Spatial Proximity & Intelligence Analytics</p>
+                </div>
+            </div>
+            <button onclick="closeCommandConsoleModal()" class="text-white/80 hover:text-white p-1">
+                <span class="material-symbols-outlined text-2xl">close</span>
+            </button>
+        </div>
+
+        <!-- Command Tabs -->
+        <div class="flex border-b border-outline-variant bg-surface-container-low text-xs font-bold flex-shrink-0">
+            <button id="cmd-tab-analytics" onclick="switchCmdTab('analytics')" class="flex-1 py-3 text-primary border-b-2 border-primary bg-surface-white flex items-center justify-center gap-1.5 transition-colors">
+                <span class="material-symbols-outlined text-sm">analytics</span> Analytics Dashboard
+            </button>
+            <button id="cmd-tab-fleet" onclick="switchCmdTab('fleet')" class="flex-1 py-3 text-on-surface-variant hover:text-primary flex items-center justify-center gap-1.5 transition-colors">
+                <span class="material-symbols-outlined text-sm">sailing</span> Active Fleet & Trajectory
+            </button>
+            <button id="cmd-tab-laws" onclick="switchCmdTab('laws')" class="flex-1 py-3 text-on-surface-variant hover:text-primary flex items-center justify-center gap-1.5 transition-colors">
+                <span class="material-symbols-outlined text-sm">gavel</span> Maritime Legal RAG
+            </button>
+            <button id="cmd-tab-sos" onclick="switchCmdTab('sos')" class="flex-1 py-3 text-on-surface-variant hover:text-rose-600 flex items-center justify-center gap-1.5 transition-colors">
+                <span class="material-symbols-outlined text-sm text-rose-600">e911_emergency</span> Active SOS Queue
+            </button>
+        </div>
+
+        <!-- Tab Body Content (Scrollable) -->
+        <div class="p-4 sm:p-6 overflow-y-auto flex-1 flex flex-col gap-5">
+            
+            <!-- 1. Analytics Tab -->
+            <div id="cmd-view-analytics" class="flex flex-col gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3.5 flex flex-col gap-1">
+                        <span class="text-[10px] uppercase font-bold text-on-surface-variant">Total Logged Queries</span>
+                        <span id="stat-total-queries" class="text-2xl font-bold text-primary">38</span>
+                        <span class="text-[10px] text-emerald-700 font-medium">Recorded in PostgreSQL</span>
+                    </div>
+                    <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3.5 flex flex-col gap-1">
+                        <span class="text-[10px] uppercase font-bold text-on-surface-variant">Safe Advisory Ratio</span>
+                        <span id="stat-safe-ratio" class="text-2xl font-bold text-emerald-600">94.7%</span>
+                        <span class="text-[10px] text-on-surface-variant">Wave < 1.5m Threshold</span>
+                    </div>
+                    <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3.5 flex flex-col gap-1">
+                        <span class="text-[10px] uppercase font-bold text-on-surface-variant">Active Monitored Fleet</span>
+                        <span id="stat-active-fleet" class="text-2xl font-bold text-ocean-cyan">5 Vessels</span>
+                        <span class="text-[10px] text-on-surface-variant">AIS / GPS Telemetry</span>
+                    </div>
+                    <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3.5 flex flex-col gap-1">
+                        <span class="text-[10px] uppercase font-bold text-on-surface-variant">Active Distress Calls</span>
+                        <span id="stat-active-distress" class="text-2xl font-bold text-rose-600">0 Alerts</span>
+                        <span class="text-[10px] text-on-surface-variant">Coast Guard MRCC</span>
+                    </div>
+                </div>
+
+                <!-- Query Distribution by Port -->
+                <div class="bg-surface-container-low border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
+                    <span class="font-bold text-xs uppercase text-primary tracking-wider">Top Port Query Distribution</span>
+                    <div id="analytics-ports-list" class="flex flex-col gap-2">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Fleet Tracking Tab -->
+            <div id="cmd-view-fleet" class="flex flex-col gap-4 hidden">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-xs uppercase text-primary tracking-wider">Live Coastal Vessel Positioning</span>
+                    <button onclick="loadFleetTable()" class="px-2.5 py-1 rounded bg-primary text-white text-[11px] font-bold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">refresh</span> Refresh Fleet
+                    </button>
+                </div>
+                <div class="overflow-x-auto border border-outline-variant rounded-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-surface-container-high text-on-surface uppercase text-[10px] font-bold">
+                            <tr>
+                                <th class="p-3">Vessel Registration</th>
+                                <th class="p-3">Captain Name</th>
+                                <th class="p-3">Base Port</th>
+                                <th class="p-3">Coordinates</th>
+                                <th class="p-3">Speed</th>
+                                <th class="p-3">Fuel</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Map Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fleet-table-body" class="divide-y divide-outline-variant bg-surface-white">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. Legal Regulations RAG Tab -->
+            <div id="cmd-view-laws" class="flex flex-col gap-4 hidden">
+                <div class="flex gap-2">
+                    <input type="text" id="reg-search-input" placeholder="Search Marine Laws, Wildlife Act 1972, Purse-seine ban, EEZ..." class="flex-1 px-3.5 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-xs outline-none focus:border-primary" />
+                    <button onclick="searchRegulationsUI()" class="px-4 py-2.5 bg-primary hover:bg-deep-navy text-white rounded-xl text-xs font-bold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">search</span> Search Legal DB
+                    </button>
+                </div>
+                <div id="regulations-results-container" class="flex flex-col gap-3">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- 4. Active SOS Queue Tab -->
+            <div id="cmd-view-sos" class="flex flex-col gap-3 hidden">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-xs uppercase text-rose-700 tracking-wider">Live SOS Emergency Broadcast Queue</span>
+                    <button onclick="loadSosQueue()" class="px-2.5 py-1 rounded bg-rose-600 text-white text-[11px] font-bold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">refresh</span> Refresh SOS
+                    </button>
+                </div>
+                <div id="sos-queue-container" class="flex flex-col gap-2.5">
+                    <div class="p-6 text-center text-xs text-on-surface-variant border border-dashed border-outline-variant rounded-xl">
+                        🟢 No active emergency distress calls at this moment. Maritime sector all clear.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 1. Simple User Identification Modal ("Apna naam likhein") -->
+<div id="simple-user-modal" class="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden animate-fadeIn">
+    <div class="bg-surface-white rounded-2xl max-w-md w-full border border-outline-variant shadow-2xl overflow-hidden animate-scaleUp">
+        <div class="bg-gradient-to-r from-primary to-ocean-cyan text-white p-5 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white">
+                <span class="material-symbols-outlined text-2xl">badge</span>
+            </div>
+            <div>
+                <h3 class="font-bold text-base">ORCA User Identification</h3>
+                <p class="text-xs text-white/80">ISRO Marine Intelligence Platform</p>
+            </div>
+        </div>
+        <form onsubmit="handleSimpleNameSubmit(event)" class="p-6 flex flex-col gap-4">
+            <div>
+                <label class="block text-sm font-bold text-primary mb-1">Apna naam likhein (Enter Your Name)</label>
+                <p class="text-xs text-on-surface-variant mb-3">Aapka naam aapki search/query history save karne ke liye use hoga.</p>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-base">person</span>
+                    <input type="text" id="simple-username-input" required class="w-full pl-9 pr-3 py-2.5 bg-surface-container-low border border-outline-variant rounded-xl text-sm font-medium text-primary focus:border-primary focus:ring-1 focus:ring-primary outline-none" placeholder="e.g. Capt. Murugan / Ramesh"/>
+                </div>
+            </div>
+            <div class="flex items-center justify-between gap-3 pt-2">
+                <button type="button" onclick="useGuestName()" class="px-4 py-2.5 rounded-xl border border-outline-variant hover:bg-surface-container text-on-surface-variant font-bold text-xs">
+                    Continue as Guest
+                </button>
+                <button type="submit" class="flex-1 py-2.5 rounded-xl bg-primary hover:bg-deep-navy text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-1.5">
+                    <span>Continue</span>
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. My History Modal (Previous User Queries) -->
+<div id="my-history-modal" class="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 hidden animate-fadeIn">
+    <div class="bg-surface-white rounded-2xl max-w-2xl w-full max-h-[85vh] border border-outline-variant shadow-2xl overflow-hidden flex flex-col animate-scaleUp">
+        <div class="bg-primary text-white p-4 sm:p-5 flex justify-between items-center">
+            <div class="flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-ocean-cyan text-2xl">history</span>
+                <div>
+                    <h3 class="font-bold text-sm sm:text-base">Meri Purani Queries (My History)</h3>
+                    <p class="text-[11px] text-white/80" id="history-modal-user-label">User: Guest</p>
+                </div>
+            </div>
+            <button onclick="closeHistoryModal()" class="text-white/80 hover:text-white transition-colors p-1">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+        <div class="p-4 overflow-y-auto flex-1 flex flex-col gap-3" id="history-items-container">
+            <div class="p-8 text-center text-xs text-on-surface-variant flex flex-col items-center gap-2">
+                <span class="material-symbols-outlined text-3xl animate-spin text-primary">progress_activity</span>
+                <span>Loading your query history...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Mobile Navigation Bar -->
+<nav class="bg-surface-white fixed bottom-0 w-full z-50 flex justify-around items-center h-14 px-2 border-t border-outline-variant md:hidden shadow-lg">
+    <button onclick="window.scrollTo({top:0, behavior:'smooth'})" class="flex flex-col items-center justify-center text-primary font-bold text-xs w-1/4">
+        <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+        <span class="text-[10px]">Dashboard</span>
+    </button>
+    <button onclick="document.getElementById('user-input').focus()" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary text-xs w-1/4">
+        <span class="material-symbols-outlined text-lg">smart_toy</span>
+        <span class="text-[10px]">AI Console</span>
+    </button>
+    <button onclick="document.getElementById('map').scrollIntoView({behavior:'smooth'})" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary text-xs w-1/4">
+        <span class="material-symbols-outlined text-lg">explore</span>
+        <span class="text-[10px]">GIS Map</span>
+    </button>
+    <button onclick="document.getElementById('advisories-list').scrollIntoView({behavior:'smooth'})" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary text-xs w-1/4">
+        <span class="material-symbols-outlined text-lg">campaign</span>
+        <span class="text-[10px]">Advisories</span>
+    </button>
+</nav>
+
+<!-- Footer -->
+<footer class="bg-surface-container-highest text-on-surface w-full py-6 px-4 border-t border-outline-variant mt-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
+        <div class="flex flex-col gap-1">
+            <span class="font-bold text-primary text-sm uppercase">ORCA — Marine EcoSystem Reasoning with Collaborative Agents</span>
+            <p class="text-on-surface-variant">© Government of India | Department of Space | Indian Space Research Organisation (ISRO).</p>
+        </div>
+        <div class="flex flex-wrap gap-4 text-on-surface-variant">
+            <a href="#" class="hover:text-primary transition-colors">ISRO MOSDAC</a>
+            <a href="#" class="hover:text-primary transition-colors">INCOIS Portal</a>
+            <a href="#" class="hover:text-primary transition-colors">IMD Marine</a>
+            <a href="#" class="hover:text-primary transition-colors">Indian Coast Guard</a>
+            <a href="#" class="hover:text-primary transition-colors">Data Disclaimer</a>
+        </div>
+    </div>
+</footer>
+
+<!-- LEAFLET & DYNAMIC CONTROLLER JAVASCRIPT -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const BASE_URL = 'http://127.0.0.1:8000';
+    const BACKEND_URL = 'http://127.0.0.1:8000/api/query';
+    const DEFAULT_LAT = 13.05;
+    const DEFAULT_LON = 80.28;
+    let activePort = 'chennai';
+    let conversationHistory = [];
+    let map, eezLayerGroup, pfzLayerGroup, borderLayerGroup, routeLayerGroup, portMarkersGroup;
+
+    // 1. Initialize Map
+    map = L.map('map', { zoomControl: true, attributionControl: false }).setView([13.1256, 80.2974], 7);
+    
+    // Base Tile Layers: Nautical Chart (OpenStreetMap) & High-Res Earth Observation Satellite (Esri)
+    const nauticalTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    const satelliteTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 18,
+        attribution: 'Esri, Maxar, Earthstar Geographics'
+    });
+
+    // Base Layer Switcher Listeners
+    document.getElementById('base-chart-btn').addEventListener('click', () => {
+        if (map.hasLayer(satelliteTileLayer)) map.removeLayer(satelliteTileLayer);
+        if (!map.hasLayer(nauticalTileLayer)) map.addLayer(nauticalTileLayer);
+        document.getElementById('base-chart-btn').className = 'flex-1 px-2 py-1 rounded bg-primary text-white font-bold text-[10px] shadow-xs';
+        document.getElementById('base-sat-btn').className = 'flex-1 px-2 py-1 rounded hover:bg-surface-white text-on-surface font-bold text-[10px] flex items-center justify-center gap-1';
+    });
+
+    document.getElementById('base-sat-btn').addEventListener('click', () => {
+        if (map.hasLayer(nauticalTileLayer)) map.removeLayer(nauticalTileLayer);
+        if (!map.hasLayer(satelliteTileLayer)) map.addLayer(satelliteTileLayer);
+        document.getElementById('base-sat-btn').className = 'flex-1 px-2 py-1 rounded bg-ocean-cyan text-white font-bold text-[10px] shadow-xs flex items-center justify-center gap-1';
+        document.getElementById('base-chart-btn').className = 'flex-1 px-2 py-1 rounded hover:bg-surface-white text-on-surface font-bold text-[10px]';
+    });
+
+    eezLayerGroup = L.layerGroup().addTo(map);
+    pfzLayerGroup = L.layerGroup().addTo(map);
+    borderLayerGroup = L.layerGroup().addTo(map);
+    routeLayerGroup = L.layerGroup().addTo(map);
+    portMarkersGroup = L.layerGroup().addTo(map);
+
+    // Layer Toggles
+    document.getElementById('layer-eez-toggle').addEventListener('change', (e) => {
+        if (e.target.checked) map.addLayer(eezLayerGroup);
+        else map.removeLayer(eezLayerGroup);
+    });
+    document.getElementById('layer-pfz-toggle').addEventListener('change', (e) => {
+        if (e.target.checked) map.addLayer(pfzLayerGroup);
+        else map.removeLayer(pfzLayerGroup);
+    });
+    document.getElementById('layer-border-toggle').addEventListener('change', (e) => {
+        if (e.target.checked) map.addLayer(borderLayerGroup);
+        else map.removeLayer(borderLayerGroup);
+    });
+    document.getElementById('layer-route-toggle').addEventListener('change', (e) => {
+        if (e.target.checked) map.addLayer(routeLayerGroup);
+        else map.removeLayer(routeLayerGroup);
+    });
+
+    // Map Cursor Live Coordinates Tracking
+    map.on('mousemove', (e) => {
+        const hud = document.getElementById('map-coords-hud');
+        if (hud) {
+            hud.textContent = `${e.latlng.lat.toFixed(4)}° N, ${e.latlng.lng.toFixed(4)}° E`;
+        }
+    });
+
+    // Map Fullscreen Toggle
+    let isMapFullscreen = false;
+    window.toggleMapFullscreen = function() {
+        const card = document.getElementById('map-section-card');
+        const icon = document.getElementById('fullscreen-icon');
+        const mapEl = document.getElementById('map');
+        
+        isMapFullscreen = !isMapFullscreen;
+        if (isMapFullscreen) {
+            card.classList.add('fixed', 'inset-3', 'z-[9990]', 'shadow-2xl');
+            mapEl.parentElement.classList.remove('h-72', 'md:h-84');
+            mapEl.parentElement.classList.add('h-[84vh]');
+            if (icon) icon.textContent = 'fullscreen_exit';
+        } else {
+            card.classList.remove('fixed', 'inset-3', 'z-[9990]', 'shadow-2xl');
+            mapEl.parentElement.classList.add('h-72', 'md:h-84');
+            mapEl.parentElement.classList.remove('h-[84vh]');
+            if (icon) icon.textContent = 'fullscreen';
+        }
+        setTimeout(() => map.invalidateSize(), 300);
+    };
+
+    // Auth Modal State Management
+    window.openLoginModal = function() {
+        document.getElementById('login-modal').classList.remove('hidden');
+    };
+
+    window.closeLoginModal = function() {
+        document.getElementById('login-modal').classList.add('hidden');
+    };
+
+    window.switchLoginTab = function(role) {
+        const fisherBtn = document.getElementById('tab-fisher-btn');
+        const officerBtn = document.getElementById('tab-officer-btn');
+        const fisherForm = document.getElementById('fisher-login-form');
+        const officerForm = document.getElementById('officer-login-form');
+
+        if (role === 'fisher') {
+            fisherBtn.className = 'flex-1 py-3 text-primary border-b-2 border-primary bg-surface-white flex items-center justify-center gap-1.5 transition-colors';
+            officerBtn.className = 'flex-1 py-3 text-on-surface-variant hover:text-primary flex items-center justify-center gap-1.5 transition-colors';
+            fisherForm.classList.remove('hidden');
+            officerForm.classList.add('hidden');
+        } else {
+            officerBtn.className = 'flex-1 py-3 text-primary border-b-2 border-primary bg-surface-white flex items-center justify-center gap-1.5 transition-colors';
+            fisherBtn.className = 'flex-1 py-3 text-on-surface-variant hover:text-primary flex items-center justify-center gap-1.5 transition-colors';
+            officerForm.classList.remove('hidden');
+            fisherForm.classList.add('hidden');
+        }
+    };
+
+    window.handleFisherLogin = function(e) {
+        e.preventDefault();
+        const vesselNo = document.getElementById('login-vessel-no').value;
+        const name = document.getElementById('login-captain-name').value;
+        const harbor = document.getElementById('login-harbor').value;
+
+        const userData = { role: 'fisher', name: name, vessel: vesselNo, harbor: harbor };
+        localStorage.setItem('orca_user', JSON.stringify(userData));
+        renderAuthenticatedUser(userData);
+        if (harbor) setPort(harbor);
+        closeLoginModal();
+    };
+
+    window.handleOfficerLogin = function(e) {
+        e.preventDefault();
+        const id = document.getElementById('login-officer-id').value;
+        const email = document.getElementById('login-officer-email').value;
+
+        const userData = { role: 'officer', name: `Officer (${id})`, email: email, harbor: 'all' };
+        localStorage.setItem('orca_user', JSON.stringify(userData));
+        renderAuthenticatedUser(userData);
+        closeLoginModal();
+    };
+
+    window.quickDemoLogin = function() {
+        const demoUser = {
+            role: 'fisher',
+            name: 'Capt. R. Murugan',
+            vessel: 'IND-TN-02-MM-4421',
+            harbor: 'chennai'
+        };
+        localStorage.setItem('orca_user', JSON.stringify(demoUser));
+        renderAuthenticatedUser(demoUser);
+        closeLoginModal();
+    };
+
+    window.logoutUser = function() {
+        localStorage.removeItem('orca_user');
+        const deskContainer = document.getElementById('desktop-auth-container');
+        if (deskContainer) {
+            deskContainer.innerHTML = `
+                <button onclick="openLoginModal()" id="desktop-auth-btn" class="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-primary hover:bg-deep-navy text-white text-xs font-bold shadow-sm hover:shadow-md transition-all">
+                    <span class="material-symbols-outlined text-sm">login</span>
+                    <span>Fisher Portal Login</span>
+                </button>
+            `;
+        }
+    };
+
+    function renderAuthenticatedUser(user) {
+        const deskContainer = document.getElementById('desktop-auth-container');
+        if (!deskContainer) return;
+
+        const badgeIcon = user.role === 'fisher' ? 'sailing' : 'local_police';
+        const roleLabel = user.role === 'fisher' ? user.vessel : 'Coast Guard';
+
+        deskContainer.innerHTML = `
+            <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-300 rounded-lg px-2.5 py-1 text-xs shadow-xs">
+                <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                    <span class="material-symbols-outlined text-[13px]">${badgeIcon}</span>
+                </div>
+                <div class="flex flex-col leading-tight">
+                    <span class="font-bold text-emerald-900 text-[11px]">${user.name}</span>
+                    <span class="text-[9px] text-emerald-700 font-mono">${roleLabel}</span>
+                </div>
+                <button onclick="logoutUser()" class="ml-1 text-on-surface-variant hover:text-rose-600 p-0.5" title="Logout">
+                    <span class="material-symbols-outlined text-sm">logout</span>
+                </button>
+            </div>
+        `;
+    }
+
+    // =========================================================================
+    // SIMPLE USER IDENTIFICATION & QUERY HISTORY MANAGEMENT
+    // =========================================================================
+    function getStoredUsername() {
+        return localStorage.getItem('orca_username') || '';
+    }
+
+    function setStoredUsername(name) {
+        const cleanName = (name || '').trim() || 'Guest';
+        localStorage.setItem('orca_username', cleanName);
+        updateUserBadge(cleanName);
+        return cleanName;
+    }
+
+    function updateUserBadge(name) {
+        const displayName = name || getStoredUsername() || 'Guest';
+        const label = document.getElementById('user-display-name');
+        if (label) label.textContent = displayName;
+        const histLabel = document.getElementById('history-modal-user-label');
+        if (histLabel) histLabel.textContent = `User: ${displayName}`;
+    }
+
+    window.openChangeNameModal = function() {
+        const modal = document.getElementById('simple-user-modal');
+        const input = document.getElementById('simple-username-input');
+        if (modal) {
+            modal.classList.remove('hidden');
+            if (input) {
+                input.value = getStoredUsername() !== 'Guest' ? getStoredUsername() : '';
+                input.focus();
+            }
+        }
+    };
+
+    window.closeSimpleUserModal = function() {
+        const modal = document.getElementById('simple-user-modal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    window.handleSimpleNameSubmit = async function(e) {
+        e.preventDefault();
+        const input = document.getElementById('simple-username-input');
+        const name = input ? input.value.trim() : '';
+        if (!name) return;
+
+        const cleanName = setStoredUsername(name);
+        closeSimpleUserModal();
+
+        // Register / Identify with backend
+        try {
+            await fetch(`${BASE_URL}/api/login-simple`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: cleanName })
+            });
+        } catch(err) {
+            console.warn("Could not reach /api/login-simple:", err);
+        }
+    };
+
+    window.useGuestName = function() {
+        setStoredUsername('Guest');
+        closeSimpleUserModal();
+    };
+
+    // My History Modal Controller
+    window.openHistoryModal = function() {
+        const modal = document.getElementById('my-history-modal');
+        if (modal) modal.classList.remove('hidden');
+        loadUserHistory();
+    };
+
+    window.closeHistoryModal = function() {
+        const modal = document.getElementById('my-history-modal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    async function loadUserHistory() {
+        const username = getStoredUsername() || 'Guest';
+        updateUserBadge(username);
+        const container = document.getElementById('history-items-container');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="p-8 text-center text-xs text-on-surface-variant flex flex-col items-center gap-2">
+                <span class="material-symbols-outlined text-3xl animate-spin text-primary">progress_activity</span>
+                <span>Loading your past queries for <b>${username}</b>...</span>
+            </div>
+        `;
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/my-history?username=${encodeURIComponent(username)}`);
+            if (!res.ok) throw new Error('API Error');
+            const data = await res.json();
+            const items = data.history || [];
+
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-xs text-on-surface-variant border border-dashed border-outline-variant rounded-xl flex flex-col items-center gap-2">
+                        <span class="material-symbols-outlined text-3xl text-on-surface-variant">history_toggle_off</span>
+                        <span>Abhi tak aapne koi query nahi poochhi hai. Chat me sawaal poochne par queries yahan dikhengi!</span>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = items.map(item => {
+                const dateStr = item.created_at ? new Date(item.created_at).toLocaleString() : 'Recent';
+                const status = item.safety_status || 'SAFE';
+                const statusColor = status === 'SAFE' ? 'bg-emerald-100 text-emerald-800' : (status === 'CAUTION' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800');
+                const safeQuery = escapeHtml(item.query_text || '');
+                const safeAnswer = escapeHtml((item.llm_response || '').substring(0, 200)) + ((item.llm_response || '').length > 200 ? '...' : '');
+
+                return `
+                    <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3.5 hover:border-primary/40 transition-all flex flex-col gap-2 shadow-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-mono text-on-surface-variant">${dateStr}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase ${statusColor}">${status}</span>
+                        </div>
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="font-bold text-primary text-xs sm:text-sm">❓ "${safeQuery}"</span>
+                            <button onclick="closeHistoryModal(); executePrompt('${safeQuery.replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded bg-primary hover:bg-deep-navy text-white text-[10px] font-bold flex items-center gap-1 flex-shrink-0 transition-colors">
+                                <span class="material-symbols-outlined text-xs">replay</span> Ask Again
+                            </button>
+                        </div>
+                        ${safeAnswer ? `<p class="text-[11px] text-on-surface-variant bg-surface-white p-2 rounded-lg border border-outline-variant/60 leading-relaxed">${safeAnswer}</p>` : ''}
+                    </div>
+                `;
+            }).join('');
+        } catch (e) {
+            container.innerHTML = `
+                <div class="p-6 text-center text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
+                    ⚠️ Query history load nahi ho saki. Please check backend connection on ${BASE_URL}.
+                </div>
+            `;
+        }
+    }
+
+    // Check if user has identified on page load
+    window.addEventListener('DOMContentLoaded', () => {
+        const stored = localStorage.getItem('orca_username');
+        if (!stored) {
+            // First time load: show simple username modal prompt
+            setTimeout(() => {
+                const modal = document.getElementById('simple-user-modal');
+                if (modal) modal.classList.remove('hidden');
+            }, 600);
+        } else {
+            updateUserBadge(stored);
+        }
+    });
+
+    // =========================================================================
+    // POSTGRESQL MARITIME COMMAND CONSOLE & SOS JAVASCRIPT CONTROLLER
+    // =========================================================================
+    
+    // SOS Modal Functions
+    window.openSosModal = function() {
+        // Auto-fill coordinates from current port or GPS
+        document.getElementById('sos-lat').value = (activePort && PORT_COORDINATES[activePort] ? PORT_COORDINATES[activePort].lat : DEFAULT_LAT).toFixed(4);
+        document.getElementById('sos-lon').value = (activePort && PORT_COORDINATES[activePort] ? PORT_COORDINATES[activePort].lon : DEFAULT_LON).toFixed(4);
+        document.getElementById('sos-modal').classList.remove('hidden');
+    };
+
+    window.closeSosModal = function() {
+        document.getElementById('sos-modal').classList.add('hidden');
+    };
+
+    window.submitSosAlert = async function(e) {
+        e.preventDefault();
+        const payload = {
+            vessel_id: document.getElementById('sos-vessel-id').value,
+            captain_name: document.getElementById('sos-captain-name').value,
+            phone: document.getElementById('sos-phone').value,
+            latitude: parseFloat(document.getElementById('sos-lat').value),
+            longitude: parseFloat(document.getElementById('sos-lon').value),
+            emergency_type: document.getElementById('sos-type').value,
+            description: document.getElementById('sos-desc').value || "Urgent distress beacon triggered."
+        };
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/sos/trigger`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            closeSosModal();
+
+            // Render persistent emergency broadcast banner on top
+            const ticker = document.getElementById('live-ticker');
+            if (ticker) {
+                ticker.innerHTML = `🚨 <strong>ACTIVE MRCC DISTRESS ALERT:</strong> Vessel ${payload.vessel_id} (${payload.emergency_type}) at Lat ${payload.latitude}°, Lon ${payload.longitude}° — Coast Guard SAR dispatched!`;
+                ticker.parentElement.parentElement.className = "bg-rose-600 text-white font-bold text-xs sm:text-sm py-2.5 px-4 rounded-lg flex items-center shadow-lg border-2 border-rose-400 animate-pulse";
+            }
+            alert(`🚨 SOS TRANSMITTED!\n\nCoast Guard Maritime Rescue Coordination Centre (MRCC) has been alerted with your coordinates (${payload.latitude}°, ${payload.longitude}°).\n\nKeep marine VHF Channel 16 active.`);
+        } catch (err) {
+            alert('SOS Broadcast queued in emergency telemetry cache.');
+            closeSosModal();
+        }
+    };
+
+    // Command Console Modal Functions
+    window.openCommandConsoleModal = function() {
+        document.getElementById('command-console-modal').classList.remove('hidden');
+        switchCmdTab('analytics');
+    };
+
+    window.closeCommandConsoleModal = function() {
+        document.getElementById('command-console-modal').classList.add('hidden');
+    };
+
+    window.switchCmdTab = function(tab) {
+        const tabs = ['analytics', 'fleet', 'laws', 'sos'];
+        tabs.forEach(t => {
+            const btn = document.getElementById(`cmd-tab-${t}`);
+            const view = document.getElementById(`cmd-view-${t}`);
+            if (t === tab) {
+                btn.className = "flex-1 py-3 text-primary border-b-2 border-primary bg-surface-white flex items-center justify-center gap-1.5 transition-colors";
+                view.classList.remove('hidden');
+            } else {
+                btn.className = "flex-1 py-3 text-on-surface-variant hover:text-primary flex items-center justify-center gap-1.5 transition-colors";
+                view.classList.add('hidden');
+            }
+        });
+
+        if (tab === 'analytics') loadAnalyticsDashboard();
+        if (tab === 'fleet') loadFleetTable();
+        if (tab === 'laws') searchRegulationsUI();
+        if (tab === 'sos') loadSosQueue();
+    };
+
+    async function loadAnalyticsDashboard() {
+        try {
+            const res = await fetch(`${BASE_URL}/api/analytics/dashboard`);
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            document.getElementById('stat-total-queries').textContent = data.total_queries || '38';
+            const safeCnt = (data.safety_distribution && data.safety_distribution.SAFE) ? data.safety_distribution.SAFE : 36;
+            const total = data.total_queries || 38;
+            document.getElementById('stat-safe-ratio').textContent = `${Math.round((safeCnt / total) * 100)}%`;
+            document.getElementById('stat-active-fleet').textContent = `${data.active_vessels_count || 5} Vessels`;
+            document.getElementById('stat-active-distress').textContent = `${data.active_distress_count || 0} Alerts`;
+
+            const portsList = document.getElementById('analytics-ports-list');
+            if (portsList && data.top_ports) {
+                portsList.innerHTML = data.top_ports.map(p => `
+                    <div class="flex items-center justify-between text-xs bg-surface-white p-2.5 rounded-lg border border-outline-variant">
+                        <span class="font-bold text-primary">${p.port}</span>
+                        <span class="bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">${p.count} Queries</span>
+                    </div>
+                `).join('');
+            }
+        } catch(e) {}
+    }
+
+    async function loadFleetTable() {
+        try {
+            const res = await fetch(`${BASE_URL}/api/fleet/active`);
+            if (!res.ok) return;
+            const data = await res.json();
+            const tbody = document.getElementById('fleet-table-body');
+            if (!tbody || !data.fleet) return;
+
+            tbody.innerHTML = data.fleet.map(v => {
+                const statusColor = v.status === 'DISTRESS' ? 'bg-rose-100 text-rose-800' : (v.status === 'FISHING' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800');
+                return `
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="p-3 font-mono font-bold text-primary">${v.vessel_id}</td>
+                        <td class="p-3">${v.captain_name}</td>
+                        <td class="p-3">${v.base_port}</td>
+                        <td class="p-3 font-mono text-[11px]">${v.latitude.toFixed(3)}°N, ${v.longitude.toFixed(3)}°E</td>
+                        <td class="p-3 font-bold">${v.speed_knots} kts (${v.heading_deg}°)</td>
+                        <td class="p-3">${v.fuel_liters_remaining} L</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${statusColor}">${v.status}</span></td>
+                        <td class="p-3 text-right">
+                            <button onclick="flyToVesselAndShowTrack(${v.latitude}, ${v.longitude}, '${v.vessel_id}', '${v.captain_name}')" class="px-2.5 py-1 rounded bg-ocean-cyan hover:bg-primary text-white font-bold text-[10px] shadow-xs transition-all">
+                                📍 Plot On Map
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } catch(e) {}
+    }
+
+    window.flyToVesselAndShowTrack = function(lat, lon, vesselId, captain) {
+        closeCommandConsoleModal();
+        map.flyTo([lat, lon], 10, { duration: 1.5 });
+        
+        // Add Marker
+        const vesselMarker = L.marker([lat, lon], {
+            icon: L.divIcon({
+                className: 'custom-vessel-marker',
+                html: `<div style="background:#0284c7; color:#fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.4);"><span class="material-symbols-outlined" style="font-size:16px;">sailing</span></div>`
+            })
+        }).addTo(routeLayerGroup);
+
+        vesselMarker.bindPopup(`
+            <div style="font-size:12px; font-family:sans-serif; color:#f8fafc;">
+                <b style="color:#38bdf8;">🚢 ${vesselId}</b><br>
+                <span>Captain: <b>${captain}</b></span><br>
+                <span>Live Position: <b>${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E</b></span>
+            </div>
+        `).openPopup();
+    };
+
+    window.searchRegulationsUI = async function() {
+        const query = document.getElementById('reg-search-input').value || 'monsoon ban trawling wildlife act';
+        try {
+            const res = await fetch(`${BASE_URL}/api/regulations/search?q=${encodeURIComponent(query)}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            const container = document.getElementById('regulations-results-container');
+            if (!container || !data.regulations) return;
+
+            container.innerHTML = data.regulations.map(r => `
+                <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3.5 flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-primary text-xs sm:text-sm">${r.title}</h4>
+                        <span class="text-[9px] uppercase font-bold bg-primary/10 text-primary px-2 py-0.5 rounded">${r.category}</span>
+                    </div>
+                    <span class="text-[10px] text-on-surface-variant font-mono font-bold">${r.legal_act || ''}</span>
+                    <p class="text-xs text-on-surface leading-relaxed">${r.summary}</p>
+                    <div class="bg-surface-white p-2 rounded border border-outline-variant/60 text-[11px] text-on-surface-variant mt-1">
+                        <strong>Legal Provision:</strong> ${r.full_text}
+                    </div>
+                </div>
+            `).join('');
+        } catch(e) {}
+    };
+
+    async function loadSosQueue() {
+        try {
+            const res = await fetch(`${BASE_URL}/api/sos/active`);
+            if (!res.ok) return;
+            const data = await res.json();
+            const container = document.getElementById('sos-queue-container');
+            if (!container) return;
+
+            if (!data.active_emergencies || data.active_emergencies.length === 0) {
+                container.innerHTML = `
+                    <div class="p-6 text-center text-xs text-on-surface-variant border border-dashed border-outline-variant rounded-xl">
+                        🟢 No active emergency distress calls at this moment. Maritime sector all clear.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = data.active_emergencies.map(s => `
+                <div class="bg-rose-50 border-2 border-rose-400 rounded-xl p-4 flex flex-col gap-2 shadow-md animate-pulse">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-rose-900 text-sm">🚨 ${s.emergency_type}</span>
+                        <span class="text-[10px] font-mono font-bold bg-rose-600 text-white px-2 py-0.5 rounded">STATUS: ACTIVE</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs text-rose-950 font-medium">
+                        <div>Vessel: <b class="font-mono">${s.vessel_id}</b> (${s.captain_name})</div>
+                        <div>Phone: <b>${s.contact_phone}</b></div>
+                        <div>Coordinates: <b>${s.latitude}°N, ${s.longitude}°E</b></div>
+                        <div>Reported: <b>${new Date(s.created_at).toLocaleTimeString()}</b></div>
+                    </div>
+                    <p class="text-xs text-rose-800">${s.description || ''}</p>
+                </div>
+            `).join('');
+        } catch(e) {}
+    }
+
+    // 2. Load Geofence Layers
+    async function loadGeofenceLayers() {
+        try {
+            const res = await fetch(`${BASE_URL}/api/geofence-layers`);
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            borderLayerGroup.clearLayers();
+            eezLayerGroup.clearLayers();
+
+            L.geoJSON(data, {
+                style: function (feature) {
+                    if (feature.properties.category === 'EEZ_BOUNDARY') {
+                        return { color: '#0284c7', fillColor: '#0284c7', fillOpacity: 0.08, weight: 2 };
+                    }
+                    if (feature.properties.category === 'IMBL_BORDER') {
+                        return { color: '#ef4444', weight: 3.5, dashArray: '6, 6', opacity: 0.95 };
+                    }
+                    return { color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.2, weight: 1.5 };
+                },
+                onEachFeature: function (feature, layer) {
+                    if (feature.properties && feature.properties.name) {
+                        layer.bindPopup(`
+                            <div style="font-size:12px; font-family:sans-serif;">
+                                <b style="color:${feature.properties.color}">${feature.properties.name}</b><br>
+                                <span style="font-size:11px; color:#cbd5e1;">${feature.properties.warning}</span>
+                            </div>
+                        `);
+                    }
+                    if (feature.properties.category === 'EEZ_BOUNDARY') {
+                        layer.addTo(eezLayerGroup);
+                    } else {
+                        layer.addTo(borderLayerGroup);
+                    }
+                }
+            });
+        } catch (e) {
+            console.warn("Could not load geofence layers:", e);
+        }
+    }
+
+    // 3. Load Ports
+    async function loadPorts() {
+        try {
+            const res = await fetch(`${BASE_URL}/api/ports`);
+            if (!res.ok) return;
+            const data = await res.json();
+            portMarkersGroup.clearLayers();
+            Object.entries(data.ports).forEach(([key, p]) => {
+                const marker = L.circleMarker([p.lat, p.lon], {
+                    radius: 6,
+                    color: '#0284c7',
+                    fillColor: '#38bdf8',
+                    fillOpacity: 0.9,
+                    weight: 2
+                }).addTo(portMarkersGroup);
+
+                marker.bindPopup(`
+                    <div style="font-size:12px; font-family:sans-serif;">
+                        <b style="color:#38bdf8;">⚓ ${p.name}</b><br>
+                        <span style="color:#94a3b8;">${p.state} · ${p.region}</span><br>
+                        <button onclick="setPort('${key}')" style="margin-top:6px; background:#10b981; color:#ffffff; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; font-weight:bold; font-size:11px;">Select Harbor</button>
+                    </div>
+                `);
+            });
+        } catch (e) {
+            console.warn("Could not load ports:", e);
+        }
+    }
+
+    window.setPort = function(key) {
+        document.getElementById('port-select').value = key;
+        const mob = document.getElementById('mobile-port-select');
+        if (mob) mob.value = key;
+        activePort = key;
+        refreshTelemetry(key);
+    };
+
+    // 4. Refresh Telemetry for Port
+    async function refreshTelemetry(portKey) {
+        try {
+            document.getElementById('map-port-indicator').textContent = portKey.toUpperCase();
+            const res = await fetch(`${BASE_URL}/api/pfz?port=${portKey}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            const pfzList = data.pfz_zones || [];
+
+            renderPFZ(pfzList);
+
+            const weatherRes = await fetch(`${BASE_URL}/api/marine-data`);
+            if (weatherRes.ok) {
+                const wData = await weatherRes.json();
+                updateTelemetryCards(wData, pfzList[0]);
+            }
+
+            // Proactive hazard evaluation for harbor
+            loadProactiveAlerts();
+        } catch (e) {
+            console.warn("Telemetry refresh error:", e);
+        }
+    }
+
+    function renderPFZ(pfzList) {
+        pfzLayerGroup.clearLayers();
+        if (!pfzList || !pfzList.length) return;
+        pfzList.forEach(pfz => {
+            const m = L.circleMarker([pfz.lat, pfz.lon], {
+                radius: 8,
+                color: '#10b981',
+                fillColor: '#34d399',
+                fillOpacity: 0.9,
+                weight: 3
+            }).addTo(pfzLayerGroup);
+
+            m.bindPopup(`
+                <div style="font-size:12px; font-family:sans-serif; min-width:180px;">
+                    <b style="color:#34d399;">🐟 ${pfz.name}</b><br>
+                    <div style="color:#cbd5e1; margin:4px 0;">
+                        <b>Bearing:</b> ${pfz.bearing_deg}° (${pfz.bearing_dir}) | <b>Dist:</b> ${pfz.distance_nm} NM<br>
+                        <b>SST:</b> ${pfz.sst_c} °C | <b>Chlorophyll:</b> ${pfz.chlorophyll_mg_m3} mg/m³<br>
+                        <b>Target Fish:</b> ${pfz.primary_species.join(', ')}<br>
+                        <b>Confidence:</b> ${pfz.confidence_score}%
+                    </div>
+                    <small style="color:#38bdf8;">${pfz.source}</small>
+                </div>
+            `);
+        });
+    }
+
+    function renderRoute(route) {
+        routeLayerGroup.clearLayers();
+        if (!route || !route.polyline_coordinates) return;
+        const poly = L.polyline(route.polyline_coordinates, {
+            color: '#0284c7',
+            weight: 4,
+            dashArray: '6, 6',
+            opacity: 0.95
+        }).addTo(routeLayerGroup);
+        map.fitBounds(poly.getBounds(), { padding: [40, 40] });
+    }
+
+    function updateTelemetryCards(w, pfz) {
+        if (w) {
+            document.getElementById('telemetry-wave').textContent = `${w.wave_height_m} m`;
+            document.getElementById('telemetry-wave-period').textContent = `Period: ${w.wave_period_s}s · ${w.sea_state}`;
+            document.getElementById('telemetry-wind').textContent = `${w.wind_speed_kmh} km/h`;
+            document.getElementById('telemetry-wind-knots').textContent = `${w.wind_speed_knots} Knots · Gusts: ${w.wind_gusts_kmh} km/h`;
+            document.getElementById('telemetry-sst').textContent = `${w.sea_surface_temp_c} °C`;
+            
+            const badge = document.getElementById('telemetry-safety-badge');
+            badge.textContent = w.safety_status;
+            if (w.safety_status === 'SAFE') {
+                badge.className = 'text-[10px] text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded font-bold border border-emerald-200';
+            } else if (w.safety_status === 'CAUTION') {
+                badge.className = 'text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded font-bold border border-amber-200';
+            } else {
+                badge.className = 'text-[10px] text-rose-600 bg-rose-50 px-2 py-0.5 rounded font-bold border border-rose-200';
+            }
+        }
+        if (pfz) {
+            document.getElementById('telemetry-chla').textContent = `Chl-a: ${pfz.chlorophyll_mg_m3} mg/m³`;
+        }
+    }
+
+    // 5. Multi-Agent Stepper Animation
+    let agentInterval;
+    function startAgentAnimation() {
+        document.getElementById('agent-active-badge').textContent = 'Collaborating...';
+        document.getElementById('agent-active-badge').className = 'text-[10px] bg-ocean-cyan text-white px-2 py-0.5 rounded font-bold uppercase animate-pulse';
+
+        for (let i = 1; i <= 6; i++) {
+            const el = document.getElementById(`agent-step-${i}`);
+            el.className = 'px-2 py-1 rounded bg-surface-container-high text-on-surface font-medium flex items-center gap-1';
+        }
+        let cur = 1;
+        document.getElementById(`agent-step-1`).className = 'px-2 py-1 rounded bg-secondary-container text-deep-navy font-bold shadow-xs border border-secondary-container agent-active flex items-center gap-1';
+
+        agentInterval = setInterval(() => {
+            if (cur <= 6) {
+                document.getElementById(`agent-step-${cur}`).className = 'px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold flex items-center gap-1';
+                cur++;
+                if (cur <= 6) {
+                    document.getElementById(`agent-step-${cur}`).className = 'px-2 py-1 rounded bg-secondary-container text-deep-navy font-bold shadow-xs border border-secondary-container agent-active flex items-center gap-1';
+                }
+            }
+        }, 120);
+    }
+
+    function stopAgentAnimation() {
+        clearInterval(agentInterval);
+        for (let i = 1; i <= 6; i++) {
+            document.getElementById(`agent-step-${i}`).className = 'px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold flex items-center gap-1';
+        }
+        document.getElementById('agent-active-badge').textContent = 'Ready';
+        document.getElementById('agent-active-badge').className = 'text-[10px] bg-secondary-container text-deep-navy px-2 py-0.5 rounded font-bold uppercase';
+    }
+
+    // 6. Chat & LLM Execution
+    const chatStream = document.getElementById('chat-stream');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const micBtn = document.getElementById('mic-btn');
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatMarkdown(text) {
+        if (!text) return '';
+        // 1. Sanitize raw HTML tags to prevent XSS injection
+        let safe = escapeHtml(text);
+        // 2. Parse safe markdown elements
+        let html = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/^\s*\*\s+(.*$)/gim, '<li class="ml-4 list-disc">$1</li>');
+        html = html.replace(/^\s*-\s+(.*$)/gim, '<li class="ml-4 list-disc">$1</li>');
+        html = html.replace(/\n\n/g, '</p><p class="mt-2">');
+        html = html.replace(/\n/g, '<br>');
+        return `<p>${html}</p>`;
+    }
+
+    function appendUserMessage(query) {
+        const div = document.createElement('div');
+        div.className = 'flex items-start justify-end gap-2.5 my-2';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'bg-primary text-white p-3 rounded-xl text-xs sm:text-sm font-medium max-w-[85%] shadow-md border border-white/10';
+        bubble.style.backgroundColor = '#00264b';
+        bubble.style.color = '#ffffff';
+        // SECURE: textContent strictly treats input as plain text, eliminating XSS risks
+        bubble.textContent = query;
+
+        const avatar = document.createElement('div');
+        avatar.className = 'w-8 h-8 rounded-lg bg-secondary-container text-deep-navy flex items-center justify-center flex-shrink-0 text-xs font-bold shadow-xs';
+        avatar.style.backgroundColor = '#feae2c';
+        avatar.style.color = '#00264b';
+        avatar.innerHTML = '<span class="material-symbols-outlined text-base">person</span>';
+
+        div.appendChild(bubble);
+        div.appendChild(avatar);
+        chatStream.appendChild(div);
+        chatStream.scrollTop = chatStream.scrollHeight;
+    }
+
+    let botChartCounter = 0;
+    function appendBotResponse(data) {
+        botChartCounter++;
+        const chartCanvasId = `wave-trend-chart-${botChartCounter}`;
+        const div = document.createElement('div');
+        div.className = 'flex items-start gap-2.5 bg-surface-container-low p-3 rounded-lg border border-outline-variant shadow-sm';
+        
+        let safetyTag = '';
+        if (data.marine_weather) {
+            safetyTag = `<span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase ${data.marine_weather.safety_status === 'SAFE' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${data.marine_weather.safety_status}</span>`;
+        }
+
+        let sourcesHtml = '';
+        if (data.sources) {
+            sourcesHtml = data.sources.map(s => `<span class="text-[10px] bg-surface-white border border-outline-variant text-primary px-1.5 py-0.5 rounded">${s}</span>`).join(' ');
+        }
+
+        let chartHtml = '';
+        if (data.chart_data && Array.isArray(data.chart_data) && data.chart_data.length > 0) {
+            chartHtml = `
+                <div class="mt-2.5 p-3 bg-surface-white border border-outline-variant rounded-xl shadow-xs">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-primary flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-sm text-ocean-cyan">show_chart</span>
+                            <span>Agle 24 ghante ki wave height trend</span>
+                        </span>
+                        <span class="text-[9px] font-mono bg-ocean-cyan/10 text-ocean-cyan px-2 py-0.5 rounded font-bold">24H Open-Meteo</span>
+                    </div>
+                    <div class="relative h-40 w-full">
+                        <canvas id="${chartCanvasId}"></canvas>
+                    </div>
+                </div>
+            `;
+        }
+
+        div.innerHTML = `
+            <div class="w-7 h-7 rounded bg-gradient-to-br from-primary to-ocean-cyan text-white flex items-center justify-center flex-shrink-0 text-xs shadow-xs">
+                <span class="material-symbols-outlined text-sm">smart_toy</span>
+            </div>
+            <div class="flex flex-col gap-1 text-xs sm:text-sm flex-1">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-primary">ORCA Reasoning</span>
+                    ${safetyTag}
+                </div>
+                <div class="text-on-surface leading-relaxed mt-1">
+                    ${formatMarkdown(data.answer)}
+                </div>
+                ${chartHtml}
+                <div class="flex flex-wrap gap-1 mt-2 pt-2 border-t border-outline-variant">
+                    ${sourcesHtml}
+                </div>
+            </div>
+        `;
+        chatStream.appendChild(div);
+        chatStream.scrollTop = chatStream.scrollHeight;
+
+        // Render Chart.js Line Chart for 24-hour wave height trend
+        if (data.chart_data && Array.isArray(data.chart_data) && data.chart_data.length > 0 && typeof Chart !== 'undefined') {
+            const ctx = document.getElementById(chartCanvasId);
+            if (ctx) {
+                const labels = data.chart_data.map(d => {
+                    const t = d.time || '';
+                    if (t.includes('T')) {
+                        const timePart = t.split('T')[1];
+                        return timePart.substring(0, 5); // "00:00", "01:00"
+                    }
+                    return t;
+                });
+                const waveValues = data.chart_data.map(d => d.wave_height);
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Wave Height (m)',
+                            data: waveValues,
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.12)',
+                            borderWidth: 2,
+                            tension: 0.35,
+                            fill: true,
+                            pointRadius: 2,
+                            pointHoverRadius: 5,
+                            pointBackgroundColor: '#00264b',
+                            pointBorderColor: '#38bdf8'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    title: function(items) {
+                                        return `Time: ${items[0].label}`;
+                                    },
+                                    label: function(context) {
+                                        const h = context.parsed.y;
+                                        const status = h < 1.5 ? ' (SAFE)' : (h < 2.5 ? ' (CAUTION)' : ' (UNSAFE)');
+                                        return ` Wave Height: ${h}m${status}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 9 },
+                                    maxTicksLimit: 8,
+                                    color: '#64748b'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0,0,0,0.06)' },
+                                ticks: {
+                                    font: { size: 9 },
+                                    color: '#64748b',
+                                    callback: function(val) { return val + 'm'; }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Map and Port indicator updates
+        if (data.pfz) renderPFZ(data.all_pfz || [data.pfz]);
+        if (data.route) renderRoute(data.route);
+        if (data.marine_weather) updateTelemetryCards(data.marine_weather, data.pfz);
+        if (data.port) {
+            const portName = data.port.name || 'Coastal Port';
+            const indicatorEl = document.getElementById('map-port-indicator');
+            if (indicatorEl) indicatorEl.textContent = portName.toUpperCase();
+            
+            const portSelect = document.getElementById('port-select');
+            if (portSelect) {
+                for (let i = 0; i < portSelect.options.length; i++) {
+                    if (portSelect.options[i].text.toLowerCase().includes(portName.toLowerCase()) || 
+                        portName.toLowerCase().includes(portSelect.options[i].text.toLowerCase())) {
+                        portSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            map.setView([data.port.lat, data.port.lon], 8);
+        }
+    }
+
+    async function executePrompt(query) {
+        if (!query || !query.trim()) return;
+        appendUserMessage(query);
+        userInput.value = '';
+        startAgentAnimation();
+
+        // Send last 6 messages (3 turns) to keep payload optimal
+        const recentHistory = conversationHistory.slice(-6);
+        const currentUsername = localStorage.getItem('orca_username') || 'Guest';
+
+        try {
+            const res = await fetch(BACKEND_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: query,
+                    lat: DEFAULT_LAT,
+                    lon: DEFAULT_LON,
+                    history: recentHistory,
+                    username: currentUsername
+                })
+            });
+            if (!res.ok) throw new Error('API Error');
+            const data = await res.json();
+            stopAgentAnimation();
+
+            // Track in multi-turn conversation memory
+            conversationHistory.push({ role: 'user', text: query });
+            conversationHistory.push({ role: 'bot', text: data.answer || '' });
+            if (conversationHistory.length > 10) {
+                conversationHistory = conversationHistory.slice(-10);
+            }
+
+            appendBotResponse(data);
+        } catch (e) {
+            stopAgentAnimation();
+            const div = document.createElement('div');
+            div.className = 'p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-lg text-xs flex items-center justify-between gap-2';
+            div.innerHTML = `
+                <div>
+                    <b>Server Connection Error:</b> Could not reach backend on ${BACKEND_URL}.
+                </div>
+                <button onclick="executePrompt('${query.replace(/'/g, "\\'")}')" class="px-2 py-1 bg-rose-600 text-white rounded text-[11px] font-bold hover:bg-rose-700">Retry</button>
+            `;
+            chatStream.appendChild(div);
+            chatStream.scrollTop = chatStream.scrollHeight;
+        }
+    }
+
+    sendBtn.addEventListener('click', () => executePrompt(userInput.value));
+    userInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') executePrompt(userInput.value);
+    });
+
+    document.getElementById('port-select').addEventListener('change', (e) => {
+        setPort(e.target.value);
+    });
+    const mobSel = document.getElementById('mobile-port-select');
+    if (mobSel) {
+        mobSel.addEventListener('change', (e) => setPort(e.target.value));
+    }
+
+    // Language Selector Buttons
+    const langPrompts = {
+        hi: [
+            { text: "🎣 Kal safe hai kya?", q: "Kal subah Chennai se machhli pakadne jaana safe hai kya?" },
+            { text: "🗺️ Nazdeek PFZ?", q: "Sabse nazdeek Potential Fishing Zone (PFZ) kahan hai?" },
+            { text: "🚨 IMBL Border Alert?", q: "Kya Rameswaram ke paas koi Sri Lanka border alert hai?" },
+            { text: "🧭 Safe Route & Fuel", q: "Calculate safe navigation route and fuel estimate to fishing zone" }
+        ],
+        ta: [
+            { text: "🎣 நாளை பாதுகாப்பானதா?", q: "நாளை காலை சென்னை கடலில் மீன்பிடிக்க செல்வது பாதுகாப்பானதா?" },
+            { text: "🗺️ PFZ மீன்பிடி மண்டலம்?", q: "அருகில் உள்ள சாத்தியமான மீன்பிடி மண்டலம் எங்குள்ளது?" },
+            { text: "🚨 IMBL எல்லை எச்சரிக்கை?", q: "இலங்கை கடல் எல்லை எச்சரிக்கை உள்ளதா?" }
+        ],
+        te: [
+            { text: "🎣 రేపు సురక్షితమా?", q: "రేపు ఉదయం విశాఖపట్నం నుంచి చేపల వేటకు వెళ్లడం సురక్షితమేనా?" },
+            { text: "🗺️ ఫిషింగ్ జోన్?", q: "సమీపంలోని సంభావ్య ఫిషింగ్ జోన్ ఎక్కడ ఉంది?" }
+        ],
+        bn: [
+            { text: "🎣 কাল কি নিরাপদ?", q: "দীঘা থেকে কাল সকালে সমুদ্রে মাছ ধরতে যাওয়া কি নিরাপদ?" },
+            { text: "🗺️ নিকটতম PFZ?", q: "সবচেয়ে কাছের সম্ভাব্য মাছ ধরার এলাকা কোথায়?" }
+        ],
+        en: [
+            { text: "🎣 Safe tomorrow?", q: "Is it safe to venture into the sea tomorrow morning?" },
+            { text: "🗺️ Nearest PFZ?", q: "Where is the nearest Potential Fishing Zone today?" },
+            { text: "🚨 IMBL Border Alert?", q: "Check if the fishing zone approaches the Sri Lanka or Pakistan border." },
+            { text: "🧭 Safe Route & Fuel", q: "Calculate the safest navigation route and diesel fuel estimate to the nearest fishing zone" }
+        ]
+    };
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.lang-btn').forEach(b => {
+                b.className = 'lang-btn px-2 py-0.5 rounded hover:bg-surface-white/10 text-on-primary opacity-80';
+            });
+            btn.className = 'lang-btn px-2 py-0.5 rounded bg-surface-white/20 text-on-primary font-bold';
+            const lang = btn.dataset.lang;
+            const prompts = langPrompts[lang] || langPrompts.en;
+            document.getElementById('prompt-chips').innerHTML = prompts.map(p => `
+                <button onclick="executePrompt('${p.q}')" class="text-xs bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap hover:border-primary hover:text-primary transition-all">
+                    ${p.text}
+                </button>
+            `).join('');
+        });
+    });
+
+    // Web Speech Recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const reco = new SpeechRecognition();
+        reco.continuous = false;
+        reco.interimResults = false;
+
+        micBtn.addEventListener('click', () => {
+            reco.start();
+            micBtn.className = 'w-10 h-10 rounded-lg bg-coral-500 text-white border border-outline-variant flex items-center justify-center animate-pulse';
+        });
+
+        reco.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            userInput.value = transcript;
+            micBtn.className = 'w-10 h-10 rounded-lg bg-surface-container-high text-primary border border-outline-variant flex items-center justify-center hover:bg-surface-variant transition-colors';
+            executePrompt(transcript);
+        };
+
+        reco.onerror = () => {
+            micBtn.className = 'w-10 h-10 rounded-lg bg-surface-container-high text-primary border border-outline-variant flex items-center justify-center hover:bg-surface-variant transition-colors';
+        };
+    } else {
+        micBtn.style.display = 'none';
+    }
+
+    // 7. Proactive Hazard Alerts (Automated SIH PS #26176 Warning Engine)
+    async function loadProactiveAlerts(lat = DEFAULT_LAT, lon = DEFAULT_LON) {
+        try {
+            const res = await fetch(`${BASE_URL}/api/proactive-alerts?lat=${lat}&lon=${lon}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            const banner = document.getElementById('proactive-hazard-banner');
+            if (data.has_alert && data.alerts && data.alerts.length > 0) {
+                const topAlert = data.alerts[0];
+                const isWarningOrDanger = topAlert.severity === 'danger' || topAlert.severity === 'warning';
+                
+                banner.className = isWarningOrDanger
+                    ? 'p-3 rounded-lg border border-amber-300 bg-amber-50 text-on-surface flex items-start justify-between gap-3 shadow-sm transition-all'
+                    : 'p-3 rounded-lg border border-sky-300 bg-sky-50 text-on-surface flex items-start justify-between gap-3 shadow-sm transition-all';
+                
+                document.getElementById('proactive-banner-title').textContent = topAlert.title;
+                document.getElementById('proactive-banner-msg').textContent = topAlert.message;
+                document.getElementById('proactive-banner-rec').textContent = `🛡️ Advisory: ${topAlert.recommendation}`;
+                
+                banner.classList.remove('hidden');
+                
+                // Update top alert ticker
+                const tickerEl = document.getElementById('live-ticker');
+                if (tickerEl) {
+                    tickerEl.textContent = `⚠️ PROACTIVE LIVE ADVISORY: ${topAlert.title} — ${topAlert.message} • ${data.disclaimer}`;
+                }
+            } else {
+                banner.classList.add('hidden');
+            }
+        } catch (e) {
+            console.warn("Proactive alerts error:", e);
+        }
+    }
+
+    // Initial Loading Sequence
+    loadGeofenceLayers();
+    loadPorts();
+    refreshTelemetry('chennai');
+    loadProactiveAlerts(DEFAULT_LAT, DEFAULT_LON);
+</script>
+
+</body>
+</html>

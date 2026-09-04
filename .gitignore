@@ -1,0 +1,25 @@
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+credentials.json
+secrets/
+
+# Python virtual environment & cache
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Logs & Diagnostics
+*.log
+logs/
+
+# IDE & Editor metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+

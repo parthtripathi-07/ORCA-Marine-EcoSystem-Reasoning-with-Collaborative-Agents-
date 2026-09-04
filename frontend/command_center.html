@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ORCA — Maritime Command & Control Console | ISRO & Indian Coast Guard</title>
+    <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
+    <link rel="apple-touch-icon" href="assets/orca_logo.jpg">
+    
+    <!-- Tailwind CSS with custom theme configuration -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Material Design Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+    
+    <!-- Leaflet GIS CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        background: "#f7f9fc",
+                        surface: "#f7f9fc",
+                        "surface-white": "#FFFFFF",
+                        "surface-container-low": "#f2f4f7",
+                        "surface-container-high": "#e6e8eb",
+                        primary: "#00264b",
+                        "primary-container": "#0b3c6c",
+                        "deep-navy": "#003366",
+                        "ocean-cyan": "#0284c7",
+                        "ocean-emerald": "#10b981",
+                        "alert-amber": "#F29400",
+                        "secondary-container": "#feae2c",
+                        "on-surface": "#191c1e",
+                        "on-surface-variant": "#43474f",
+                        "outline-variant": "#c3c6d0"
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"],
+                        mono: ["JetBrains Mono", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-vessel-pulse {
+            animation: pulse-ring 2s infinite ease-out;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.9); opacity: 0.9; }
+            50% { transform: scale(1.15); opacity: 0.4; }
+            100% { transform: scale(0.9); opacity: 0.9; }
+        }
+    </style>
+</head>
+
+<body class="bg-[#f0f4f8] text-on-surface min-h-screen flex flex-col font-sans antialiased selection:bg-ocean-cyan selection:text-white">
+
+    <!-- Top Command Navigation Bar -->
+    <header class="bg-primary text-white border-b border-primary-container sticky top-0 z-50 shadow-md">
+        <div class="w-full px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-10 h-10 rounded-xl object-cover ring-2 ring-white/30 shadow-md"/>
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-base sm:text-lg font-bold tracking-tight uppercase">ORCA Command Console</h1>
+                        <span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-400 px-2 py-0.5 rounded-full font-mono font-bold flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> POSTGRESQL LIVE
+                        </span>
+                    </div>
+                    <span class="text-[11px] text-white/80">Department of Space · ISRO | Indian Coast Guard Maritime Rescue Coordination Centre (MRCC)</span>
+                </div>
+            </div>
+
+            <!-- Header Actions & Navigation -->
+            <div class="flex items-center gap-2.5">
+                <div class="hidden md:flex items-center gap-2 text-xs font-mono bg-white/10 px-3 py-1.5 rounded-lg border border-white/15">
+                    <span class="material-symbols-outlined text-sm text-cyan-300">schedule</span>
+                    <span id="live-clock">IST --:--:--</span>
+                </div>
+                
+                <a href="index.html" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-white/10 hover:bg-surface-white/20 text-white text-xs font-bold transition-all border border-white/20">
+                    <span class="material-symbols-outlined text-sm">arrow_back</span>
+                    <span>Fishermen Portal</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container (Full-Width Edge-to-Edge Layout) -->
+    <main class="w-full px-3 sm:px-6 lg:px-8 py-4 flex-1 flex flex-col gap-5">
+
+        <!-- 📖 WHAT IS THIS & WHAT DOES IT SHOW? (EXPLANATORY GUIDE SECTION) -->
+        <section class="bg-surface-white border border-outline-variant rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col gap-4">
+            <div class="flex items-start justify-between gap-4 flex-wrap">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-2xl">info</span>
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-primary">Ye Page Kya Hai aur Ye Kya Bata Raha Hai?</h2>
+                        <p class="text-xs text-on-surface-variant font-medium">ORCA Centralized Maritime Command & Intelligence Architecture Overview</p>
+                    </div>
+                </div>
+                <span class="text-[10px] bg-ocean-cyan/10 text-ocean-cyan border border-ocean-cyan/30 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+                    Official Officer Guide
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 pt-2">
+                <div class="bg-surface-container-low border border-outline-variant/60 rounded-xl p-3.5 flex flex-col gap-1.5">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs">
+                        <span class="material-symbols-outlined text-base text-ocean-cyan">database</span>
+                        <span>1. PostGIS Spatial Database</span>
+                    </div>
+                    <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                        Ye system har <strong>Query, GPS Point aur Marine Alert</strong> ko aapke local <code>orca_db</code> PostgreSQL database me store karta hai taaki audit aur coast guard analysis ho sake.
+                    </p>
+                </div>
+
+                <div class="bg-surface-container-low border border-outline-variant/60 rounded-xl p-3.5 flex flex-col gap-1.5">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs">
+                        <span class="material-symbols-outlined text-base text-emerald-600">sailing</span>
+                        <span>2. Live Fleet Positioning</span>
+                    </div>
+                    <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                        Registered fishing boats ki live speed (knots), compass heading, bacha hua diesel fuel aur safe/distress status real-time radar map par dikhata hai.
+                    </p>
+                </div>
+
+                <div class="bg-surface-container-low border border-outline-variant/60 rounded-xl p-3.5 flex flex-col gap-1.5">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs">
+                        <span class="material-symbols-outlined text-base text-amber-600">gavel</span>
+                        <span>3. Indian Maritime Laws (RAG)</span>
+                    </div>
+                    <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                        Wildlife Protection Act 1972, 61-day monsoon trawling ban aur IMBL border agreements ka searchable legal reference database jisse AI accurate qanooni jankaari deta hai.
+                    </p>
+                </div>
+
+                <div class="bg-surface-container-low border border-outline-variant/60 rounded-xl p-3.5 flex flex-col gap-1.5">
+                    <div class="flex items-center gap-2 text-primary font-bold text-xs">
+                        <span class="material-symbols-outlined text-base text-rose-600">e911_emergency</span>
+                        <span>4. Direct SOS Emergency Queue</span>
+                    </div>
+                    <p class="text-[11px] text-on-surface-variant leading-relaxed">
+                        Samundar me engine failure ya cyclone me phanse machhuaron ke panic alerts seedha is dashboard me aate hain taaki Coast Guard SAR rescue team turant dispatch ho sake.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 📊 REAL-TIME OPERATIONAL METRICS KPI CARDS -->
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div class="bg-surface-white border border-outline-variant rounded-xl p-4 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-center text-on-surface-variant text-[11px] font-bold uppercase">
+                    <span>Total Logged Queries</span>
+                    <span class="material-symbols-outlined text-primary text-base">forum</span>
+                </div>
+                <div class="my-2">
+                    <span id="kpi-total-queries" class="text-2xl sm:text-3xl font-extrabold text-primary font-mono">38</span>
+                </div>
+                <div class="flex items-center gap-1 text-[10px] text-emerald-700 font-semibold">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>PostgreSQL Table: orca_query_logs</span>
+                </div>
+            </div>
+
+            <div class="bg-surface-white border border-outline-variant rounded-xl p-4 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-center text-on-surface-variant text-[11px] font-bold uppercase">
+                    <span>Safe Operations Ratio</span>
+                    <span class="material-symbols-outlined text-emerald-600 text-base">verified</span>
+                </div>
+                <div class="my-2">
+                    <span id="kpi-safe-ratio" class="text-2xl sm:text-3xl font-extrabold text-emerald-600 font-mono">94.7%</span>
+                </div>
+                <div class="text-[10px] text-on-surface-variant">
+                    <span>Wave Height &lt; 1.5m Threshold</span>
+                </div>
+            </div>
+
+            <div class="bg-surface-white border border-outline-variant rounded-xl p-4 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-center text-on-surface-variant text-[11px] font-bold uppercase">
+                    <span>Active Monitored Fleet</span>
+                    <span class="material-symbols-outlined text-ocean-cyan text-base">sailing</span>
+                </div>
+                <div class="my-2">
+                    <span id="kpi-fleet-count" class="text-2xl sm:text-3xl font-extrabold text-ocean-cyan font-mono">5</span>
+                </div>
+                <div class="text-[10px] text-on-surface-variant">
+                    <span>AIS &amp; GPS Telemetry Active</span>
+                </div>
+            </div>
+
+            <div class="bg-surface-white border border-outline-variant rounded-xl p-4 shadow-sm flex flex-col justify-between">
+                <div class="flex justify-between items-center text-on-surface-variant text-[11px] font-bold uppercase">
+                    <span>Active Distress Beacons</span>
+                    <span class="material-symbols-outlined text-rose-600 text-base">emergency</span>
+                </div>
+                <div class="my-2">
+                    <span id="kpi-distress-count" class="text-2xl sm:text-3xl font-extrabold text-rose-600 font-mono">0</span>
+                </div>
+                <div class="text-[10px] text-emerald-700 font-semibold flex items-center gap-1">
+                    <span>🟢 Indian Maritime Sector Clear</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 🗂️ 4 MAIN INTERACTIVE COMMAND MODULES -->
+        <section class="bg-surface-white border border-outline-variant rounded-2xl shadow-sm overflow-hidden flex flex-col flex-1">
+            
+            <!-- Tab Navigation Bar -->
+            <div class="flex border-b border-outline-variant bg-surface-container-low text-xs font-bold overflow-x-auto">
+                <button id="nav-btn-fleet" onclick="switchMainTab('fleet')" class="flex-1 min-w-[140px] py-3.5 text-primary border-b-2 border-primary bg-surface-white flex items-center justify-center gap-1.5 transition-all">
+                    <span class="material-symbols-outlined text-sm text-ocean-cyan">explore</span> 1. Live Fleet Radar Map
+                </button>
+                <button id="nav-btn-logs" onclick="switchMainTab('logs')" class="flex-1 min-w-[140px] py-3.5 text-on-surface-variant hover:text-primary flex items-center justify-center gap-1.5 transition-all">
+                    <span class="material-symbols-outlined text-sm">table_rows</span> 2. Query Logs &amp; Port Stats
+                </button>
+                <button id="nav-btn-laws" onclick="switchMainTab('laws')" class="flex-1 min-w-[140px] py-3.5 text-on-surface-variant hover:text-primary flex items-center justify-center gap-1.5 transition-all">
+                    <span class="material-symbols-outlined text-sm">gavel</span> 3. Legal Regulations RAG
+                </button>
+                <button id="nav-btn-sos" onclick="switchMainTab('sos')" class="flex-1 min-w-[140px] py-3.5 text-on-surface-variant hover:text-rose-600 flex items-center justify-center gap-1.5 transition-all">
+                    <span class="material-symbols-outlined text-sm text-rose-600">emergency</span> 4. SOS Emergency Feed
+                </button>
+            </div>
+
+            <!-- Tab 1: Live Fleet Radar & Interactive Map -->
+            <div id="view-fleet" class="p-4 sm:p-6 flex flex-col gap-5">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    
+                    <!-- Left: Interactive Fleet Map -->
+                    <div class="lg:col-span-2 border border-outline-variant rounded-xl overflow-hidden flex flex-col bg-surface-container-low h-96 sm:h-[450px]">
+                        <div class="bg-primary text-white px-4 py-2 text-xs font-bold flex justify-between items-center">
+                            <span class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-sm text-cyan-300">radar</span>
+                                <span>ISRO Earth Observation &amp; Coastal Fleet Radar</span>
+                            </span>
+                            <span class="text-[10px] text-white/80">Click any vessel to inspect</span>
+                        </div>
+                        <div id="fleet-map" class="flex-1 w-full z-10"></div>
+                    </div>
+
+                    <!-- Right: Active Fleet Vessel Cards -->
+                    <div class="flex flex-col gap-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold uppercase text-primary tracking-wider">Registered Active Vessels</span>
+                            <span class="text-[10px] bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">5 Online</span>
+                        </div>
+                        <div id="fleet-cards-list" class="flex flex-col gap-2.5 overflow-y-auto max-h-[400px] pr-1">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Query Logs & Port Analytics -->
+            <div id="view-logs" class="p-4 sm:p-6 flex flex-col gap-5 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <!-- Top Port Leaderboard -->
+                    <div class="bg-surface-container-low border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase text-primary tracking-wider">Port Query Frequency</span>
+                            <span class="material-symbols-outlined text-primary text-base">leaderboard</span>
+                        </div>
+                        <div id="ports-leaderboard" class="flex flex-col gap-2">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Query Log Table -->
+                    <div class="md:col-span-2 border border-outline-variant rounded-xl overflow-hidden flex flex-col">
+                        <div class="bg-surface-container-high px-4 py-2.5 text-xs font-bold text-primary flex justify-between items-center">
+                            <span>Recent Real-Time Fishermen Queries (PostgreSQL: orca_query_logs)</span>
+                            <button onclick="loadCommandData()" class="text-primary hover:underline text-[11px] flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">refresh</span> Refresh
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto max-h-96">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-surface-container-low text-on-surface uppercase text-[10px] font-bold sticky top-0 border-b border-outline-variant">
+                                    <tr>
+                                        <th class="p-3">ID</th>
+                                        <th class="p-3">User Query</th>
+                                        <th class="p-3">Port</th>
+                                        <th class="p-3">Wave</th>
+                                        <th class="p-3">Safety Status</th>
+                                        <th class="p-3">Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="queries-table-body" class="divide-y divide-outline-variant bg-surface-white">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Legal Regulations RAG -->
+            <div id="view-laws" class="p-4 sm:p-6 flex flex-col gap-4 hidden">
+                <div class="bg-surface-container-low border border-outline-variant rounded-xl p-4 flex flex-col gap-3">
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-base">search</span>
+                            <input type="text" id="rag-input" placeholder="Search Indian Marine Laws: e.g., Wildlife Protection Act, 61-day monsoon ban, purse seine, EEZ..." class="w-full pl-9 pr-4 py-2 bg-surface-white border border-outline-variant rounded-xl text-xs outline-none focus:border-primary" />
+                        </div>
+                        <button onclick="performRagSearch()" class="px-4 py-2 bg-primary hover:bg-deep-navy text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-sm">
+                            <span>Search Knowledge Base</span>
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 text-[10px]">
+                        <span class="text-on-surface-variant font-bold">Popular Law Keywords:</span>
+                        <button onclick="quickSearch('Wildlife Protection Act')" class="px-2 py-0.5 rounded bg-surface-white border border-outline-variant hover:border-primary text-primary font-medium">Wildlife Act 1972</button>
+                        <button onclick="quickSearch('Monsoonal Fishing Ban')" class="px-2 py-0.5 rounded bg-surface-white border border-outline-variant hover:border-primary text-primary font-medium">Monsoon Ban (61 Days)</button>
+                        <button onclick="quickSearch('Purse-seine')" class="px-2 py-0.5 rounded bg-surface-white border border-outline-variant hover:border-primary text-primary font-medium">Purse-Seine Directives</button>
+                        <button onclick="quickSearch('EEZ Act 1976')" class="px-2 py-0.5 rounded bg-surface-white border border-outline-variant hover:border-primary text-primary font-medium">200 NM EEZ Rights</button>
+                    </div>
+                </div>
+
+                <div id="laws-results-list" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Tab 4: SOS Emergency Feed -->
+            <div id="view-sos" class="p-4 sm:p-6 flex flex-col gap-4 hidden">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h3 class="text-sm font-bold text-rose-700 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-lg">emergency</span>
+                            <span>Live SOS Emergency Queue (Coast Guard MRCC Direct Feed)</span>
+                        </h3>
+                        <p class="text-[11px] text-on-surface-variant">Real-time distress broadcasts received from fishing vessel consoles</p>
+                    </div>
+                    <button onclick="loadSosFeed()" class="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-xs font-bold flex items-center gap-1 shadow-sm">
+                        <span class="material-symbols-outlined text-sm">refresh</span> Refresh Queue
+                    </button>
+                </div>
+
+                <div id="sos-feed-container" class="flex flex-col gap-3">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-surface-container-high text-on-surface w-full py-4 px-4 border-t border-outline-variant mt-auto text-xs text-center">
+        <p class="text-on-surface-variant">© Government of India | Department of Space | ISRO MOSDAC &amp; Indian Coast Guard Maritime Command Console.</p>
+    </footer>
+
+    <!-- Leaflet GIS JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const BASE_URL = 'http://127.0.0.1:8000';
+        let fleetMap, fleetLayerGroup;
+
+        // 1. Live Clock
+        setInterval(() => {
+            const now = new Date();
+            const clockEl = document.getElementById('live-clock');
+            if (clockEl) {
+                clockEl.textContent = `IST ${now.toLocaleTimeString('en-IN', { hour12: false })}`;
+            }
+        }, 1000);
+
+        // 2. Initialize Leaflet Map
+        function initFleetMap() {
+            fleetMap = L.map('fleet-map', { attributionControl: false }).setView([13.5, 78.5], 5);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18
+            }).addTo(fleetMap);
+
+            fleetLayerGroup = L.layerGroup().addTo(fleetMap);
+        }
+
+        // 3. Switch Main Tabs
+        function switchMainTab(tab) {
+            const tabs = ['fleet', 'logs', 'laws', 'sos'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`nav-btn-${t}`);
+                const view = document.getElementById(`view-${t}`);
+                if (t === tab) {
+                    btn.className = "flex-1 min-w-[140px] py-3.5 text-primary border-b-2 border-primary bg-surface-white flex items-center justify-center gap-1.5 transition-all font-bold";
+                    view.classList.remove('hidden');
+                } else {
+                    btn.className = "flex-1 min-w-[140px] py-3.5 text-on-surface-variant hover:text-primary flex items-center justify-center gap-1.5 transition-all";
+                    view.classList.add('hidden');
+                }
+            });
+
+            if (tab === 'fleet' && fleetMap) {
+                setTimeout(() => fleetMap.invalidateSize(), 200);
+            }
+        }
+
+        // 4. Load Data from Backend Endpoints
+        async function loadCommandData() {
+            // A. Analytics Dashboard Metrics
+            try {
+                const res = await fetch(`${BASE_URL}/api/analytics/dashboard`);
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('kpi-total-queries').textContent = data.total_queries || 38;
+                    const safeCount = (data.safety_distribution && data.safety_distribution.SAFE) ? data.safety_distribution.SAFE : 36;
+                    const total = data.total_queries || 38;
+                    document.getElementById('kpi-safe-ratio').textContent = `${Math.round((safeCount / total) * 100)}%`;
+                    document.getElementById('kpi-fleet-count').textContent = data.active_vessels_count || 5;
+                    document.getElementById('kpi-distress-count').textContent = data.active_distress_count || 0;
+
+                    // Ports Leaderboard
+                    const portsBoard = document.getElementById('ports-leaderboard');
+                    if (portsBoard && data.top_ports) {
+                        portsBoard.innerHTML = data.top_ports.map((p, idx) => `
+                            <div class="flex items-center justify-between text-xs bg-surface-white p-2.5 rounded-lg border border-outline-variant">
+                                <span class="font-bold text-primary">${idx + 1}. ${p.port}</span>
+                                <span class="bg-primary/10 text-primary font-bold px-2 py-0.5 rounded-full">${p.count} Queries</span>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch(e) {}
+
+            // B. Live Fleet Tracking
+            try {
+                const res = await fetch(`${BASE_URL}/api/fleet/active`);
+                if (res.ok) {
+                    const data = await res.json();
+                    renderFleet(data.fleet || []);
+                }
+            } catch(e) {}
+
+            // C. Marine Laws Initial Load
+            performRagSearch();
+
+            // D. SOS Alerts Load
+            loadSosFeed();
+        }
+
+        function renderFleet(fleet) {
+            const cardsContainer = document.getElementById('fleet-cards-list');
+            if (cardsContainer) {
+                cardsContainer.innerHTML = fleet.map(v => {
+                    const isDistress = v.status === 'DISTRESS';
+                    const badgeClass = isDistress ? 'bg-rose-100 text-rose-800' : (v.status === 'FISHING' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800');
+                    return `
+                        <div class="bg-surface-container-low border border-outline-variant rounded-xl p-3 flex flex-col gap-1.5 hover:border-primary transition-colors">
+                            <div class="flex items-center justify-between">
+                                <span class="font-mono font-bold text-primary text-xs">${v.vessel_id}</span>
+                                <span class="text-[9px] font-bold px-2 py-0.5 rounded ${badgeClass}">${v.status}</span>
+                            </div>
+                            <div class="text-[11px] text-on-surface">
+                                <div>Captain: <strong>${v.captain_name}</strong></div>
+                                <div class="text-on-surface-variant text-[10px]">Base: ${v.base_port} · Type: ${v.vessel_type || 'Mechanized'}</div>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] font-mono mt-1 pt-1 border-t border-outline-variant/60">
+                                <span>Speed: <b>${v.speed_knots} kts</b> (${v.heading_deg}°)</span>
+                                <span>Fuel: <b>${v.fuel_liters_remaining} L</b></span>
+                            </div>
+                            <button onclick="focusOnVessel(${v.latitude}, ${v.longitude}, '${v.vessel_id}', '${v.captain_name}')" class="w-full mt-1 py-1 rounded bg-ocean-cyan hover:bg-primary text-white font-bold text-[10px] transition-all flex items-center justify-center gap-1">
+                                <span class="material-symbols-outlined text-[13px]">location_searching</span>
+                                <span>Focus on Radar</span>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Render on Map
+            if (fleetLayerGroup) {
+                fleetLayerGroup.clearLayers();
+                fleet.forEach(v => {
+                    const markerColor = v.status === 'DISTRESS' ? '#e11d48' : '#0284c7';
+                    const marker = L.marker([v.latitude, v.longitude], {
+                        icon: L.divIcon({
+                            className: 'custom-vessel-marker',
+                            html: `<div style="background:${markerColor}; color:#fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; border:2px solid #fff; box-shadow:0 4px 10px rgba(0,0,0,0.4);"><span class="material-symbols-outlined" style="font-size:16px;">sailing</span></div>`
+                        })
+                    }).addTo(fleetLayerGroup);
+
+                    marker.bindPopup(`
+                        <div style="font-size:12px; font-family:sans-serif; color:#0f172a; padding:2px;">
+                            <b style="color:#0284c7;">🚢 ${v.vessel_id}</b><br>
+                            <span>Captain: <b>${v.captain_name}</b></span><br>
+                            <span>Port: <b>${v.base_port}</b></span><br>
+                            <span>Speed: <b>${v.speed_knots} Knots</b> (${v.heading_deg}°)</span><br>
+                            <span>Fuel Remaining: <b>${v.fuel_liters_remaining} Liters</b></span>
+                        </div>
+                    `);
+                });
+            }
+        }
+
+        function focusOnVessel(lat, lon, vesselId, captain) {
+            fleetMap.flyTo([lat, lon], 9, { duration: 1.5 });
+        }
+
+        // 5. Legal RAG Search
+        async function performRagSearch() {
+            const input = document.getElementById('rag-input');
+            const q = input ? (input.value || 'monsoon ban wildlife act purse seine') : 'monsoon ban';
+            try {
+                const res = await fetch(`${BASE_URL}/api/regulations/search?q=${encodeURIComponent(q)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const container = document.getElementById('laws-results-list');
+                    if (container && data.regulations) {
+                        container.innerHTML = data.regulations.map(r => `
+                            <div class="bg-surface-container-low border border-outline-variant rounded-xl p-4 flex flex-col gap-2">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="font-bold text-primary text-xs sm:text-sm">${r.title}</h4>
+                                    <span class="text-[9px] uppercase font-bold bg-primary/10 text-primary px-2 py-0.5 rounded">${r.category}</span>
+                                </div>
+                                <span class="text-[10px] text-ocean-cyan font-mono font-bold">${r.legal_act || ''}</span>
+                                <p class="text-xs text-on-surface leading-relaxed">${r.summary}</p>
+                                <div class="bg-surface-white p-2.5 rounded-lg border border-outline-variant/60 text-[11px] text-on-surface-variant">
+                                    <strong class="text-primary">Legal Act Detail:</strong> ${r.full_text}
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function quickSearch(term) {
+            const input = document.getElementById('rag-input');
+            if (input) {
+                input.value = term;
+                performRagSearch();
+            }
+        }
+
+        // 6. SOS Feed
+        async function loadSosFeed() {
+            try {
+                const res = await fetch(`${BASE_URL}/api/sos/active`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const container = document.getElementById('sos-feed-container');
+                    if (container) {
+                        if (!data.active_emergencies || data.active_emergencies.length === 0) {
+                            container.innerHTML = `
+                                <div class="p-8 text-center text-xs text-on-surface-variant border-2 border-dashed border-outline-variant rounded-2xl flex flex-col items-center justify-center gap-2">
+                                    <span class="material-symbols-outlined text-3xl text-emerald-600">verified</span>
+                                    <span class="font-bold text-sm text-emerald-800">No Active SOS Emergency Alerts</span>
+                                    <span class="text-on-surface-variant">All monitored fishing vessels in Indian waters are operating under normal conditions.</span>
+                                </div>
+                            `;
+                        } else {
+                            container.innerHTML = data.active_emergencies.map(s => `
+                                <div class="bg-rose-50 border-2 border-rose-400 rounded-xl p-4 flex flex-col gap-2 shadow-md animate-pulse">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-bold text-rose-900 text-sm">🚨 ${s.emergency_type}</span>
+                                        <span class="text-[10px] font-mono font-bold bg-rose-600 text-white px-2 py-0.5 rounded">STATUS: ACTIVE</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 text-xs text-rose-950 font-medium">
+                                        <div>Vessel: <b class="font-mono">${s.vessel_id}</b> (${s.captain_name})</div>
+                                        <div>Phone: <b>${s.contact_phone}</b></div>
+                                        <div>Coordinates: <b>${s.latitude}°N, ${s.longitude}°E</b></div>
+                                        <div>Reported: <b>${new Date(s.created_at).toLocaleTimeString()}</b></div>
+                                    </div>
+                                    <p class="text-xs text-rose-800">${s.description || ''}</p>
+                                </div>
+                            `).join('');
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            initFleetMap();
+            loadCommandData();
+        });
+    </script>
+</body>
+</html>
+
