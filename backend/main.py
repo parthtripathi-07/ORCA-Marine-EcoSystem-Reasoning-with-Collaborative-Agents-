@@ -313,6 +313,17 @@ def generate_gemini_response(prompt: str) -> str:
 
     return "हाँ, वर्तमान समुद्री डेटा के अनुसार लहरों की ऊंचाई 1.5 मीटर से कम है और समुद्र में जाना सामान्यतः सुरक्षित है। अपनी सुरक्षा के लिए आवश्यक लाइफ जैकेट और संचार उपकरण साथ रखें।"
 
+def resolve_port_from_name(name_or_key: str):
+    if not name_or_key:
+        return None, None
+    k = name_or_key.strip().lower()
+    if k in COASTAL_PORTS:
+        return k, COASTAL_PORTS[k]
+    k_match, p_match = match_port_name(k)
+    if k_match and k_match in COASTAL_PORTS:
+        return k_match, p_match
+    return None, None
+
 @app.post("/api/query")
 @limiter.limit("20/minute")
 def handle_query(request: Request, body: QueryRequest, background_tasks: BackgroundTasks):
@@ -338,11 +349,11 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
 
     # If port_name is provided and client sent default coordinates, adopt harbor coordinates
     if port_name_clean:
-        matched_key = match_port_name(port_name_clean)
-        if matched_key and matched_key in COASTAL_PORTS:
+        p_key, p_obj = resolve_port_from_name(port_name_clean)
+        if p_key and p_obj:
             if body.lat is None or (round(body.lat, 2) == 13.05 and round(body.lon, 2) == 80.28):
-                lat = COASTAL_PORTS[matched_key]["lat"]
-                lon = COASTAL_PORTS[matched_key]["lon"]
+                lat = p_obj["lat"]
+                lon = p_obj["lon"]
 
     if not (-90.0 <= lat <= 90.0) or not (-180.0 <= lon <= 180.0):
         raise HTTPException(
@@ -382,14 +393,11 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
             port_key, current_port, _ = find_nearest_port(lat, lon)
         else:
             # No explicit location in query: use client's selected harbor (body.port_name) or coordinates
-            if port_name_clean:
-                matched_key = match_port_name(port_name_clean)
-                if matched_key and matched_key in COASTAL_PORTS:
-                    port_key = matched_key
-                    current_port = COASTAL_PORTS[matched_key]
-                    lat, lon = current_port["lat"], current_port["lon"]
-                else:
-                    port_key, current_port, _ = find_nearest_port(lat, lon)
+            p_key, p_obj = resolve_port_from_name(port_name_clean) if port_name_clean else (None, None)
+            if p_key and p_obj:
+                port_key = p_key
+                current_port = p_obj
+                lat, lon = p_obj["lat"], p_obj["lon"]
             else:
                 port_key, current_port, _ = find_nearest_port(lat, lon)
 
