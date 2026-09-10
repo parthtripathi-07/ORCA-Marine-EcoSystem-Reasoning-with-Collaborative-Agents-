@@ -425,7 +425,7 @@
 
                     <!-- Prompt Suggestion Chips -->
                     <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5" id="prompt-chips">
-                        <button onclick="executePrompt('Kal subah Chennai se machhli pakadne jaana safe hai kya?')" class="text-xs bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap hover:border-primary hover:text-primary transition-all">
+                        <button onclick="executePrompt('Kal subah machhli pakadne jaana safe hai kya?')" class="text-xs bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap hover:border-primary hover:text-primary transition-all">
                             🎣 Kal safe hai kya?
                         </button>
                         <button onclick="executePrompt('Sabse nazdeek Potential Fishing Zone (PFZ) kahan hai?')" class="text-xs bg-surface-container-low border border-outline-variant text-on-surface px-3 py-1.5 rounded-full whitespace-nowrap hover:border-primary hover:text-primary transition-all">
@@ -1152,6 +1152,27 @@
     const DEFAULT_LAT = 13.05;
     const DEFAULT_LON = 80.28;
     let activePort = 'chennai';
+    
+    // Exact Geographic Coordinates for Indian Fishing Harbors
+    const PORT_COORDINATES = {
+        chennai: { lat: 13.1256, lon: 80.2974, name: "Chennai (Kasimedu)", state: "Tamil Nadu" },
+        rameswaram: { lat: 9.2876, lon: 79.3129, name: "Rameswaram (Mandapam)", state: "Tamil Nadu" },
+        tuticorin: { lat: 8.7642, lon: 78.1348, name: "Tuticorin (Thoothukudi)", state: "Tamil Nadu" },
+        visakhapatnam: { lat: 17.6975, lon: 83.3005, name: "Visakhapatnam", state: "Andhra Pradesh" },
+        kakinada: { lat: 16.9891, lon: 82.2475, name: "Kakinada", state: "Andhra Pradesh" },
+        kochi: { lat: 9.9312, lon: 76.2673, name: "Kochi (Thoppumpady)", state: "Kerala" },
+        kollam: { lat: 8.9378, lon: 76.5414, name: "Kollam (Neendakara)", state: "Kerala" },
+        mangalore: { lat: 12.8708, lon: 74.8430, name: "Mangalore (Old Port)", state: "Karnataka" },
+        goa: { lat: 15.5036, lon: 73.8344, name: "Goa (Malim / Panaji)", state: "Goa" },
+        mumbai: { lat: 18.9167, lon: 72.8250, name: "Mumbai (Sassoon Docks)", state: "Maharashtra" },
+        veraval: { lat: 20.9077, lon: 70.3678, name: "Veraval", state: "Gujarat" },
+        paradeep: { lat: 20.3168, lon: 86.6114, name: "Paradeep", state: "Odisha" },
+        digha: { lat: 21.6266, lon: 87.5074, name: "Digha / Shankarpur", state: "West Bengal" },
+        port_blair: { lat: 11.6670, lon: 92.7350, name: "Port Blair", state: "Andaman & Nicobar" }
+    };
+    let currentPortLat = 13.1256;
+    let currentPortLon = 80.2974;
+
     let conversationHistory = [];
     let map, eezLayerGroup, pfzLayerGroup, borderLayerGroup, routeLayerGroup, portMarkersGroup;
 
@@ -1777,10 +1798,22 @@
     }
 
     window.setPort = function(key) {
-        document.getElementById('port-select').value = key;
+        if (!key) return;
+        key = key.toLowerCase();
+        const portSelect = document.getElementById('port-select');
+        if (portSelect) portSelect.value = key;
         const mob = document.getElementById('mobile-port-select');
         if (mob) mob.value = key;
         activePort = key;
+
+        const p = PORT_COORDINATES[key];
+        if (p) {
+            currentPortLat = p.lat;
+            currentPortLon = p.lon;
+            if (map) {
+                map.flyTo([p.lat, p.lon], 8, { duration: 1.2 });
+            }
+        }
         refreshTelemetry(key);
     };
 
@@ -1788,6 +1821,8 @@
     async function refreshTelemetry(portKey) {
         try {
             document.getElementById('map-port-indicator').textContent = portKey.toUpperCase();
+            const p = PORT_COORDINATES[portKey] || { lat: currentPortLat, lon: currentPortLon };
+
             const res = await fetch(`${BASE_URL}/api/pfz?port=${portKey}`);
             if (!res.ok) return;
             const data = await res.json();
@@ -1795,14 +1830,14 @@
 
             renderPFZ(pfzList);
 
-            const weatherRes = await fetch(`${BASE_URL}/api/marine-data`);
+            const weatherRes = await fetch(`${BASE_URL}/api/marine-data?lat=${p.lat}&lon=${p.lon}`);
             if (weatherRes.ok) {
                 const wData = await weatherRes.json();
                 updateTelemetryCards(wData, pfzList[0]);
             }
 
             // Proactive hazard evaluation for harbor
-            loadProactiveAlerts();
+            loadProactiveAlerts(p.lat, p.lon);
         } catch (e) {
             console.warn("Telemetry refresh error:", e);
         }
@@ -2121,6 +2156,7 @@
         // Send last 6 messages (3 turns) to keep payload optimal
         const recentHistory = conversationHistory.slice(-6);
         const currentUsername = localStorage.getItem('orca_username') || 'Guest';
+        const portInfo = PORT_COORDINATES[activePort] || { lat: currentPortLat, lon: currentPortLon, name: activePort };
 
         try {
             const res = await fetch(BACKEND_URL, {
@@ -2128,8 +2164,9 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     query: query,
-                    lat: DEFAULT_LAT,
-                    lon: DEFAULT_LON,
+                    lat: portInfo.lat,
+                    lon: portInfo.lon,
+                    port_name: activePort,
                     history: recentHistory,
                     username: currentUsername
                 })
@@ -2177,7 +2214,7 @@
     // Language Selector Buttons
     const langPrompts = {
         hi: [
-            { text: "🎣 Kal safe hai kya?", q: "Kal subah Chennai se machhli pakadne jaana safe hai kya?" },
+            { text: "🎣 Kal safe hai kya?", q: "Kal subah machhli pakadne jaana safe hai kya?" },
             { text: "🗺️ Nazdeek PFZ?", q: "Sabse nazdeek Potential Fishing Zone (PFZ) kahan hai?" },
             { text: "🚨 IMBL Border Alert?", q: "Kya Rameswaram ke paas koi Sri Lanka border alert hai?" },
             { text: "🧭 Safe Route & Fuel", q: "Calculate safe navigation route and fuel estimate to fishing zone" }

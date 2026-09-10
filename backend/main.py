@@ -334,6 +334,15 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
 
     lat = body.lat if body.lat is not None else 13.05
     lon = body.lon if body.lon is not None else 80.28
+    port_name_clean = (body.port_name or "").strip().lower()
+
+    # If port_name is provided and client sent default coordinates, adopt harbor coordinates
+    if port_name_clean:
+        matched_key = match_port_name(port_name_clean)
+        if matched_key and matched_key in COASTAL_PORTS:
+            if body.lat is None or (round(body.lat, 2) == 13.05 and round(body.lon, 2) == 80.28):
+                lat = COASTAL_PORTS[matched_key]["lat"]
+                lon = COASTAL_PORTS[matched_key]["lon"]
 
     if not (-90.0 <= lat <= 90.0) or not (-180.0 <= lon <= 180.0):
         raise HTTPException(
@@ -372,8 +381,17 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
             lat, lon = loc_lat, loc_lon
             port_key, current_port, _ = find_nearest_port(lat, lon)
         else:
-            # No explicit location in query: use client/harbor coordinates
-            port_key, current_port, _ = find_nearest_port(lat, lon)
+            # No explicit location in query: use client's selected harbor (body.port_name) or coordinates
+            if port_name_clean:
+                matched_key = match_port_name(port_name_clean)
+                if matched_key and matched_key in COASTAL_PORTS:
+                    port_key = matched_key
+                    current_port = COASTAL_PORTS[matched_key]
+                    lat, lon = current_port["lat"], current_port["lon"]
+                else:
+                    port_key, current_port, _ = find_nearest_port(lat, lon)
+            else:
+                port_key, current_port, _ = find_nearest_port(lat, lon)
 
         pfz_list = get_pfz_advisories_for_port(port_key)
         nearest_pfz = pfz_list[0] if pfz_list else None
