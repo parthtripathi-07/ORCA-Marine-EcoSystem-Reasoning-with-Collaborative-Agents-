@@ -4,6 +4,6 @@ pydantic>=2.8.0
 python-dotenv>=1.0.0
 requests>=2.31.0
 psycopg2-binary>=2.9.9
-slowapi
-shapely
-geopandas  
+slowapi>=0.1.10
+shapely>=2.0.0
+geopandas>=1.0.0

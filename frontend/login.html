@@ -103,7 +103,7 @@
                     <span class="text-sm font-extrabold tracking-wider text-white uppercase">ORCA MARITIME</span>
                     <span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 px-2 py-0.5 rounded-full font-mono font-bold">ISRO AI</span>
                 </div>
-                <span class="text-[10px] text-cyan-200/80">Department of Space · Indian Space Research Organisation</span>
+                <span class="text-[10px] text-cyan-200/80">Indian Space Research Organisation (ISRO)</span>
             </div>
         </div>
 
@@ -128,8 +128,8 @@
         </div>
     </header>
 
-    <!-- 🔐 ULTRA-TRANSPARENT FLOATING LOGIN PANEL (CLEARLY REVEALS THE REALISTIC BOAT & CRASHING WAVE BEHIND IT) -->
-    <div id="login-container" class="relative z-30 w-full max-w-md p-3 sm:p-6 mx-3 lg:mr-14 transition-all duration-500">
+    <!-- 🔐 ULTRA-TRANSPARENT FLOATING LOGIN PANEL -->
+    <div id="login-container" class="relative z-30 w-full max-w-md p-3 sm:p-6 mx-3 lg:mr-14 transition-all duration-500 mt-20 sm:mt-0 max-h-[85vh] overflow-y-auto">
         <div class="ultra-transparent-glass rounded-3xl p-5 sm:p-7 flex flex-col gap-4 border border-white/25 shadow-2xl relative overflow-hidden">
             
             <!-- Card Header -->
@@ -793,6 +793,18 @@
             localStorage.setItem('orca_user', JSON.stringify(demoUser));
             window.location.href = "index.html";
         };
+
+        // Responsive 3D Canvas Handling on Resize / Orientation Change
+        function onWindowResize() {
+            if (!camera || !renderer) return;
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener('resize', onWindowResize);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(onWindowResize, 200);
+        });
 
         // Start Photorealistic 3D Engine on load
         window.addEventListener('DOMContentLoaded', () => {

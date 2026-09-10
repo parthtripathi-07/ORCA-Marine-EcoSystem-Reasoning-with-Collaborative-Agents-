@@ -58,10 +58,24 @@
             50% { transform: scale(1.15); opacity: 0.4; }
             100% { transform: scale(0.9); opacity: 0.9; }
         }
+
+        /* Mobile & Tablet Responsiveness (< 768px) */
+        @media screen and (max-width: 768px) {
+            body {
+                overflow-x: hidden !important;
+                font-size: 13px;
+            }
+            #fleet-map {
+                min-height: 280px !important;
+            }
+            input, select, textarea, button {
+                font-size: 14px !important;
+            }
+        }
     </style>
 </head>
 
-<body class="bg-[#f0f4f8] text-on-surface min-h-screen flex flex-col font-sans antialiased selection:bg-ocean-cyan selection:text-white">
+<body class="bg-[#f0f4f8] text-on-surface min-h-screen flex flex-col font-sans antialiased selection:bg-ocean-cyan selection:text-white overflow-x-hidden">
 
     <!-- Top Command Navigation Bar -->
     <header class="bg-primary text-white border-b border-primary-container sticky top-0 z-50 shadow-md">
@@ -75,7 +89,7 @@
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> POSTGRESQL LIVE
                         </span>
                     </div>
-                    <span class="text-[11px] text-white/80">Department of Space · ISRO | Indian Coast Guard Maritime Rescue Coordination Centre (MRCC)</span>
+                    <span class="text-[11px] text-white/80">ISRO | Indian Coast Guard Maritime Rescue Coordination Centre (MRCC)</span>
                 </div>
             </div>
 
@@ -357,13 +371,14 @@
 
     <!-- Footer -->
     <footer class="bg-surface-container-high text-on-surface w-full py-4 px-4 border-t border-outline-variant mt-auto text-xs text-center">
-        <p class="text-on-surface-variant">© Government of India | Department of Space | ISRO MOSDAC &amp; Indian Coast Guard Maritime Command Console.</p>
+        <p class="text-on-surface-variant">© Government of India | ISRO MOSDAC &amp; Indian Coast Guard Maritime Command Console.</p>
     </footer>
 
     <!-- Leaflet GIS JS -->
+    <script src="config.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const BASE_URL = 'http://127.0.0.1:8000';
+        const BASE_URL = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
         let fleetMap, fleetLayerGroup;
 
         // 1. Live Clock
@@ -585,6 +600,20 @@
         window.addEventListener('DOMContentLoaded', () => {
             initFleetMap();
             loadCommandData();
+        });
+
+        // Responsive Map Invalidation on Window Resize
+        let fleetResizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(fleetResizeTimer);
+            fleetResizeTimer = setTimeout(() => {
+                if (fleetMap) fleetMap.invalidateSize();
+            }, 200);
+        });
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                if (fleetMap) fleetMap.invalidateSize();
+            }, 300);
         });
     </script>
 </body>

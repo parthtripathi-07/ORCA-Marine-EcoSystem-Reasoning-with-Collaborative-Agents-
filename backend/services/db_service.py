@@ -141,21 +141,30 @@ DEFAULT_FLEET = [
 
 def get_connection():
     """Returns a new connection to PostgreSQL or None if unreachable."""
+    # 1. Prioritize DATABASE_URL if available (Render, Neon, Supabase, etc.)
+    db_url = os.getenv("DATABASE_URL") or DATABASE_URL
+    if db_url:
+        try:
+            # Render / Heroku provide postgres:// which psycopg2 requires as postgresql://
+            if db_url.startswith("postgres://"):
+                db_url = db_url.replace("postgres://", "postgresql://", 1)
+            return psycopg2.connect(db_url, connect_timeout=10)
+        except Exception as e:
+            logger.warning(f"PostgreSQL DATABASE_URL connection error: {e}")
+
+    # 2. Fallback to local DB parameters
     try:
         conn = psycopg2.connect(
-            host=DB_HOST,
-            port=DB_PORT,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            dbname=DB_NAME
+            host=os.getenv("DB_HOST", DB_HOST),
+            port=os.getenv("DB_PORT", DB_PORT),
+            user=os.getenv("DB_USER", DB_USER),
+            password=os.getenv("DB_PASSWORD", DB_PASSWORD),
+            dbname=os.getenv("DB_NAME", DB_NAME),
+            connect_timeout=3
         )
         return conn
-    except Exception:
-        try:
-            if DATABASE_URL:
-                return psycopg2.connect(DATABASE_URL)
-        except Exception as e:
-            logger.warning(f"PostgreSQL Connection Error: {e}")
+    except Exception as e:
+        logger.warning(f"PostgreSQL Local Connection Error: {e}")
     return None
 
 def init_db():

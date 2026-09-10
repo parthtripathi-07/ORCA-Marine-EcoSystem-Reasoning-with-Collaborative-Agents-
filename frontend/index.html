@@ -101,7 +101,7 @@
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     
-    #map { height: 100%; width: 100%; z-index: 10; border-radius: 0 0 0.25rem 0.25rem; }
+    #map { height: 100%; width: 100%; min-height: 260px; z-index: 10; border-radius: 0 0 0.5rem 0.5rem; }
     .leaflet-popup-content-wrapper {
         background: #00264b !important;
         color: #f8fafc !important;
@@ -119,6 +119,50 @@
     .agent-active {
         animation: agentPulse 1.5s infinite ease-in-out;
     }
+
+    /* Responsive adjustments for Mobile and Tablet (< 768px) */
+    @media screen and (max-width: 768px) {
+        body {
+            overflow-x: hidden !important;
+            font-size: 13px;
+        }
+        .main-grid-layout {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 1rem !important;
+        }
+        #chat-stream {
+            height: 280px !important;
+            max-height: 52vh !important;
+        }
+        .map-wrapper {
+            height: 320px !important;
+            min-height: 280px !important;
+        }
+        .map-layer-box {
+            max-width: 175px !important;
+            padding: 0.35rem 0.5rem !important;
+            font-size: 10px !important;
+        }
+        .modal-body-scroll {
+            max-height: 75vh !important;
+            overflow-y: auto !important;
+        }
+    }
+
+    /* Ultra-small mobile screens (< 480px) */
+    @media screen and (max-width: 480px) {
+        .quick-action-card {
+            padding: 0.4rem !important;
+        }
+        .quick-action-card span.text-xs {
+            font-size: 11px !important;
+        }
+        #prompt-chips button {
+            font-size: 11px !important;
+            padding: 0.3rem 0.6rem !important;
+        }
+    }
 </style>
 </head>
 <body class="bg-background text-on-surface antialiased pb-20 md:pb-0 flex flex-col min-h-screen">
@@ -131,15 +175,9 @@
             GOVERNMENT OF INDIA | भारत सरकार
         </span>
         <span class="opacity-40">|</span>
-        <span class="hidden sm:inline opacity-90">Department of Space · ISRO</span>
+        <span class="hidden sm:inline opacity-90">ISRO</span>
     </div>
     <div class="flex items-center space-x-2 sm:space-x-4">
-        <div class="hidden sm:flex items-center space-x-1.5 opacity-80">
-            <button class="hover:text-secondary-container px-1" onclick="document.body.style.fontSize='14px'">A-</button>
-            <button class="hover:text-secondary-container px-1 font-bold" onclick="document.body.style.fontSize='16px'">A</button>
-            <button class="hover:text-secondary-container px-1" onclick="document.body.style.fontSize='18px'">A+</button>
-        </div>
-        <span class="hidden sm:inline opacity-40">|</span>
         <!-- Language Switcher -->
         <div class="flex items-center gap-1 text-xs">
             <button class="lang-btn px-2 py-0.5 rounded bg-surface-white/20 text-on-primary font-bold" data-lang="hi">हिन्दी</button>
@@ -261,7 +299,7 @@
     </section>
 
     <!-- Main Grid Content -->
-    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 main-grid-layout">
         
         <!-- Left Column: Services & Ask ORCA Multi-Agent Console (8 Cols) -->
         <div class="md:col-span-7 lg:col-span-8 flex flex-col gap-4">
@@ -435,7 +473,7 @@
                     </div>
                 </div>
 
-                <div class="relative h-72 md:h-84 bg-surface-container-highest">
+                <div class="map-wrapper relative h-72 sm:h-80 md:h-96 bg-surface-container-highest">
                     <!-- Leaflet Map Container -->
                     <div id="map"></div>
 
@@ -446,7 +484,7 @@
                     </div>
 
                     <!-- Dynamic Layer Toggles -->
-                    <div class="absolute top-2.5 right-2.5 z-[1000] flex flex-col gap-1.5 bg-surface-white/95 backdrop-blur-md p-2 rounded-md border border-outline-variant shadow-md text-xs">
+                    <div class="map-layer-box absolute top-2.5 right-2.5 z-[1000] flex flex-col gap-1.5 bg-surface-white/95 backdrop-blur-md p-2 rounded-md border border-outline-variant shadow-md text-xs">
                         <span class="text-[10px] font-bold text-on-surface-variant uppercase">Base Imagery</span>
                         <!-- Satellite vs Chart Switcher -->
                         <div class="flex items-center gap-1 bg-surface-container-low p-0.5 rounded border border-outline-variant text-[11px] mb-1">
@@ -563,7 +601,7 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-outline-variant pb-6 mb-8">
             <div class="flex flex-col gap-1.5">
                 <div class="flex items-center gap-2">
-                    <span class="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Department of Space · ISRO</span>
+                    <span class="text-[10px] bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">ISRO</span>
                     <span class="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">Operational AI Platform</span>
                 </div>
                 <h2 class="text-xl sm:text-2xl font-bold text-primary tracking-tight">About ORCA — Marine Ecosystem Reasoning with Collaborative Agents</h2>
@@ -712,7 +750,7 @@
                 <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-10 h-10 rounded-xl object-cover ring-2 ring-white/30 shadow-sm"/>
                 <div>
                     <h3 class="font-bold text-sm sm:text-base">ORCA Maritime Portal Login</h3>
-                    <p class="text-[10px] text-white/80">Department of Space · ISRO & INCOIS</p>
+                    <p class="text-[10px] text-white/80">ISRO & INCOIS</p>
                 </div>
             </div>
             <button onclick="closeLoginModal()" class="text-white/80 hover:text-white transition-colors p-1">
@@ -824,7 +862,7 @@
                 ⚠️ <strong>WARNING:</strong> This sends an immediate high-priority distress broadcast with your exact GPS coordinates to the Indian Coast Guard Maritime Rescue Coordination Centre (MRCC).
             </div>
 
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-bold text-on-surface mb-1">Vessel Registration No.</label>
                     <input type="text" id="sos-vessel-id" required value="IND-TN-02-MM-4421" class="w-full px-3 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-mono font-bold" />
@@ -835,7 +873,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-2">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div>
                     <label class="block text-xs font-bold text-on-surface mb-1">Latitude</label>
                     <input type="text" id="sos-lat" readonly value="13.1256" class="w-full px-2.5 py-2 bg-surface-container-low border border-outline-variant rounded-lg text-xs font-mono font-bold text-rose-700 text-center" />
@@ -1093,7 +1131,7 @@
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-xs">
         <div class="flex flex-col gap-1">
             <span class="font-bold text-primary text-sm uppercase">ORCA — Marine EcoSystem Reasoning with Collaborative Agents</span>
-            <p class="text-on-surface-variant">© Government of India | Department of Space | Indian Space Research Organisation (ISRO).</p>
+            <p class="text-on-surface-variant">© Government of India | Indian Space Research Organisation (ISRO).</p>
         </div>
         <div class="flex flex-wrap gap-4 text-on-surface-variant">
             <a href="#" class="hover:text-primary transition-colors">ISRO MOSDAC</a>
@@ -1106,10 +1144,11 @@
 </footer>
 
 <!-- LEAFLET & DYNAMIC CONTROLLER JAVASCRIPT -->
+<script src="config.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const BASE_URL = 'http://127.0.0.1:8000';
-    const BACKEND_URL = 'http://127.0.0.1:8000/api/query';
+    const BASE_URL = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
+    const BACKEND_URL = `${BASE_URL}/api/query`;
     const DEFAULT_LAT = 13.05;
     const DEFAULT_LON = 80.28;
     let activePort = 'chennai';
@@ -2245,6 +2284,20 @@
     loadPorts();
     refreshTelemetry('chennai');
     loadProactiveAlerts(DEFAULT_LAT, DEFAULT_LON);
+
+    // Responsive Map Invalidation on Resize / Orientation Change
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            if (map) map.invalidateSize();
+        }, 200);
+    });
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+            if (map) map.invalidateSize();
+        }, 300);
+    });
 </script>
 
 </body>
