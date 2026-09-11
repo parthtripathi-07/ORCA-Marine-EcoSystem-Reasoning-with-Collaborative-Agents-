@@ -28,81 +28,59 @@
     <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-5 pb-24 md:pb-8">
 
         <!-- 1. Top Operational Dashboard Band -->
-        <section class="bg-gradient-to-r from-[#00264b] via-[#003366] to-[#004d80] text-white rounded-2xl p-4 sm:p-6 shadow-md border border-white/10 relative overflow-hidden">
-            <!-- Decorative Subtle Grid & Rings -->
-            <div class="absolute -right-10 -bottom-10 w-48 h-48 rounded-full bg-cyan-500/10 pointer-events-none blur-2xl"></div>
-            <div class="absolute top-0 right-1/4 w-32 h-32 rounded-full bg-emerald-500/10 pointer-events-none blur-xl"></div>
-
-            <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <section class="bg-[#00264b] text-white rounded-2xl p-4 sm:p-5 shadow-md border border-white/10 relative overflow-hidden">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 
-                <!-- Harbor Title & Region -->
-                <div class="flex flex-col gap-1">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-xs font-bold font-mono tracking-wider px-2 py-0.5 rounded bg-cyan-400/20 text-cyan-200 border border-cyan-300/30">
-                            OPERATIONAL BASE
-                        </span>
-                        <span id="hero-safety-badge" class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                            <span>SEA: SAFE (FAVOURABLE)</span>
-                        </span>
+                <!-- Left: Harbor Title & Region -->
+                <div class="flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-full bg-cyan-600/30 border border-cyan-400/40 flex items-center justify-center text-cyan-300 flex-shrink-0">
+                        <span class="material-symbols-outlined text-2xl">radar</span>
                     </div>
-                    <h1 id="hero-harbor-name" class="text-xl sm:text-2xl font-extrabold tracking-tight text-white flex items-center gap-2 mt-1">
-                        Goa (Malim / Panaji) Fishing Jetty
-                    </h1>
-                    <p id="hero-harbor-region" class="text-xs sm:text-sm text-cyan-100/80 font-medium">
-                        Konkan Coast · Arabian Sea · Lat 15.5036° N, Lon 73.8344° E
-                    </p>
+                    <div class="flex flex-col">
+                        <div class="flex items-center gap-2">
+                            <span id="hero-sector-name" class="text-xs font-mono font-bold uppercase tracking-wider text-cyan-200">BAY OF BENGAL SECTOR</span>
+                            <span class="text-[9px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">LIVE TELEMETRY</span>
+                        </div>
+                        <h1 id="hero-harbor-name" class="text-xl sm:text-2xl font-extrabold tracking-tight text-white mt-0.5">
+                            Chennai (Kasimedu) Operations Hub
+                        </h1>
+                    </div>
                 </div>
 
-                <!-- 4-Metric Real-Time Telemetry Strip -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 bg-black/25 backdrop-blur-md p-2.5 sm:p-3.5 rounded-xl border border-white/10">
+                <!-- Right: 4-Metric Real-Time Telemetry Horizontal Strip -->
+                <div class="flex flex-wrap items-center gap-2 sm:gap-2.5">
                     
                     <!-- Metric: Wave Height -->
-                    <div class="flex flex-col">
-                        <span class="text-[10px] text-cyan-200 font-bold uppercase tracking-wider flex items-center gap-1">
-                            <span class="material-symbols-outlined text-xs text-cyan-300">tsunami</span> Waves (Hs)
-                        </span>
-                        <div class="flex items-baseline gap-1 mt-0.5">
-                            <span id="tel-wave-val" class="text-lg sm:text-xl font-extrabold text-white font-mono">0.86</span>
-                            <span class="text-[10px] text-cyan-200">m</span>
+                    <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                        <span class="material-symbols-outlined text-cyan-300 text-base">tsunami</span>
+                        <div class="flex flex-col leading-none">
+                            <span class="text-[9px] text-cyan-200 font-bold uppercase">Wave (Hs)</span>
+                            <span id="tel-wave-val" class="font-mono font-bold text-white text-sm mt-0.5">0.8 m</span>
                         </div>
-                        <span id="tel-wave-sub" class="text-[10px] text-emerald-300 font-medium truncate">Calm / Slight</span>
                     </div>
 
                     <!-- Metric: Wind Speed -->
-                    <div class="flex flex-col">
-                        <span class="text-[10px] text-cyan-200 font-bold uppercase tracking-wider flex items-center gap-1">
-                            <span class="material-symbols-outlined text-xs text-alert-amber">air</span> Wind & Gusts
-                        </span>
-                        <div class="flex items-baseline gap-1 mt-0.5">
-                            <span id="tel-wind-val" class="text-lg sm:text-xl font-extrabold text-white font-mono">18</span>
-                            <span class="text-[10px] text-cyan-200">km/h</span>
+                    <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                        <span class="material-symbols-outlined text-amber-300 text-base">air</span>
+                        <div class="flex flex-col leading-none">
+                            <span class="text-[9px] text-cyan-200 font-bold uppercase">Wind Speed</span>
+                            <span id="tel-wind-val" class="font-mono font-bold text-white text-sm mt-0.5">12.4 km/h</span>
                         </div>
-                        <span id="tel-wind-sub" class="text-[10px] text-cyan-200 font-medium truncate">9.7 kts · ENE</span>
                     </div>
 
                     <!-- Metric: SST -->
-                    <div class="flex flex-col">
-                        <span class="text-[10px] text-cyan-200 font-bold uppercase tracking-wider flex items-center gap-1">
-                            <span class="material-symbols-outlined text-xs text-amber-300">device_thermostat</span> SST
-                        </span>
-                        <div class="flex items-baseline gap-1 mt-0.5">
-                            <span id="tel-sst-val" class="text-lg sm:text-xl font-extrabold text-white font-mono">28.4</span>
-                            <span class="text-[10px] text-cyan-200">°C</span>
+                    <div class="flex items-center gap-2 bg-white/10 px-3.5 py-2 rounded-xl border border-white/10">
+                        <span class="material-symbols-outlined text-amber-400 text-base">device_thermostat</span>
+                        <div class="flex flex-col leading-none">
+                            <span class="text-[9px] text-cyan-200 font-bold uppercase">Sea Temp</span>
+                            <span id="tel-sst-val" class="font-mono font-bold text-white text-sm mt-0.5">28.5 °C</span>
                         </div>
-                        <span class="text-[10px] text-cyan-200 font-medium truncate">Thermal Front Active</span>
                     </div>
 
-                    <!-- Metric: Ocean Currents -->
-                    <div class="flex flex-col">
-                        <span class="text-[10px] text-cyan-200 font-bold uppercase tracking-wider flex items-center gap-1">
-                            <span class="material-symbols-outlined text-xs text-emerald-300">waves</span> Current
-                        </span>
-                        <div class="flex items-baseline gap-1 mt-0.5">
-                            <span id="tel-curr-val" class="text-lg sm:text-xl font-extrabold text-white font-mono">0.35</span>
-                            <span class="text-[10px] text-cyan-200">m/s</span>
-                        </div>
-                        <span id="tel-curr-sub" class="text-[10px] text-emerald-300 font-medium truncate">0.7 kts · Drift Safe</span>
+                    <!-- Metric: Sea Safety -->
+                    <div id="hero-safety-badge" class="flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 px-3.5 py-2 rounded-xl text-xs font-bold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span id="hero-safety-text">SEA: SAFE</span>
                     </div>
 
                 </div>
@@ -110,206 +88,169 @@
             </div>
         </section>
 
+        <!-- Section Header Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
+            <div class="flex items-start sm:items-center gap-2.5">
+                <span class="material-symbols-outlined text-cyan-600 text-2xl">grid_view</span>
+                <div>
+                    <h2 class="text-lg font-bold text-[#00264b]">Marine Decision Support & Operational Sections</h2>
+                    <p class="text-xs text-slate-500">Choose a dedicated workspace below for deep ocean analysis, navigation, or emergency assistance.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full w-fit">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>6 Multi-Agent Reasoning Pipeline Active</span>
+            </div>
+        </div>
+
         <!-- 2. Primary 4 Interactive Launchpad Cards (2x2 Grid) -->
         <section class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
 
             <!-- Card 1: AI Decision Assistant -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:shadow-md hover:border-cyan-500 transition-all flex flex-col justify-between group">
+            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs hover:shadow-md hover:border-cyan-500 transition-all flex flex-col justify-between group">
                 <div>
                     <div class="flex items-center justify-between gap-2 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-cyan-50 border border-cyan-200 flex items-center justify-center text-cyan-700 group-hover:scale-110 transition-transform">
-                            <span class="material-symbols-outlined text-2xl">psychology</span>
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-outlined text-2xl">smart_toy</span>
                         </div>
-                        <span class="text-[10px] font-bold font-mono text-cyan-700 bg-cyan-50 border border-cyan-200 px-2.5 py-0.5 rounded-full uppercase">
-                            ISRO 6-Agent AI Core
+                        <span class="text-[10px] font-bold font-mono text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full uppercase">
+                            AGENTIC PIPELINE
                         </span>
                     </div>
 
-                    <h2 class="text-lg font-bold text-[#00264b]">AI Decision Assistant</h2>
+                    <h3 class="text-base sm:text-lg font-bold text-[#00264b]">Ask ORCA — AI Decision Assistant</h3>
                     <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Natural language reasoning engine coordinating 6 specialized AI agents for Potential Fishing Zones (PFZ), border risk verification, and optimal fuel-safe routing.
+                        6-agent collaborative reasoning engine (Planner, PFZ Analyst, Weather Safety, IMBL Geofence, Route Optimizer, Synthesizer) with voice input and audio readout.
                     </p>
 
-                    <!-- Pre-filled Quick Prompt Suggestions -->
-                    <div class="mt-4 flex flex-col gap-1.5">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">1-Tap Query Suggestions:</span>
-                        <div class="flex flex-col gap-1.5">
-                            <a href="advisor.html?q=Where+is+the+nearest+Potential+Fishing+Zone+today%3F" class="text-xs bg-slate-50 hover:bg-cyan-50 text-slate-700 hover:text-cyan-800 border border-slate-200 hover:border-cyan-300 px-3 py-1.5 rounded-lg flex items-center justify-between transition-colors">
-                                <span class="flex items-center gap-1.5"><span>🐟</span> Where is the nearest PFZ hotspot today?</span>
-                                <span class="material-symbols-outlined text-sm text-slate-400">arrow_forward</span>
-                            </a>
-                            <a href="advisor.html?q=Is+it+safe+to+venture+into+the+sea+tomorrow+morning%3F" class="text-xs bg-slate-50 hover:bg-cyan-50 text-slate-700 hover:text-cyan-800 border border-slate-200 hover:border-cyan-300 px-3 py-1.5 rounded-lg flex items-center justify-between transition-colors">
-                                <span class="flex items-center gap-1.5"><span>🌊</span> Is it safe to venture into the sea tomorrow?</span>
-                                <span class="material-symbols-outlined text-sm text-slate-400">arrow_forward</span>
-                            </a>
-                            <a href="advisor.html?q=Check+if+the+fishing+zone+approaches+the+Sri+Lanka+or+Pakistan+IMBL+border" class="text-xs bg-slate-50 hover:bg-cyan-50 text-slate-700 hover:text-cyan-800 border border-slate-200 hover:border-cyan-300 px-3 py-1.5 rounded-lg flex items-center justify-between transition-colors">
-                                <span class="flex items-center gap-1.5"><span>🚨</span> Check IMBL International Border proximity</span>
-                                <span class="material-symbols-outlined text-sm text-slate-400">arrow_forward</span>
-                            </a>
-                        </div>
+                    <!-- Quick Prompt Chips -->
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <a href="advisor.html?q=Kal+safe+hai+kya%3F" class="text-xs font-medium bg-slate-50 hover:bg-cyan-50 text-slate-700 hover:text-cyan-800 border border-slate-200 hover:border-cyan-300 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+                            <span>Kal safe hai kya?</span>
+                        </a>
+                        <a href="advisor.html?q=Nazdeek+PFZ+kahan+hai%3F" class="text-xs font-medium bg-slate-50 hover:bg-cyan-50 text-slate-700 hover:text-cyan-800 border border-slate-200 hover:border-cyan-300 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+                            <span>Nazdeek PFZ kahan hai?</span>
+                        </a>
+                        <a href="advisor.html?q=Check+if+the+fishing+zone+approaches+the+Sri+Lanka+or+Pakistan+IMBL+border" class="text-xs font-medium bg-slate-50 hover:bg-cyan-50 text-slate-700 hover:text-cyan-800 border border-slate-200 hover:border-cyan-300 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-colors">
+                            <span>IMBL Border Alert?</span>
+                        </a>
                     </div>
                 </div>
 
-                <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span class="text-xs text-slate-500 font-medium">Supports Voice & Multi-lingual</span>
-                    <a href="advisor.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#00264b] hover:bg-cyan-700 px-4 py-2 rounded-lg transition-colors shadow-xs">
-                        <span>Open AI Advisor</span>
+                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-xs text-slate-500 font-medium flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm text-cyan-600">mic</span> Voice & TTS Ready
+                    </span>
+                    <a href="advisor.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#00264b] hover:bg-[#003870] px-4 py-2 rounded-xl transition-colors shadow-xs">
+                        <span>Open Advisor</span>
                         <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </a>
                 </div>
             </div>
 
             <!-- Card 2: Ocean GIS & PFZ Navigator -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:shadow-md hover:border-emerald-500 transition-all flex flex-col justify-between group">
+            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs hover:shadow-md hover:border-cyan-500 transition-all flex flex-col justify-between group">
                 <div>
                     <div class="flex items-center justify-between gap-2 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 group-hover:scale-110 transition-transform">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-700 group-hover:scale-105 transition-transform">
                             <span class="material-symbols-outlined text-2xl">explore</span>
                         </div>
-                        <span class="text-[10px] font-bold font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full uppercase">
-                            Leaflet GIS · 5 Layers
+                        <span class="text-[10px] font-bold font-mono text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full uppercase">
+                            FULL GIS SUITE
                         </span>
                     </div>
 
-                    <h2 class="text-lg font-bold text-[#00264b]">Ocean GIS & PFZ Navigator</h2>
+                    <h3 class="text-base sm:text-lg font-bold text-[#00264b]">Ocean GIS & PFZ Navigator</h3>
                     <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Interactive geospatial navigation chart with high-resolution Esri Satellite imagery, Sovereign Indian EEZ boundary (200NM), INCOIS PFZ zones, and Marine Protected Areas.
+                        Full-viewport Leaflet GIS map with 200NM Sovereign Indian EEZ polygon, Satellite imagery, Chlorophyll PFZ hotspots, and IMBL international border alert buffers.
                     </p>
 
                     <!-- Feature Tags -->
-                    <div class="mt-4 flex flex-wrap gap-1.5">
-                        <span class="text-[11px] font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200 px-2.5 py-1 rounded-md">Indian EEZ (200NM)</span>
-                        <span class="text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-md">PFZ Hotspots</span>
-                        <span class="text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-md">IMBL Border Buffer</span>
-                        <span class="text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-md">Protected MPAs</span>
-                    </div>
-
-                    <!-- Nearest PFZ Preview Box -->
-                    <div class="mt-3.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="font-bold text-[#00264b] flex items-center gap-1">
-                                <span class="material-symbols-outlined text-emerald-600 text-sm">radar</span> Nearest PFZ Advisory
-                            </span>
-                            <span id="preview-pfz-dist" class="font-mono font-bold text-emerald-700">~24.5 NM Offshore</span>
-                        </div>
-                        <p id="preview-pfz-species" class="text-[11px] text-slate-600 mt-1">
-                            Primary Target: Oil Sardine, Skipjack Tuna, Mackerel (SST Front 28.2°C)
-                        </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <span class="text-xs font-medium bg-cyan-50 text-cyan-800 border border-cyan-200 px-2.5 py-1 rounded-lg">IN Indian EEZ 200NM</span>
+                        <span class="text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg">PFZ Hotspots</span>
+                        <span class="text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-lg">IMBL Borderline</span>
                     </div>
                 </div>
 
-                <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span class="text-xs text-slate-500 font-medium">Esri Satellite + Nautical Chart</span>
-                    <a href="map.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 px-4 py-2 rounded-lg transition-colors shadow-xs">
-                        <span>Launch Ocean GIS</span>
+                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-xs text-slate-500 font-medium flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm text-cyan-600">layers</span> 5 GIS Overlays
+                    </span>
+                    <a href="map.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#0284c7] hover:bg-[#0369a1] px-4 py-2 rounded-xl transition-colors shadow-xs">
+                        <span>Open Ocean GIS</span>
                         <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </a>
                 </div>
             </div>
 
             <!-- Card 3: Marine Weather & 7-Day Forecast -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:shadow-md hover:border-amber-500 transition-all flex flex-col justify-between group">
+            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs hover:shadow-md hover:border-amber-500 transition-all flex flex-col justify-between group">
                 <div>
                     <div class="flex items-center justify-between gap-2 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 group-hover:scale-110 transition-transform">
+                        <div class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-700 group-hover:scale-105 transition-transform">
                             <span class="material-symbols-outlined text-2xl">air</span>
                         </div>
-                        <span class="text-[10px] font-bold font-mono text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full uppercase">
-                            Open-Meteo & IMD Live
+                        <span class="text-[10px] font-bold font-mono text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full uppercase">
+                            METEOROLOGICAL HUB
                         </span>
                     </div>
 
-                    <h2 class="text-lg font-bold text-[#00264b]">Marine Weather & 7-Day Forecast</h2>
+                    <h3 class="text-base sm:text-lg font-bold text-[#00264b]">Marine Weather & 7-Day Forecasting</h3>
                     <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Comprehensive coastal oceanographic weather telemetry including wave heights, wind force, swell directions, surface visibility, and 7-day sea departure advisories.
+                        Real-time significant wave height (Hs), swell periods, wind gust telemetry, 24-hour interactive trend graphs, and 7-day extended fishing advisories.
                     </p>
 
-                    <!-- Optimal Fishing Window Box -->
-                    <div class="mt-4 bg-amber-50/70 p-3 rounded-xl border border-amber-200/80">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-amber-600 text-lg">schedule</span>
-                            <div>
-                                <span class="text-[10px] uppercase font-bold text-amber-900 tracking-wider">Optimal Safe Departure Window</span>
-                                <div id="preview-window" class="text-xs font-bold text-amber-950">Today 04:00 AM – 02:00 PM (Calm Waters)</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3-Pillar Weather Quick Info -->
-                    <div class="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
-                            <div class="text-[10px] text-slate-500 font-bold uppercase">Visibility</div>
-                            <div id="preview-vis" class="font-bold text-[#00264b] font-mono mt-0.5">10.0 km</div>
-                        </div>
-                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
-                            <div class="text-[10px] text-slate-500 font-bold uppercase">Wave Period</div>
-                            <div id="preview-period" class="font-bold text-[#00264b] font-mono mt-0.5">7.5 s</div>
-                        </div>
-                        <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
-                            <div class="text-[10px] text-slate-500 font-bold uppercase">Air Temp</div>
-                            <div id="preview-temp" class="font-bold text-[#00264b] font-mono mt-0.5">29.0 °C</div>
-                        </div>
+                    <!-- Feature Tags -->
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <span class="text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg">24H Dual Chart</span>
+                        <span class="text-xs font-medium bg-cyan-50 text-cyan-800 border border-cyan-200 px-2.5 py-1 rounded-lg">7-Day Extended</span>
+                        <span class="text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg">Open-Meteo API</span>
                     </div>
                 </div>
 
-                <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span class="text-xs text-slate-500 font-medium">Dual-Axis Wave & Wind Graphs</span>
-                    <a href="weather.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-lg transition-colors shadow-xs">
-                        <span>View 7-Day Forecast</span>
+                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-xs text-slate-500 font-medium flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm text-amber-600">air</span> Wind & Swell Telemetry
+                    </span>
+                    <a href="weather.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#d97706] hover:bg-[#b45309] px-4 py-2 rounded-xl transition-colors shadow-xs">
+                        <span>Open Weather</span>
                         <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </a>
                 </div>
             </div>
 
             <!-- Card 4: Emergency SOS & Coast Guard Rescue -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs hover:shadow-md hover:border-rose-500 transition-all flex flex-col justify-between group">
+            <div class="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200/90 shadow-xs hover:shadow-md hover:border-rose-500 transition-all flex flex-col justify-between group">
                 <div>
                     <div class="flex items-center justify-between gap-2 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 group-hover:scale-110 transition-transform">
-                            <span class="material-symbols-outlined text-2xl">emergency</span>
+                        <div class="w-12 h-12 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-600 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-outlined text-2xl">crisis_alert</span>
                         </div>
-                        <span class="text-[10px] font-bold font-mono text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-full uppercase">
-                            Direct MRCC Protocol
+                        <span class="text-[10px] font-bold font-mono text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full uppercase">
+                            COAST GUARD RESCUE
                         </span>
                     </div>
 
-                    <h2 class="text-lg font-bold text-[#00264b]">Emergency SOS & Rescue</h2>
+                    <h3 class="text-base sm:text-lg font-bold text-[#00264b]">Emergency SOS & Rescue Coordination</h3>
                     <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                        Emergency distress dispatch protocol with 2-second hold protection, GPS auto-acquisition, and automatic vector plotting to nearest Coast Guard MRCC base.
+                        2-Second Hold-to-Activate distress beacon, auto GPS coordinate transmission to MRCC, nearest rescue base calculation, and offline VHF Channel 16 protocols.
                     </p>
 
-                    <!-- 1-Tap Emergency Hotlines -->
-                    <div class="mt-4 flex flex-col gap-1.5">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Immediate Voice Hotlines:</span>
-                        <div class="grid grid-cols-3 gap-2">
-                            <a href="tel:1554" class="p-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg text-center flex flex-col items-center transition-colors">
-                                <span class="text-[10px] font-extrabold text-rose-700">COAST GUARD</span>
-                                <span class="text-sm font-black text-rose-900 font-mono">1554</span>
-                            </a>
-                            <a href="tel:1093" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-center flex flex-col items-center transition-colors">
-                                <span class="text-[10px] font-extrabold text-slate-600">COASTAL POLICE</span>
-                                <span class="text-sm font-black text-[#00264b] font-mono">1093</span>
-                            </a>
-                            <a href="tel:112" class="p-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-center flex flex-col items-center transition-colors">
-                                <span class="text-[10px] font-extrabold text-slate-600">NATIONAL</span>
-                                <span class="text-sm font-black text-[#00264b] font-mono">112</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- VHF Channel Notice -->
-                    <div class="mt-3 flex items-center gap-2 p-2 rounded-lg bg-slate-100 text-slate-700 text-xs font-mono">
-                        <span class="material-symbols-outlined text-slate-500 text-sm">radio</span>
-                        <span>VHF Radio Distress: <b>Channel 16 (156.800 MHz)</b></span>
+                    <!-- Feature Tags -->
+                    <div class="mt-4 flex flex-wrap gap-2">
+                        <span class="text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-1 rounded-lg">2s Hold Trigger</span>
+                        <span class="text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg">MRCC Vectoring</span>
+                        <span class="text-xs font-medium bg-cyan-50 text-cyan-800 border border-cyan-200 px-2.5 py-1 rounded-lg">VHF Ch-16 Mayday</span>
                     </div>
                 </div>
 
-                <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
                     <span class="text-xs text-rose-600 font-semibold flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span> 24/7 Monitored
+                        <span class="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span> ICG Priority 1
                     </span>
-                    <a href="sos.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 px-4 py-2 rounded-lg transition-colors shadow-xs">
-                        <span>Open SOS Console</span>
+                    <a href="sos.html" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#e11d48] hover:bg-[#be123c] px-4 py-2 rounded-xl transition-colors shadow-xs">
+                        <span>Open SOS Rescue</span>
                         <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </a>
                 </div>
@@ -413,9 +354,20 @@
             const port = window.getActivePort();
             const BASE_URL = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
 
+            // Sector Name Determination
+            const sectorEl = document.getElementById('hero-sector-name');
+            if (sectorEl) {
+                if (port.region && (port.region.includes('Bay of Bengal') || port.region.includes('Coromandel') || port.region.includes('Palk') || port.region.includes('Odisha') || port.region.includes('Bengal'))) {
+                    sectorEl.textContent = 'BAY OF BENGAL SECTOR';
+                } else if (port.region && port.region.includes('Andaman')) {
+                    sectorEl.textContent = 'ANDAMAN SEA SECTOR';
+                } else {
+                    sectorEl.textContent = 'ARABIAN SEA SECTOR';
+                }
+            }
+
             // Update Hero Titles
-            document.getElementById('hero-harbor-name').textContent = `${port.name} Fishing Jetty`;
-            document.getElementById('hero-harbor-region').textContent = `${port.region} · Lat ${port.lat.toFixed(4)}° N, Lon ${port.lon.toFixed(4)}° E`;
+            document.getElementById('hero-harbor-name').textContent = `${port.name} Operations Hub`;
 
             try {
                 // 1. Fetch Marine Telemetry
@@ -423,43 +375,24 @@
                 if (weatherRes.ok) {
                     const w = await weatherRes.json();
                     
-                    document.getElementById('tel-wave-val').textContent = w.wave_height_m || '0.86';
-                    document.getElementById('tel-wave-sub').textContent = w.sea_state || 'Calm / Slight';
-                    document.getElementById('tel-wind-val').textContent = Math.round(w.wind_speed_kmh || 18);
-                    document.getElementById('tel-wind-sub').textContent = `${w.wind_speed_knots || 9.7} kts · ${w.wind_direction_compass || 'ENE'}`;
-                    document.getElementById('tel-sst-val').textContent = w.sea_surface_temp_c || '28.4';
-                    document.getElementById('tel-curr-val').textContent = w.ocean_current_ms || '0.35';
-                    document.getElementById('tel-curr-sub').textContent = `${w.ocean_current_knots || 0.7} kts · Drift Safe`;
-
-                    document.getElementById('preview-vis').textContent = `${w.visibility_km || 10.0} km`;
-                    document.getElementById('preview-period').textContent = `${w.wave_period_s || 7.5} s`;
-                    document.getElementById('preview-temp').textContent = `${w.air_temp_c || 29.0} °C`;
-                    if (w.optimal_departure_window) {
-                        document.getElementById('preview-window').textContent = w.optimal_departure_window;
-                    }
+                    document.getElementById('tel-wave-val').textContent = `${w.wave_height_m || '0.8'} m`;
+                    document.getElementById('tel-wind-val').textContent = `${Math.round(w.wind_speed_kmh || 12.4)} km/h`;
+                    document.getElementById('tel-sst-val').textContent = `${w.sea_surface_temp_c || '28.5'} °C`;
 
                     // Update Safety Badge
                     const badge = document.getElementById('hero-safety-badge');
-                    if (w.safety_status === 'DANGER') {
-                        badge.className = 'inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/40';
-                        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span><span>SEA: DANGER (ROUGH SWELL)</span>';
-                    } else if (w.safety_status === 'CAUTION') {
-                        badge.className = 'inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40';
-                        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span><span>SEA: CAUTION (MODERATE)</span>';
-                    } else {
-                        badge.className = 'inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
-                        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>SEA: SAFE (FAVOURABLE)</span>';
-                    }
-                }
-
-                // 2. Fetch PFZ distance
-                const pfzRes = await fetch(`${BASE_URL}/api/pfz?port=${port.id}`);
-                if (pfzRes.ok) {
-                    const pfzData = await pfzRes.json();
-                    if (pfzData.pfz_zones && pfzData.pfz_zones.length > 0) {
-                        const topPfz = pfzData.pfz_zones[0];
-                        document.getElementById('preview-pfz-dist').textContent = `~${topPfz.distance_nm} NM (${topPfz.bearing_deg}° ${topPfz.bearing_dir})`;
-                        document.getElementById('preview-pfz-species').textContent = `Target: ${topPfz.primary_species.join(', ')} (SST ${topPfz.sst_c}°C · Chl ${topPfz.chlorophyll_mg_m3} mg/m³)`;
+                    const safetyText = document.getElementById('hero-safety-text');
+                    if (badge && safetyText) {
+                        if (w.safety_status === 'DANGER') {
+                            badge.className = 'flex items-center gap-1.5 bg-rose-500/20 border border-rose-400/40 text-rose-300 px-3.5 py-2 rounded-xl text-xs font-bold';
+                            safetyText.textContent = 'SEA: DANGER';
+                        } else if (w.safety_status === 'CAUTION') {
+                            badge.className = 'flex items-center gap-1.5 bg-amber-500/20 border border-amber-400/40 text-amber-300 px-3.5 py-2 rounded-xl text-xs font-bold';
+                            safetyText.textContent = 'SEA: CAUTION';
+                        } else {
+                            badge.className = 'flex items-center gap-1.5 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 px-3.5 py-2 rounded-xl text-xs font-bold';
+                            safetyText.textContent = 'SEA: SAFE';
+                        }
                     }
                 }
             } catch (err) {
