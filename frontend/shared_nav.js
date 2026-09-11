@@ -133,30 +133,19 @@
             return `<option value="${p.id}" ${selected}>${p.name} - ${p.state}</option>`;
         }).join('');
 
-        const langButtons = [
-            { code: 'hi', label: 'हिन्दी' },
-            { code: 'ta', label: 'தமிழ்' },
-            { code: 'te', label: 'తెలుగు' },
-            { code: 'bn', label: 'বাংলা' },
-            { code: 'en', label: 'EN' }
-        ].map(l => {
-            const isSel = (currentLanguage === l.code);
-            return `<button onclick="window.setLanguage('${l.code}')" class="px-2 py-0.5 rounded text-[11px] font-bold transition-all ${isSel ? 'bg-white text-[#00264b] shadow-xs' : 'text-white/80 hover:text-white hover:bg-white/10'}">${l.label}</button>`;
-        }).join('');
-
         const mainNavItems = [
             { href: 'index.html', label: 'Home', icon: 'home' },
-            { href: 'advisor.html', label: 'Ask ORCA', icon: 'psychology' },
+            { href: 'advisor.html', label: 'AI Advisor', icon: 'psychology' },
             { href: 'map.html', label: 'Ocean GIS', icon: 'explore' },
-            { href: 'weather.html', label: 'Weather & Waves', icon: 'air' },
-            { href: 'sos.html', label: 'SOS Rescue', icon: 'emergency', isSos: true },
-            { href: 'command_center.html', label: 'Command Console', icon: 'monitoring' }
+            { href: 'weather.html', label: 'Weather', icon: 'air' },
+            { href: 'sos.html', label: 'Emergency SOS', icon: 'emergency', isDanger: true }
         ];
 
         const moreNavItems = [
             { href: 'catch_log.html', label: 'Catch Diary & Diesel', icon: 'menu_book' },
             { href: 'market.html', label: 'Daily Fish Mandi Rates', icon: 'storefront' },
-            { href: 'regulations.html', label: 'Marine Protected Laws', icon: 'gavel' }
+            { href: 'regulations.html', label: 'Marine Protected Laws', icon: 'gavel' },
+            { href: 'command_center.html', label: 'Command Console', icon: 'monitoring' }
         ];
 
         const isMoreActive = moreNavItems.some(item => currentPage === item.href);
@@ -166,24 +155,24 @@
                              (currentPage === '' && item.href === 'index.html') ||
                              (currentPage === '/' && item.href === 'index.html');
             
-            if (item.isSos) {
+            if (item.isDanger) {
                 return `
-                    <a href="${item.href}" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs ${
+                    <a href="${item.href}" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs ${
                         isActive 
                             ? 'bg-rose-600 text-white shadow-rose-600/30' 
-                            : 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white border border-rose-200'
+                            : 'bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white border border-rose-200'
                     }">
                         <span class="material-symbols-outlined text-sm ${isActive ? '' : 'text-rose-600'}">emergency</span>
-                        <span>SOS Rescue</span>
+                        <span>SOS</span>
                     </a>
                 `;
             }
 
             return `
-                <a href="${item.href}" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                <a href="${item.href}" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     isActive
-                        ? 'bg-[#00264b] text-white shadow-xs'
-                        : 'text-slate-700 hover:text-[#00264b] hover:bg-slate-100'
+                        ? 'bg-[#00264b] text-white shadow-sm'
+                        : 'text-slate-600 hover:text-[#00264b] hover:bg-slate-100'
                 }">
                     <span class="material-symbols-outlined text-sm ${isActive ? 'text-cyan-300' : 'text-slate-500'}">${item.icon}</span>
                     <span>${item.label}</span>
@@ -197,10 +186,10 @@
                 <button type="button" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     isMoreActive 
                         ? 'bg-[#00264b] text-white shadow-sm' 
-                        : 'text-slate-700 hover:text-[#00264b] hover:bg-slate-100'
+                        : 'text-slate-600 hover:text-[#00264b] hover:bg-slate-100'
                 }">
                     <span class="material-symbols-outlined text-sm ${isMoreActive ? 'text-cyan-300' : 'text-slate-500'}">more_vert</span>
-                    <span>More</span>
+                    <span>More Sections</span>
                     <span class="material-symbols-outlined text-xs">expand_more</span>
                 </button>
                 <div class="hidden group-hover:block absolute right-0 top-full pt-1 w-56 z-50 animate-in fade-in duration-100">
@@ -225,16 +214,41 @@
 
         mount.innerHTML = `
             <!-- 🇮🇳 Top Government of India & ISRO Utility Bar -->
-            <div class="bg-[#00264b] text-white text-[11px] px-3 sm:px-6 py-1.5 border-b border-white/10 flex items-center justify-between">
+            <div class="bg-[#00172e] text-slate-300 text-[11px] px-3 sm:px-6 py-1 border-b border-white/10 flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-cyan-300 text-sm">shield</span>
-                    <span class="inline-flex items-center gap-1.5 font-bold tracking-wide uppercase">
-                        GOVERNMENT OF INDIA | भारत सरकार | ISRO Earth Observation Marine Operations
+                    <span class="inline-flex items-center gap-1.5 font-semibold text-white tracking-wide">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Department of Space · Indian Space Research Organisation (ISRO)
+                    </span>
+                    <span class="hidden md:inline text-white/30">|</span>
+                    <span class="hidden md:inline text-cyan-300/90 font-mono">Smart India Hackathon #26176</span>
+                    <span class="hidden xl:inline-flex items-center gap-1 text-[10px] font-mono text-emerald-300 ml-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        NavIC: 7 L5/S Locked
                     </span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <div class="flex items-center gap-1 font-mono">
-                        ${langButtons}
+                    <!-- High-Sunlight Contrast Mode Button -->
+                    <button
+                        id="btn-sunlight-toggle"
+                        onclick="window.toggleSunlightMode()"
+                        title="Toggle High-Sunlight Outdoor Contrast Mode"
+                        class="flex items-center gap-1 font-mono text-[10px] bg-white/10 hover:bg-white/20 text-yellow-300 px-2 py-0.5 rounded cursor-pointer"
+                    >
+                        <span class="material-symbols-outlined text-xs">wb_sunny</span>
+                        <span>SUNLIGHT</span>
+                    </button>
+
+                    <!-- Language Switcher -->
+                    <div class="flex items-center gap-1 font-mono text-[10px] bg-white/10 px-2 py-0.5 rounded">
+                        <span class="text-slate-300">LANG:</span>
+                        <select onchange="window.setLanguage(this.value)" class="bg-transparent text-white font-bold outline-none cursor-pointer">
+                            <option value="en" ${currentLanguage === 'en' ? 'selected' : ''} class="text-black">English</option>
+                            <option value="hi" ${currentLanguage === 'hi' ? 'selected' : ''} class="text-black">हिन्दी (Hindi)</option>
+                            <option value="ta" ${currentLanguage === 'ta' ? 'selected' : ''} class="text-black">தமிழ் (Tamil)</option>
+                            <option value="te" ${currentLanguage === 'te' ? 'selected' : ''} class="text-black">తెలుగు (Telugu)</option>
+                            <option value="bn" ${currentLanguage === 'bn' ? 'selected' : ''} class="text-black">বাংলা (Bengali)</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -248,11 +262,11 @@
                         <a href="index.html" class="flex items-center gap-2.5 group">
                             <img src="assets/orca_logo.jpg" alt="ORCA" class="w-9 h-9 rounded-xl object-cover shadow-sm border border-slate-200 group-hover:scale-105 transition-transform"/>
                             <div class="flex flex-col">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="text-base font-black tracking-tight text-[#00264b]">ORCA</span>
-                                    <span class="text-[9px] bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.2 rounded font-bold uppercase tracking-wider">ISRO</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-base font-extrabold tracking-tight text-[#00264b]">ORCA</span>
+                                    <span class="text-[9px] bg-cyan-50 text-cyan-700 border border-cyan-300 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">ISRO AI · Live</span>
                                 </div>
-                                <span class="hidden sm:inline text-[10px] text-slate-500 font-medium -mt-0.5">AI Marine Decision Support Platform</span>
+                                <span class="hidden sm:inline text-[10px] text-slate-500 font-medium -mt-0.5">Marine Decision Support System</span>
                             </div>
                         </a>
                     </div>
@@ -260,24 +274,29 @@
                     <!-- Center / Right: Harbor Selector & Nav Pills -->
                     <div class="flex items-center gap-2.5">
                         
+                        <!-- Base Fishing Harbor Dropdown -->
+                        <div class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-cyan-500 transition-colors">
+                            <span class="material-symbols-outlined text-cyan-700 text-base">anchor</span>
+                            <div class="flex flex-col">
+                                <span class="text-[8px] text-slate-400 uppercase font-bold tracking-wider leading-none">Base Harbor</span>
+                                <select onchange="window.switchPort(this.value)" class="orca-port-select bg-transparent text-xs font-bold text-[#00264b] border-none p-0 outline-none cursor-pointer">
+                                    ${portOptions}
+                                </select>
+                            </div>
+                        </div>
+
                         <!-- Desktop Nav Pills (hidden on mobile, visible on desktop/laptop) -->
-                        <nav class="hidden md:flex items-center gap-1">
+                        <nav class="hidden md:flex items-center gap-1 bg-slate-50/80 p-1 rounded-xl border border-slate-200">
                             ${navPillsHtml}
                             ${moreDropdownHtml}
                         </nav>
 
-                        <!-- Base Fishing Harbor Dropdown -->
-                        <div class="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 hover:border-cyan-500 transition-colors">
-                            <span class="material-symbols-outlined text-cyan-700 text-base">anchor</span>
-                            <select onchange="window.switchPort(this.value)" class="orca-port-select bg-transparent text-xs font-bold text-[#00264b] border-none p-0 outline-none cursor-pointer">
-                                ${portOptions}
-                            </select>
-                        </div>
-
                         <!-- User Profile Badge -->
-                        <button onclick="window.changeUsername()" title="Change Registered Vessel / Username" class="flex items-center gap-1.5 bg-[#00264b] hover:bg-[#003870] text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs transition-colors">
-                            <span class="material-symbols-outlined text-xs">person</span>
-                            <span class="orca-username-badge font-mono">${currentUsername}</span>
+                        <button onclick="window.changeUsername()" title="Change Registered Vessel / Username" class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-[#00264b] text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors">
+                            <span class="w-5 h-5 rounded-full bg-[#00264b] text-white flex items-center justify-center text-[10px]">
+                                <span class="material-symbols-outlined text-xs">person</span>
+                            </span>
+                            <span class="orca-username-badge hidden lg:inline max-w-[110px] truncate">${currentUsername}</span>
                         </button>
 
                     </div>
