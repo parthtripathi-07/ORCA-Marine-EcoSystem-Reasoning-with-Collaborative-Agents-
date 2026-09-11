@@ -75,3 +75,27 @@ window.findNearestMRCC = function(lat, lon) {
     return best;
 };
 
+// 6. Authentication & Session Helpers
+window.getAuthSession = function() {
+    try {
+        const s = JSON.parse(localStorage.getItem('orca_auth_session') || 'null');
+        if (s && s.token) return s;
+    } catch(e) {}
+    return null;
+};
+
+window.getAuthToken = function() {
+    const s = window.getAuthSession();
+    return s ? s.token : null;
+};
+
+window.getAuthUser = function() {
+    const s = window.getAuthSession();
+    return s ? s.user : null;
+};
+
+window.getAuthHeaders = function() {
+    const token = window.getAuthToken();
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+

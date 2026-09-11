@@ -21,5 +21,7 @@ logs/
 .vscode/
 .idea/
 .DS_Store
-Thumbs.db
+# Local databases
+*.db
+backend/data/*.db
 

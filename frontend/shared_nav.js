@@ -4,15 +4,48 @@
  */
 
 (function() {
-    // 1. Initialize State from LocalStorage
-    const DEFAULT_PORT = 'goa';
+    // 0. Strict Authentication Route Guard
+    // Protects all portal pages; redirects unauthenticated visitors to login.html
+    (function enforceRouteGuard() {
+        const path = window.location.pathname.split('/').pop() || 'index.html';
+        if (path === 'login.html') return;
+
+        const sessionStr = localStorage.getItem('orca_auth_session');
+        if (!sessionStr) {
+            window.location.replace('login.html?redirect=' + encodeURIComponent(path));
+            return;
+        }
+
+        try {
+            const session = JSON.parse(sessionStr);
+            const nowSec = Math.floor(Date.now() / 1000);
+            if (!session || !session.token || !session.user || (session.expires_at && nowSec > session.expires_at)) {
+                localStorage.removeItem('orca_auth_session');
+                window.location.replace('login.html?redirect=' + encodeURIComponent(path));
+            }
+        } catch(e) {
+            localStorage.removeItem('orca_auth_session');
+            window.location.replace('login.html?redirect=' + encodeURIComponent(path));
+        }
+    })();
+
+    // 1. Initialize State from LocalStorage & Verified Session
+    let authUser = null;
+    try {
+        const s = JSON.parse(localStorage.getItem('orca_auth_session') || '{}');
+        if (s && s.user) authUser = s.user;
+    } catch(e) {}
+
+    const DEFAULT_PORT = (authUser && authUser.harbor) || 'chennai';
     let currentPort = localStorage.getItem('orca_active_port') || DEFAULT_PORT;
     if (!window.PORT_COORDINATES || !window.PORT_COORDINATES[currentPort]) {
         currentPort = DEFAULT_PORT;
     }
     localStorage.setItem('orca_active_port', currentPort);
 
-    let currentUsername = localStorage.getItem('orca_username') || 'Capt. Murugan';
+    let currentUsername = (authUser && authUser.name) || localStorage.getItem('orca_username') || 'Capt. Murugan';
+    let currentRole = (authUser && authUser.role) || 'fisher';
+    let currentVessel = (authUser && authUser.vessel) || localStorage.getItem('orca_vessel_id') || '';
     localStorage.setItem('orca_username', currentUsername);
 
     let currentLanguage = localStorage.getItem('orca_language') || 'en';
@@ -63,6 +96,26 @@
             localStorage.setItem('orca_username', newName.trim());
             const userBadges = document.querySelectorAll('.orca-username-badge');
             userBadges.forEach(el => { el.textContent = newName.trim(); });
+        }
+    };
+
+    // Secure Platform Logout
+    window.orcaLogout = async function() {
+        if (confirm("Are you sure you want to securely logout from the ORCA Maritime Platform?")) {
+            try {
+                const sessionStr = localStorage.getItem('orca_auth_session');
+                if (sessionStr) {
+                    const session = JSON.parse(sessionStr);
+                    const baseUrl = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
+                    fetch(`${baseUrl}/api/auth/logout`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.token}` },
+                        body: JSON.stringify({ token: session.token })
+                    }).catch(() => {});
+                }
+            } catch(e) {}
+            localStorage.removeItem('orca_auth_session');
+            window.location.replace('login.html');
         }
     };
 
@@ -291,13 +344,22 @@
                             ${moreDropdownHtml}
                         </nav>
 
-                        <!-- User Profile Badge -->
-                        <button onclick="window.changeUsername()" title="Change Registered Vessel / Username" class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-[#00264b] text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors">
-                            <span class="w-5 h-5 rounded-full bg-[#00264b] text-white flex items-center justify-center text-[10px]">
-                                <span class="material-symbols-outlined text-xs">person</span>
-                            </span>
-                            <span class="orca-username-badge hidden lg:inline max-w-[110px] truncate">${currentUsername}</span>
-                        </button>
+                        <!-- Authenticated User Profile & Logout -->
+                        <div class="flex items-center gap-1.5">
+                            <div class="flex items-center gap-1.5 bg-slate-100 text-[#00264b] text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200">
+                                <span class="w-5 h-5 rounded-full ${currentRole === 'officer' ? 'bg-blue-700' : 'bg-[#00264b]'} text-white flex items-center justify-center text-[10px]">
+                                    <span class="material-symbols-outlined text-xs">${currentRole === 'officer' ? 'local_police' : 'sailing'}</span>
+                                </span>
+                                <div class="flex flex-col text-left">
+                                    <span class="orca-username-badge font-bold leading-tight max-w-[100px] truncate">${currentUsername}</span>
+                                    <span class="text-[8px] text-cyan-800 font-mono leading-none">${currentVessel || (currentRole === 'officer' ? 'Coast Guard' : 'Fisherman')}</span>
+                                </div>
+                            </div>
+                            <button onclick="window.orcaLogout()" title="Secure Logout" class="flex items-center gap-1 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 text-xs font-bold px-2 py-1.5 rounded-lg border border-rose-200 transition-colors cursor-pointer">
+                                <span class="material-symbols-outlined text-xs">logout</span>
+                                <span class="hidden xl:inline text-[10px]">Logout</span>
+                            </button>
+                        </div>
 
                     </div>
                 </div>
@@ -372,6 +434,11 @@
                         <span class="material-symbols-outlined text-xs">monitoring</span>
                         <span>Command</span>
                     </a>
+                    <span class="text-white/20">|</span>
+                    <button onclick="window.orcaLogout()" class="flex items-center gap-1 text-rose-300 font-bold whitespace-nowrap hover:text-white cursor-pointer">
+                        <span class="material-symbols-outlined text-xs">logout</span>
+                        <span>Exit</span>
+                    </button>
                 </div>
             </div>
 
