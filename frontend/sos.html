@@ -689,7 +689,10 @@ OVER.</div>
 
             if (!rescueMap) {
                 rescueMap = L.map('rescue-map', { attributionControl: false, zoomControl: false }).setView([vesselLat, vesselLon], 7);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 14 }).addTo(rescueMap);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { 
+                    maxZoom: 18,
+                    subdomains: 'abcd'
+                }).addTo(rescueMap);
             }
 
             if (vesselMarker) rescueMap.removeLayer(vesselMarker);

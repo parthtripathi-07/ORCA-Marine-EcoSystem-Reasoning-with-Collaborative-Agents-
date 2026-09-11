@@ -365,8 +365,9 @@
         function initFleetMap() {
             fleetMap = L.map('fleet-map', { attributionControl: false }).setView([13.5, 78.5], 5);
             
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 18
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd'
             }).addTo(fleetMap);
 
             fleetLayerGroup = L.layerGroup().addTo(fleetMap);
