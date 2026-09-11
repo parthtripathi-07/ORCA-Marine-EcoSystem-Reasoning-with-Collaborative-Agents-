@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ORCA — Daily Fish Mandi & Landing Center Auction Rates | ISRO SIH</title>
+    <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
+    <link rel="apple-touch-icon" href="assets/orca_logo.jpg">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Material Symbols & Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="bg-[#f7f9fc] text-slate-800 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header & Navigation Mount Point -->
+    <div id="orca-header-mount"></div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-6 pb-24 md:pb-8">
+
+        <!-- 1. Header Hero Banner -->
+        <div class="bg-gradient-to-r from-[#00264b] via-[#023e73] to-[#0369a1] text-white rounded-2xl p-5 sm:p-6 shadow-md border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-300 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-3xl">storefront</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                            DAILY AUCTION RATES
+                        </span>
+                        <span class="text-xs text-cyan-200 font-mono">Major Coastal Wholesale Mandis</span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">
+                        Daily Fish Mandi & Wholesale Auction Board
+                    </h1>
+                    <p class="text-xs text-slate-300 font-medium">
+                        Compare wholesale landing jetty rates across Indian coastal hubs to maximize trip earnings.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Date & Status Badge -->
+            <div class="bg-black/30 px-3.5 py-2 rounded-xl border border-white/10 text-right font-mono text-xs">
+                <div class="text-[10px] text-cyan-200">TODAY'S AUCTION DATE</div>
+                <div id="mandi-date-badge" class="font-bold text-amber-300 text-sm">--</div>
+            </div>
+        </div>
+
+        <!-- 2. Arbitrage Selling Recommendation Tip -->
+        <div class="bg-amber-50 border border-amber-300 rounded-xl p-4 flex items-start gap-3 text-xs text-amber-950 shadow-xs">
+            <span class="material-symbols-outlined text-amber-700 text-xl flex-shrink-0">lightbulb</span>
+            <div>
+                <span class="font-bold text-amber-900">High-Demand Arbitrage Opportunity:</span>
+                <span id="market-tip-text">
+                    Seerfish (Surmai) and Yellowfin Tuna prices are currently up <strong>+12%</strong> at Sassoon Docks (Mumbai) and Kasimedu (Chennai) due to high export container demand.
+                </span>
+            </div>
+        </div>
+
+        <!-- 3. Filter & Search Controls Bar -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <span class="text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Filter Mandi:</span>
+                <select
+                    id="market-port-filter"
+                    onchange="filterMarketByPort(this.value)"
+                    class="bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-[#00264b] focus:outline-none focus:border-cyan-600 w-full sm:w-auto"
+                >
+                    <option value="ALL">All Major Harbors (National Average)</option>
+                    <option value="chennai">Chennai (Kasimedu Fishing Harbour)</option>
+                    <option value="goa">Goa (Malim & Panaji Jetty)</option>
+                    <option value="kochi">Kochi (Thoppumpady Harbour)</option>
+                    <option value="mumbai">Mumbai (Sassoon Docks & Bhaucha Dhakka)</option>
+                    <option value="visakhapatnam">Visakhapatnam (Fishing Jetty)</option>
+                    <option value="mangalore">Mangalore (Old Port Bunder)</option>
+                </select>
+            </div>
+
+            <!-- Search input -->
+            <div class="relative w-full sm:w-64">
+                <span class="material-symbols-outlined absolute left-2.5 top-2 text-slate-400 text-sm">search</span>
+                <input
+                    id="market-search-input"
+                    type="text"
+                    oninput="filterMarketBySearch(this.value)"
+                    placeholder="Search fish (e.g., Tuna, Prawn)..."
+                    class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-cyan-600"
+                />
+            </div>
+        </div>
+
+        <!-- 4. Fish Price Cards Grid -->
+        <div id="market-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Rendered by JS -->
+        </div>
+
+    </main>
+
+    <!-- Mobile Sticky 5-Tab Bottom Navigation Mount Point -->
+    <div id="orca-bottom-nav-mount"></div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="shared_nav.js"></script>
+    <script>
+        // Coastal Wholesale Market Data Catalog
+        const MARKET_DATA = [
+            {
+                species: "Yellowfin Tuna (Kera)",
+                scientific: "Thunnus albacares",
+                icon: "🐟",
+                category: "Pelagic Export",
+                avgPrice: 240,
+                unit: "kg",
+                trend: "up",
+                trendPct: "+8.5%",
+                demand: "Very High (Export)",
+                ports: {
+                    chennai: 260,
+                    goa: 240,
+                    kochi: 255,
+                    mumbai: 270,
+                    visakhapatnam: 230,
+                    mangalore: 235
+                }
+            },
+            {
+                species: "Seerfish / Surmai (King Mackerel)",
+                scientific: "Scomberomorus commerson",
+                icon: "🐟",
+                category: "Premium Table",
+                avgPrice: 620,
+                unit: "kg",
+                trend: "up",
+                trendPct: "+12.0%",
+                demand: "Ultra High",
+                ports: {
+                    chennai: 650,
+                    goa: 680,
+                    kochi: 610,
+                    mumbai: 720,
+                    visakhapatnam: 590,
+                    mangalore: 630
+                }
+            },
+            {
+                species: "White & Tiger Prawns (Kolambi)",
+                scientific: "Penaeus indicus / monodon",
+                icon: "🦐",
+                category: "Crustacean",
+                avgPrice: 480,
+                unit: "kg",
+                trend: "steady",
+                trendPct: "+1.2%",
+                demand: "High",
+                ports: {
+                    chennai: 510,
+                    goa: 470,
+                    kochi: 490,
+                    mumbai: 530,
+                    visakhapatnam: 460,
+                    mangalore: 480
+                }
+            },
+            {
+                species: "Indian Mackerel (Bangda)",
+                scientific: "Rastrelliger kanagurta",
+                icon: "🐟",
+                category: "High Volume",
+                avgPrice: 150,
+                unit: "kg",
+                trend: "down",
+                trendPct: "-4.5%",
+                demand: "Steady Daily",
+                ports: {
+                    chennai: 160,
+                    goa: 140,
+                    kochi: 150,
+                    mumbai: 170,
+                    visakhapatnam: 145,
+                    mangalore: 135
+                }
+            },
+            {
+                species: "Oil Sardine (Mathi / Tarli)",
+                scientific: "Sardinella longiceps",
+                icon: "🐟",
+                category: "High Volume",
+                avgPrice: 85,
+                unit: "kg",
+                trend: "steady",
+                trendPct: "+0.5%",
+                demand: "Very High Local",
+                ports: {
+                    chennai: 90,
+                    goa: 80,
+                    kochi: 95,
+                    mumbai: 100,
+                    visakhapatnam: 75,
+                    mangalore: 85
+                }
+            },
+            {
+                species: "Silver Pomfret (Paplet)",
+                scientific: "Pampus argenteus",
+                icon: "🐠",
+                category: "Super Premium",
+                avgPrice: 890,
+                unit: "kg",
+                trend: "up",
+                trendPct: "+6.8%",
+                demand: "Ultra High",
+                ports: {
+                    chennai: 920,
+                    goa: 880,
+                    kochi: 860,
+                    mumbai: 980,
+                    visakhapatnam: 850,
+                    mangalore: 890
+                }
+            },
+            {
+                species: "Squid & Cuttlefish (Koonthal)",
+                scientific: "Loligo duvaucelii",
+                icon: "🦑",
+                category: "Cephalopod Export",
+                avgPrice: 320,
+                unit: "kg",
+                trend: "up",
+                trendPct: "+5.1%",
+                demand: "High",
+                ports: {
+                    chennai: 340,
+                    goa: 310,
+                    kochi: 335,
+                    mumbai: 350,
+                    visakhapatnam: 300,
+                    mangalore: 315
+                }
+            },
+            {
+                species: "Ribbonfish (Bala)",
+                scientific: "Trichiurus lepturus",
+                icon: "🐟",
+                category: "Export Finfish",
+                avgPrice: 130,
+                unit: "kg",
+                trend: "steady",
+                trendPct: "0.0%",
+                demand: "Moderate",
+                ports: {
+                    chennai: 140,
+                    goa: 125,
+                    kochi: 130,
+                    mumbai: 150,
+                    visakhapatnam: 120,
+                    mangalore: 125
+                }
+            }
+        ];
+
+        let currentPortFilter = 'ALL';
+        let currentSearchQuery = '';
+
+        function renderMarketCards() {
+            const container = document.getElementById('market-cards-grid');
+            if (!container) return;
+
+            const filtered = MARKET_DATA.filter(item => {
+                const matchSearch = item.species.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
+                                    item.category.toLowerCase().includes(currentSearchQuery.toLowerCase());
+                return matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-400">
+                        <span class="material-symbols-outlined text-4xl mb-1 text-slate-300">search_off</span>
+                        <p class="text-xs">No fish species found matching "${currentSearchQuery}".</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(item => {
+                let price = item.avgPrice;
+                let locationNote = "National Wholesale Avg";
+
+                if (currentPortFilter !== 'ALL' && item.ports[currentPortFilter]) {
+                    price = item.ports[currentPortFilter];
+                    locationNote = `Rate at ${currentPortFilter.toUpperCase()} Jetty`;
+                }
+
+                const trendBadge = item.trend === 'up' 
+                    ? `<span class="inline-flex items-center text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200"><span class="material-symbols-outlined text-xs">arrow_upward</span>${item.trendPct}</span>`
+                    : (item.trend === 'down' 
+                        ? `<span class="inline-flex items-center text-[10px] font-bold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200"><span class="material-symbols-outlined text-xs">arrow_downward</span>${item.trendPct}</span>`
+                        : `<span class="inline-flex items-center text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">▬ Steady</span>`);
+
+                return `
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-2xl">${item.icon}</span>
+                                    <div>
+                                        <h3 class="text-sm font-bold text-[#00264b] leading-snug">${item.species}</h3>
+                                        <p class="text-[10px] text-slate-400 italic">${item.scientific}</p>
+                                    </div>
+                                </div>
+                                ${trendBadge}
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-baseline justify-between">
+                                <div>
+                                    <span class="text-2xl font-black text-[#00264b] font-mono">₹${price}</span>
+                                    <span class="text-xs text-slate-500 font-bold">/ ${item.unit}</span>
+                                </div>
+                                <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200">
+                                    ${item.category}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 pt-2 border-t border-slate-100 text-[11px] text-slate-500 flex items-center justify-between">
+                            <span>${locationNote}</span>
+                            <span class="font-bold text-slate-700">${item.demand}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterMarketByPort(port) {
+            currentPortFilter = port;
+            renderMarketCards();
+        }
+
+        function filterMarketBySearch(q) {
+            currentSearchQuery = q;
+            renderMarketCards();
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            document.getElementById('mandi-date-badge').textContent = dateStr;
+
+            // Sync with active port if present
+            const activeKey = window.getActivePortKey ? window.getActivePortKey() : 'goa';
+            const filterEl = document.getElementById('market-port-filter');
+            if (filterEl && filterEl.querySelector(`option[value="${activeKey}"]`)) {
+                filterEl.value = activeKey;
+                currentPortFilter = activeKey;
+            }
+
+            renderMarketCards();
+        });
+    </script>
+</body>
+</html>

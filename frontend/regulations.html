@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ORCA — Marine Protected Species & Monsoon Ban Regulations | Wildlife Protection Act 1972</title>
+    <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
+    <link rel="apple-touch-icon" href="assets/orca_logo.jpg">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Material Symbols & Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="bg-[#f7f9fc] text-slate-800 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header & Navigation Mount Point -->
+    <div id="orca-header-mount"></div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-6 pb-24 md:pb-8">
+
+        <!-- 1. Header Hero Banner -->
+        <div class="bg-gradient-to-r from-[#00264b] via-[#02315e] to-[#044e82] text-white rounded-2xl p-5 sm:p-6 shadow-md border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-300 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-3xl">gavel</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-400/40">
+                            LEGAL COMPLIANCE
+                        </span>
+                        <span class="text-xs text-cyan-200 font-mono">Wildlife Protection Act 1972 & MFR Acts</span>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight mt-0.5">
+                        Protected Marine Species & Fishing Regulations Guide
+                    </h1>
+                    <p class="text-xs text-slate-300 font-medium">
+                        Essential legal handbook to prevent vessel seizure, heavy fines, and protected species bycatch penalties.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Urgent Warning Badge -->
+            <div class="bg-rose-950/80 border border-rose-500/40 p-3 rounded-xl text-xs flex items-center gap-2 text-rose-200">
+                <span class="material-symbols-outlined text-rose-400 text-lg">warning</span>
+                <span>Schedule-I species capture carries up to <b>7 years imprisonment</b>.</span>
+            </div>
+        </div>
+
+        <!-- 2. 61-Day Monsoon Trawling Ban Calendar (Crucial for SIH) -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-[#00264b]">
+                    <span class="material-symbols-outlined text-cyan-600">calendar_month</span>
+                    <h2 class="text-base font-bold">Annual 61-Day Uniform Monsoon Trawling Ban</h2>
+                </div>
+                <span class="text-[11px] font-bold text-slate-500 uppercase">Ministry of Fisheries, GoI Order</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- East Coast Card -->
+                <div class="bg-cyan-50/70 border border-cyan-200 rounded-xl p-4 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs uppercase tracking-wider text-cyan-950">East Coast (Bay of Bengal)</span>
+                        <span class="text-[10px] font-mono font-bold bg-cyan-700 text-white px-2 py-0.5 rounded">61 DAYS</span>
+                    </div>
+                    <div class="text-lg font-black text-[#00264b] font-mono">
+                        15 April — 14 June
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Applicable to Tamil Nadu, Andhra Pradesh, Odisha, West Bengal, and Puducherry. All mechanized fishing trawlers prohibited within 200 NM EEZ.
+                    </p>
+                </div>
+
+                <!-- West Coast Card -->
+                <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-4 flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-xs uppercase tracking-wider text-amber-950">West Coast (Arabian Sea)</span>
+                        <span class="text-[10px] font-mono font-bold bg-amber-700 text-white px-2 py-0.5 rounded">61 DAYS</span>
+                    </div>
+                    <div class="text-lg font-black text-[#00264b] font-mono">
+                        01 June — 31 July
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Applicable to Kerala, Karnataka, Goa, Maharashtra, Gujarat, Daman & Diu. Traditional motorized boats (<10 hp) exempt only within territorial waters.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Schedule-I Strictly Protected Marine Species Visual Catalog -->
+        <div class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-[#00264b]">Schedule-I Strictly Protected Marine Species</h2>
+                    <p class="text-xs text-slate-500">If caught accidentally in net, MUST be released alive immediately back to sea.</p>
+                </div>
+                <span class="text-[10px] font-mono font-bold bg-rose-100 text-rose-800 px-2.5 py-1 rounded-full border border-rose-200">
+                    ZERO RETENTION TOLERANCE
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Species 1: Dugong -->
+                <div class="bg-white border-2 border-rose-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-3xl">🦭</span>
+                        <span class="text-[9px] font-mono font-black uppercase bg-rose-600 text-white px-2 py-0.5 rounded">SCHEDULE I</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mt-1">Dugong / Sea Cow</h3>
+                    <p class="text-[10px] font-mono text-slate-400 italic">Dugong dugon</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Found in Gulf of Mannar, Palk Bay, and Gulf of Kutch. Completely banned from hunting, capture, or possession.
+                    </p>
+                </div>
+
+                <!-- Species 2: Olive Ridley Turtle -->
+                <div class="bg-white border-2 border-rose-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-3xl">🐢</span>
+                        <span class="text-[9px] font-mono font-black uppercase bg-rose-600 text-white px-2 py-0.5 rounded">SCHEDULE I</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mt-1">Olive Ridley Sea Turtle</h3>
+                    <p class="text-[10px] font-mono text-slate-400 italic">Lepidochelys olivacea</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Mass nesting in Odisha & Chennai coasts. Mandatory installation of Turtle Excluder Devices (TED) in trawl nets.
+                    </p>
+                </div>
+
+                <!-- Species 3: Whale Shark -->
+                <div class="bg-white border-2 border-rose-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-3xl">🦈</span>
+                        <span class="text-[9px] font-mono font-black uppercase bg-rose-600 text-white px-2 py-0.5 rounded">SCHEDULE I</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mt-1">Whale Shark</h3>
+                    <p class="text-[10px] font-mono text-slate-400 italic">Rhincodon typus</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Found along Gujarat, Kerala, and Lakshadweep. Cut nets if entangled; government provides net compensation scheme.
+                    </p>
+                </div>
+
+                <!-- Species 4: Sawfish -->
+                <div class="bg-white border-2 border-rose-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-3xl">🗡️</span>
+                        <span class="text-[9px] font-mono font-black uppercase bg-rose-600 text-white px-2 py-0.5 rounded">SCHEDULE I</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mt-1">Knifetooth / Largetooth Sawfish</h3>
+                    <p class="text-[10px] font-mono text-slate-400 italic">Pristis pristis</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Critically endangered ray species. Any trading, landing, or cutting of rostrum (saw blade) is strictly illegal.
+                    </p>
+                </div>
+
+                <!-- Species 5: Giant Clam -->
+                <div class="bg-white border-2 border-rose-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-3xl">🦪</span>
+                        <span class="text-[9px] font-mono font-black uppercase bg-rose-600 text-white px-2 py-0.5 rounded">SCHEDULE I</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mt-1">Giant Clams & Sea Cucumbers</h3>
+                    <p class="text-[10px] font-mono text-slate-400 italic">Tridacna spp. / Holothuria spp.</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Key coral reef ecosystem cleaners. Commercial harvesting in Tamil Nadu & Lakshadweep is totally forbidden.
+                    </p>
+                </div>
+
+                <!-- Species 6: Seahorses -->
+                <div class="bg-white border-2 border-rose-200 rounded-2xl p-4 shadow-sm flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-3xl">🫧</span>
+                        <span class="text-[9px] font-mono font-black uppercase bg-rose-600 text-white px-2 py-0.5 rounded">SCHEDULE I</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-900 mt-1">Seahorses & Pipefish</h3>
+                    <p class="text-[10px] font-mono text-slate-400 italic">Hippocampus spp.</p>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Dried seahorse export to international traditional medicine markets is banned under CITES and Wildlife Act.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Minimum Legal Mesh Sizes & Net Guidelines -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-3">
+            <h2 class="text-base font-bold text-[#00264b] flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-600">grid_on</span>
+                <span>Minimum Legal Net Mesh Size Regulations</span>
+            </h2>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-1">
+                    <span class="font-bold text-[#00264b]">Trawl Net Cod-End:</span>
+                    <span class="font-mono text-lg font-black text-cyan-700">35 mm (Square Mesh)</span>
+                    <p class="text-slate-500 text-[11px]">Prevents trapping juvenile finfish and undersized bycatch.</p>
+                </div>
+
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-1">
+                    <span class="font-bold text-[#00264b]">Shrimp Trawl Net:</span>
+                    <span class="font-mono text-lg font-black text-emerald-700">25 mm Minimum</span>
+                    <p class="text-slate-500 text-[11px]">Must be operated with a Turtle Excluder Device (TED) window.</p>
+                </div>
+
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex flex-col gap-1">
+                    <span class="font-bold text-[#00264b]">Pelagic Gill Nets:</span>
+                    <span class="font-mono text-lg font-black text-purple-700">100 - 150 mm</span>
+                    <p class="text-slate-500 text-[11px]">For large pelagic species like Seerfish and Yellowfin Tuna.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Mobile Sticky 5-Tab Bottom Navigation Mount Point -->
+    <div id="orca-bottom-nav-mount"></div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="shared_nav.js"></script>
+</body>
+</html>

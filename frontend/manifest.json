@@ -1,0 +1,27 @@
+{
+  "name": "ORCA Marine Decision Support System",
+  "short_name": "ORCA DSS",
+  "description": "Decision Support System for Marine Navigation, Potential Fishing Zones, and Weather Forecasting (ISRO / SIH #26176)",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#00264b",
+  "theme_color": "#00264b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/orca_logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "assets/orca_logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ],
+  "categories": [
+    "navigation",
+    "weather",
+    "utilities"
+  ]
+}

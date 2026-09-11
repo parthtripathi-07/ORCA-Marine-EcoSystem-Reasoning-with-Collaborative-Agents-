@@ -1,6 +1,6 @@
-﻿/**
- * ORCA Maritime Platform — Shared Navigation & Cross-Page State Engine
- * Unifies Top Utility Bar, Desktop Nav, Mobile Sticky Bottom Nav, and LocalStorage State.
+/**
+ * ORCA Maritime Platform — Shared Navigation, PWA, & Cross-Page State Engine
+ * Unifies Top Utility Bar, Desktop Nav, Mobile Sticky Bottom Nav, High-Sunlight Mode, and LocalStorage State.
  */
 
 (function() {
@@ -17,6 +17,8 @@
 
     let currentLanguage = localStorage.getItem('orca_language') || 'en';
     localStorage.setItem('orca_language', currentLanguage);
+
+    let isSunlightMode = localStorage.getItem('orca_sunlight_mode') === 'true';
 
     // Helpers exposed globally
     window.getActivePortKey = function() {
@@ -64,6 +66,53 @@
         }
     };
 
+    // High-Sunlight Outdoor Contrast Mode Toggle
+    window.toggleSunlightMode = function() {
+        isSunlightMode = !isSunlightMode;
+        localStorage.setItem('orca_sunlight_mode', isSunlightMode ? 'true' : 'false');
+        applySunlightMode();
+    };
+
+    function applySunlightMode() {
+        if (isSunlightMode) {
+            document.documentElement.classList.add('orca-sunlight-contrast');
+        } else {
+            document.documentElement.classList.remove('orca-sunlight-contrast');
+        }
+        const btn = document.getElementById('btn-sunlight-toggle');
+        if (btn) {
+            btn.className = isSunlightMode 
+                ? "flex items-center gap-1 font-mono text-[10px] bg-amber-400 text-black font-extrabold px-2.5 py-0.5 rounded shadow cursor-pointer border border-white"
+                : "flex items-center gap-1 font-mono text-[10px] bg-white/10 hover:bg-white/20 text-yellow-300 px-2 py-0.5 rounded cursor-pointer";
+        }
+    }
+
+    // Inject High-Sunlight CSS once
+    function injectSunlightStyles() {
+        if (document.getElementById('orca-sunlight-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'orca-sunlight-styles';
+        style.textContent = `
+            html.orca-sunlight-contrast body {
+                filter: contrast(135%) saturate(120%) !important;
+                background-color: #ffffff !important;
+                color: #000000 !important;
+                font-weight: 500 !important;
+            }
+            html.orca-sunlight-contrast .bg-white,
+            html.orca-sunlight-contrast .bg-slate-50 {
+                border-color: #000000 !important;
+                border-width: 2px !important;
+                box-shadow: 0 4px 0 #000000 !important;
+            }
+            html.orca-sunlight-contrast button,
+            html.orca-sunlight-contrast a {
+                font-weight: 700 !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     // 2. Identify Current Page
     function getCurrentPageName() {
         const path = window.location.pathname;
@@ -84,16 +133,24 @@
             return `<option value="${p.id}" ${selected}>${p.name} - ${p.state}</option>`;
         }).join('');
 
-        const navItems = [
-            { href: 'index.html', label: 'Home', icon: 'home', id: 'nav-home' },
-            { href: 'advisor.html', label: 'AI Advisor', icon: 'psychology', id: 'nav-advisor' },
-            { href: 'map.html', label: 'Ocean GIS', icon: 'explore', id: 'nav-map' },
-            { href: 'weather.html', label: 'Marine Weather', icon: 'air', id: 'nav-weather' },
-            { href: 'sos.html', label: 'Emergency SOS', icon: 'emergency', id: 'nav-sos', isDanger: true },
-            { href: 'command_center.html', label: 'Command Console', icon: 'monitoring', id: 'nav-cmd' }
+        const mainNavItems = [
+            { href: 'index.html', label: 'Home', icon: 'home' },
+            { href: 'advisor.html', label: 'AI Advisor', icon: 'psychology' },
+            { href: 'map.html', label: 'Ocean GIS', icon: 'explore' },
+            { href: 'weather.html', label: 'Weather', icon: 'air' },
+            { href: 'sos.html', label: 'Emergency SOS', icon: 'emergency', isDanger: true }
         ];
 
-        const navPillsHtml = navItems.map(item => {
+        const moreNavItems = [
+            { href: 'catch_log.html', label: 'Catch Diary & Diesel', icon: 'menu_book' },
+            { href: 'market.html', label: 'Daily Fish Mandi Rates', icon: 'storefront' },
+            { href: 'regulations.html', label: 'Marine Protected Laws', icon: 'gavel' },
+            { href: 'command_center.html', label: 'Command Console', icon: 'monitoring' }
+        ];
+
+        const isMoreActive = moreNavItems.some(item => currentPage === item.href);
+
+        const navPillsHtml = mainNavItems.map(item => {
             const isActive = (currentPage === item.href) || 
                              (currentPage === '' && item.href === 'index.html') ||
                              (currentPage === '/' && item.href === 'index.html');
@@ -123,6 +180,38 @@
             `;
         }).join('');
 
+        // Dropdown for Additional Sections
+        const moreDropdownHtml = `
+            <div class="relative group">
+                <button type="button" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    isMoreActive 
+                        ? 'bg-[#00264b] text-white shadow-sm' 
+                        : 'text-slate-600 hover:text-[#00264b] hover:bg-slate-100'
+                }">
+                    <span class="material-symbols-outlined text-sm ${isMoreActive ? 'text-cyan-300' : 'text-slate-500'}">more_vert</span>
+                    <span>More Sections</span>
+                    <span class="material-symbols-outlined text-xs">expand_more</span>
+                </button>
+                <div class="hidden group-hover:block absolute right-0 top-full pt-1 w-56 z-50 animate-in fade-in duration-100">
+                    <div class="bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 flex flex-col gap-0.5">
+                        ${moreNavItems.map(item => {
+                            const isItemActive = currentPage === item.href;
+                            return `
+                                <a href="${item.href}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
+                                    isItemActive 
+                                        ? 'bg-cyan-50 text-cyan-800' 
+                                        : 'text-slate-700 hover:bg-slate-100 hover:text-[#00264b]'
+                                }">
+                                    <span class="material-symbols-outlined text-base text-cyan-600">${item.icon}</span>
+                                    <span>${item.label}</span>
+                                </a>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+
         mount.innerHTML = `
             <!-- 🇮🇳 Top Government of India & ISRO Utility Bar -->
             <div class="bg-[#00172e] text-slate-300 text-[11px] px-3 sm:px-6 py-1 border-b border-white/10 flex items-center justify-between">
@@ -133,8 +222,24 @@
                     </span>
                     <span class="hidden md:inline text-white/30">|</span>
                     <span class="hidden md:inline text-cyan-300/90 font-mono">Smart India Hackathon #26176</span>
+                    <span class="hidden xl:inline-flex items-center gap-1 text-[10px] font-mono text-emerald-300 ml-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        NavIC: 7 L5/S Locked
+                    </span>
                 </div>
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2">
+                    <!-- High-Sunlight Contrast Mode Button -->
+                    <button
+                        id="btn-sunlight-toggle"
+                        onclick="window.toggleSunlightMode()"
+                        title="Toggle High-Sunlight Outdoor Contrast Mode"
+                        class="flex items-center gap-1 font-mono text-[10px] bg-white/10 hover:bg-white/20 text-yellow-300 px-2 py-0.5 rounded cursor-pointer"
+                    >
+                        <span class="material-symbols-outlined text-xs">wb_sunny</span>
+                        <span>SUNLIGHT</span>
+                    </button>
+
+                    <!-- Language Switcher -->
                     <div class="flex items-center gap-1 font-mono text-[10px] bg-white/10 px-2 py-0.5 rounded">
                         <span class="text-slate-300">LANG:</span>
                         <select onchange="window.setLanguage(this.value)" class="bg-transparent text-white font-bold outline-none cursor-pointer">
@@ -161,7 +266,7 @@
                                     <span class="text-base font-extrabold tracking-tight text-[#00264b]">ORCA</span>
                                     <span class="text-[9px] bg-cyan-50 text-cyan-700 border border-cyan-300 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">ISRO AI · Live</span>
                                 </div>
-                                <span class="hidden sm:inline text-[10px] text-slate-500 font-medium -mt-0.5">Marine EcoSystem Reasoning with Collaborative Agents</span>
+                                <span class="hidden sm:inline text-[10px] text-slate-500 font-medium -mt-0.5">Marine Decision Support System</span>
                             </div>
                         </a>
                     </div>
@@ -183,6 +288,7 @@
                         <!-- Desktop Nav Pills (hidden on mobile, visible on desktop/laptop) -->
                         <nav class="hidden md:flex items-center gap-1 bg-slate-50/80 p-1 rounded-xl border border-slate-200">
                             ${navPillsHtml}
+                            ${moreDropdownHtml}
                         </nav>
 
                         <!-- User Profile Badge -->
@@ -197,6 +303,8 @@
                 </div>
             </header>
         `;
+
+        applySunlightMode();
     }
 
     // 4. Render Mobile & Tablet Sticky 5-Tab Bottom Navigation Bar (< 768px)
@@ -242,16 +350,55 @@
         }).join('');
 
         mount.innerHTML = `
+            <!-- Mobile Quick Sections Floating Action Row (< 768px) -->
+            <div class="md:hidden fixed bottom-14 left-0 right-0 z-40 px-3 py-1 bg-slate-900/90 backdrop-blur-md border-t border-white/10 flex items-center justify-between text-[11px] text-white">
+                <div class="flex items-center gap-3 overflow-x-auto no-scrollbar py-0.5">
+                    <a href="catch_log.html" class="flex items-center gap-1 text-cyan-300 font-bold whitespace-nowrap hover:text-white">
+                        <span class="material-symbols-outlined text-xs">menu_book</span>
+                        <span>Catch Diary</span>
+                    </a>
+                    <span class="text-white/20">|</span>
+                    <a href="market.html" class="flex items-center gap-1 text-amber-300 font-bold whitespace-nowrap hover:text-white">
+                        <span class="material-symbols-outlined text-xs">storefront</span>
+                        <span>Mandi Rates</span>
+                    </a>
+                    <span class="text-white/20">|</span>
+                    <a href="regulations.html" class="flex items-center gap-1 text-emerald-300 font-bold whitespace-nowrap hover:text-white">
+                        <span class="material-symbols-outlined text-xs">gavel</span>
+                        <span>Rules</span>
+                    </a>
+                    <span class="text-white/20">|</span>
+                    <a href="command_center.html" class="flex items-center gap-1 text-slate-300 font-bold whitespace-nowrap hover:text-white">
+                        <span class="material-symbols-outlined text-xs">monitoring</span>
+                        <span>Command</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Sticky 5-Tab Bottom Bar -->
             <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl px-2 py-1.5 flex items-center justify-around">
                 ${tabsHtml}
             </nav>
         `;
     }
 
+    // 5. PWA Service Worker Registration
+    function registerServiceWorker() {
+        if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('[ORCA PWA] Service Worker Active. Scope:', reg.scope))
+                    .catch(err => console.warn('[ORCA PWA] SW registration notice:', err));
+            });
+        }
+    }
+
     // Auto-Mount on DOM Load
     document.addEventListener('DOMContentLoaded', () => {
+        injectSunlightStyles();
         renderTopNav();
         renderMobileBottomNav();
+        registerServiceWorker();
     });
 
 })();
