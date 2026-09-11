@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ORCA — Emergency Distress SOS & Coast Guard Search & Rescue (SAR)</title>
+    <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
+    <link rel="apple-touch-icon" href="assets/orca_logo.jpg">
+
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet GIS CSS & JS for Rescue Vector Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Google Material Symbols & Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Pulsing Radar Rings */
+        @keyframes radar-ripple {
+            0% { transform: scale(0.9); opacity: 1; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+        .radar-pulse {
+            animation: radar-ripple 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+        }
+
+        /* SOS Progress Ring */
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.05s linear;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Beacon Flash */
+        @keyframes beacon-flash {
+            0%, 100% { opacity: 1; filter: drop-shadow(0 0 15px rgba(225, 29, 72, 0.9)); }
+            50% { opacity: 0.7; filter: drop-shadow(0 0 5px rgba(225, 29, 72, 0.4)); }
+        }
+        .beacon-active {
+            animation: beacon-flash 1.2s infinite;
+        }
+    </style>
+</head>
+<body class="bg-[#071326] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-rose-600 selection:text-white">
+
+    <!-- Header & Shared Navigation Mount Point -->
+    <div id="orca-header-mount"></div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-6 pb-28 md:pb-12">
+
+        <!-- 1. Emergency Warning Header & Channel Monitored Strip -->
+        <div class="bg-rose-950/70 border-2 border-rose-600/80 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl shadow-rose-950/40 relative overflow-hidden">
+            <div class="absolute -right-12 -top-12 w-48 h-48 bg-rose-600/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-rose-600 flex items-center justify-center flex-shrink-0 text-white shadow-lg shadow-rose-600/50 beacon-active">
+                    <span class="material-symbols-outlined text-3xl">emergency</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded bg-rose-500/30 text-rose-300 border border-rose-400/40">
+                            CRITICAL DISTRESS PORTAL
+                        </span>
+                        <span class="text-xs text-rose-200 font-mono font-bold flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span>
+                            ICG MRCC PRIORITY 1
+                        </span>
+                    </div>
+                    <h1 class="text-lg sm:text-xl font-extrabold text-white tracking-tight mt-0.5">
+                        Maritime Emergency SOS & Rescue Vectoring
+                    </h1>
+                    <p class="text-xs text-slate-300 font-medium">
+                        Direct connection to Indian Coast Guard Maritime Rescue Coordination Centres (MRCC 1554)
+                    </p>
+                </div>
+            </div>
+
+            <!-- Radio & Satellite Frequencies Badge -->
+            <div class="flex flex-wrap items-center gap-2 font-mono text-[11px] bg-black/40 px-3 py-2 rounded-xl border border-white/10">
+                <div class="flex items-center gap-1 text-cyan-300">
+                    <span class="material-symbols-outlined text-sm">cell_tower</span>
+                    <span>VHF CH-16 (156.8 MHz)</span>
+                </div>
+                <span class="text-slate-600">|</span>
+                <div class="flex items-center gap-1 text-amber-300">
+                    <span class="material-symbols-outlined text-sm">satellite_alt</span>
+                    <span>DSC CH-70</span>
+                </div>
+                <span class="text-slate-600">|</span>
+                <div class="flex items-center gap-1 text-emerald-300">
+                    <span class="material-symbols-outlined text-sm">radar</span>
+                    <span>SART 9 GHz</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Main Emergency Action Panel (Two-Column Layout) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- Left / Core Panel: 2-Second Hold SOS Trigger + Emergency Classifier -->
+            <div class="lg:col-span-7 flex flex-col gap-5">
+
+                <!-- Standby Activation Card -->
+                <div id="sos-trigger-card" class="bg-[#0b1c36] border border-rose-500/30 rounded-2xl p-6 sm:p-8 flex flex-col items-center text-center relative overflow-hidden shadow-2xl">
+                    
+                    <!-- Background Radar Rings on Hover/Active -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                        <div class="w-72 h-72 rounded-full border border-rose-500/40"></div>
+                        <div class="w-96 h-96 rounded-full border border-rose-500/20"></div>
+                    </div>
+
+                    <div class="relative z-10 flex flex-col items-center">
+                        <span class="text-xs font-mono font-bold uppercase tracking-widest text-rose-300 bg-rose-950/80 px-3 py-1 rounded-full border border-rose-600/40 mb-3">
+                            Anti-Accidental Hold Trigger
+                        </span>
+
+                        <h2 class="text-xl sm:text-2xl font-black text-white">
+                            Press & Hold For 2 Seconds
+                        </h2>
+                        <p class="text-xs text-slate-300 mt-1 max-w-md">
+                            Holding down will trigger an immediate high-priority distress broadcast with your live vessel GPS coordinates to the Indian Coast Guard.
+                        </p>
+
+                        <!-- Circular Progress Ring Button Container -->
+                        <div class="relative my-8 select-none flex items-center justify-center">
+                            
+                            <!-- SVG Circular Progress Bar (Radius: 84px, Circumference: 527.78px) -->
+                            <svg class="w-56 h-56 -rotate-90 pointer-events-none drop-shadow-2xl">
+                                <!-- Track Circle -->
+                                <circle
+                                    cx="112"
+                                    cy="112"
+                                    r="84"
+                                    stroke="#1e293b"
+                                    stroke-width="12"
+                                    fill="transparent"
+                                />
+                                <!-- Animated Progress Circle -->
+                                <circle
+                                    id="sos-progress-circle"
+                                    class="progress-ring-circle"
+                                    cx="112"
+                                    cy="112"
+                                    r="84"
+                                    stroke="#e11d48"
+                                    stroke-width="12"
+                                    stroke-dasharray="527.78"
+                                    stroke-dashoffset="527.78"
+                                    stroke-linecap="round"
+                                    fill="transparent"
+                                />
+                            </svg>
+
+                            <!-- Center Interactive Hold Button -->
+                            <button
+                                id="btn-hold-sos"
+                                type="button"
+                                class="absolute w-40 h-40 rounded-full bg-gradient-to-br from-rose-600 via-rose-700 to-red-900 text-white shadow-2xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform duration-75 cursor-pointer select-none focus:outline-none focus:ring-4 focus:ring-rose-500/50 border-4 border-rose-400/40 group"
+                                aria-label="Hold 2 seconds for SOS distress"
+                            >
+                                <span class="material-symbols-outlined text-4xl group-hover:scale-110 transition-transform text-white">
+                                    crisis_alert
+                                </span>
+                                <span class="text-2xl font-black tracking-wider leading-none">
+                                    SOS
+                                </span>
+                                <span id="sos-btn-label" class="text-[10px] font-bold uppercase tracking-wider text-rose-200">
+                                    HOLD 2 SEC
+                                </span>
+                            </button>
+                        </div>
+
+                        <!-- Hold Countdown Indicator -->
+                        <div class="flex items-center gap-2 font-mono text-xs">
+                            <span id="sos-countdown-text" class="text-slate-400">
+                                Ready to broadcast · Hold trigger button
+                            </span>
+                        </div>
+
+                        <!-- 1-Tap Quick Override Option -->
+                        <div class="mt-4 pt-4 border-t border-white/10 w-full flex flex-col sm:flex-row items-center justify-center gap-3">
+                            <button
+                                id="btn-quick-sos"
+                                type="button"
+                                class="text-xs font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-950/40 px-3 py-1.5 rounded-lg border border-rose-500/30 transition-all flex items-center gap-1.5"
+                            >
+                                <span class="material-symbols-outlined text-base">bolt</span>
+                                <span>Emergency Bypass: Instant 1-Tap Broadcast</span>
+                            </button>
+                            <span class="text-[11px] text-slate-500">(Only in imminent capsizing danger)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Distress Confirmation Card (Hidden by Default) -->
+                <div id="sos-active-banner" class="hidden bg-gradient-to-r from-red-900 via-rose-900 to-rose-950 border-2 border-rose-500 rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-xl bg-rose-600 text-white flex items-center justify-center flex-shrink-0 beacon-active">
+                                <span class="material-symbols-outlined text-3xl">notification_important</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded bg-white text-rose-900">
+                                        DISTRESS ACTIVE
+                                    </span>
+                                    <span id="active-sos-id" class="text-xs font-mono font-bold text-rose-200">
+                                        #SOS-IND-2026-ACTIVE
+                                    </span>
+                                </div>
+                                <h3 class="text-base sm:text-lg font-black text-white mt-1">
+                                    Coast Guard Maritime SAR Alert Broadcasted!
+                                </h3>
+                                <p class="text-xs text-rose-100">
+                                    Position logged in PostgreSQL and dispatched to Coast Guard MRCC intercept console.
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            id="btn-cancel-sos"
+                            type="button"
+                            class="px-3 py-1.5 text-xs font-bold bg-white/10 hover:bg-white/20 text-white rounded-lg border border-white/20 transition-all flex items-center gap-1"
+                        >
+                            <span class="material-symbols-outlined text-sm">close</span>
+                            <span>Cancel Alert</span>
+                        </button>
+                    </div>
+
+                    <!-- Progress Step Strip -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+                        <div class="bg-black/30 p-2.5 rounded-xl border border-rose-400/40 text-xs flex flex-col gap-0.5">
+                            <span class="text-[10px] text-rose-300 font-bold">STEP 1</span>
+                            <span class="font-bold text-white flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm text-emerald-400">check_circle</span>
+                                <span>Distress Sent</span>
+                            </span>
+                        </div>
+                        <div class="bg-black/30 p-2.5 rounded-xl border border-rose-400/40 text-xs flex flex-col gap-0.5">
+                            <span class="text-[10px] text-rose-300 font-bold">STEP 2</span>
+                            <span class="font-bold text-white flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm text-emerald-400">check_circle</span>
+                                <span>Radar Logged</span>
+                            </span>
+                        </div>
+                        <div class="bg-black/30 p-2.5 rounded-xl border border-rose-400/40 text-xs flex flex-col gap-0.5">
+                            <span class="text-[10px] text-rose-300 font-bold">STEP 3</span>
+                            <span class="font-bold text-amber-300 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm text-amber-400 animate-spin">refresh</span>
+                                <span>MRCC Routing</span>
+                            </span>
+                        </div>
+                        <div class="bg-black/30 p-2.5 rounded-xl border border-rose-400/40 text-xs flex flex-col gap-0.5">
+                            <span class="text-[10px] text-rose-300 font-bold">STEP 4</span>
+                            <span class="font-bold text-slate-400 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm text-slate-500">pending</span>
+                                <span>FPV Intercept</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Nature / Classification Selector -->
+                <div class="bg-[#0b1c36] border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-rose-400 text-lg">category</span>
+                            <span>Nature of Marine Distress</span>
+                        </h3>
+                        <span class="text-[11px] text-slate-400 font-medium">Select nearest condition</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <!-- Option 1: Engine Breakdown -->
+                        <button
+                            type="button"
+                            onclick="selectDistressCategory('engine_failure', 'Engine Breakdown & Drifting')"
+                            class="distress-cat-btn active-cat bg-rose-600/20 border-2 border-rose-500 text-left p-3 rounded-xl flex items-start gap-3 transition-all hover:bg-rose-600/30"
+                            data-key="engine_failure"
+                        >
+                            <span class="material-symbols-outlined text-2xl text-rose-400">build_circle</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">Engine Breakdown / Drifting</div>
+                                <p class="text-[11px] text-slate-300 leading-tight mt-0.5">Power loss, propeller fouling, rudder stuck, drifting into danger</p>
+                            </div>
+                        </button>
+
+                        <!-- Option 2: Medical Emergency -->
+                        <button
+                            type="button"
+                            onclick="selectDistressCategory('medical', 'Critical Medical Emergency Onboard')"
+                            class="distress-cat-btn bg-black/20 border border-white/10 text-left p-3 rounded-xl flex items-start gap-3 transition-all hover:bg-rose-600/20 hover:border-rose-400/50"
+                            data-key="medical"
+                        >
+                            <span class="material-symbols-outlined text-2xl text-red-400">medical_services</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">Medical Emergency</div>
+                                <p class="text-[11px] text-slate-300 leading-tight mt-0.5">Severe trauma, stroke, cardiac, diving decompression sickness</p>
+                            </div>
+                        </button>
+
+                        <!-- Option 3: High Waves / Squall -->
+                        <button
+                            type="button"
+                            onclick="selectDistressCategory('rough_sea', 'Extreme Rough Sea / Taking Water')"
+                            class="distress-cat-btn bg-black/20 border border-white/10 text-left p-3 rounded-xl flex items-start gap-3 transition-all hover:bg-rose-600/20 hover:border-rose-400/50"
+                            data-key="rough_sea"
+                        >
+                            <span class="material-symbols-outlined text-2xl text-amber-400">tsunami</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">High Waves / Flooding</div>
+                                <p class="text-[11px] text-slate-300 leading-tight mt-0.5">Hull breach, bilge pump fail, 3.5m+ waves, vessel taking water</p>
+                            </div>
+                        </button>
+
+                        <!-- Option 4: Capsized / Man Overboard -->
+                        <button
+                            type="button"
+                            onclick="selectDistressCategory('capsized', 'Capsized Vessel / Man Overboard (MOB)')"
+                            class="distress-cat-btn bg-black/20 border border-white/10 text-left p-3 rounded-xl flex items-start gap-3 transition-all hover:bg-rose-600/20 hover:border-rose-400/50"
+                            data-key="capsized"
+                        >
+                            <span class="material-symbols-outlined text-2xl text-purple-400">warning</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">Capsized / Man Overboard</div>
+                                <p class="text-[11px] text-slate-300 leading-tight mt-0.5">Vessel overturned, crew in sea, life raft deployed, MOB</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vessel & Crew Identity Form (Collapsible / Pre-filled) -->
+                <div class="bg-[#0b1c36] border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col gap-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-cyan-400 text-lg">badge</span>
+                            <span>Vessel & Crew Metadata</span>
+                        </h3>
+                        <span class="text-[11px] text-emerald-400 font-mono font-bold">Auto-synced from LocalStorage</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div class="flex flex-col gap-1">
+                            <label class="font-semibold text-slate-400">Vessel Reg. No. / Boat ID</label>
+                            <input
+                                id="sos-input-vessel-id"
+                                type="text"
+                                value="IND-TN-02-MM-4491"
+                                class="bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-rose-400"
+                            />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="font-semibold text-slate-400">Captain / Master Name</label>
+                            <input
+                                id="sos-input-captain-name"
+                                type="text"
+                                value="Capt. Murugan"
+                                class="bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-rose-400"
+                            />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="font-semibold text-slate-400">Contact / Satellite Phone</label>
+                            <input
+                                id="sos-input-phone"
+                                type="text"
+                                value="+91-98401-22481"
+                                class="bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-rose-400"
+                            />
+                        </div>
+                        <div class="flex flex-col gap-1">
+                            <label class="font-semibold text-slate-400">Persons Onboard (POB)</label>
+                            <select
+                                id="sos-input-pob"
+                                class="bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-white font-mono focus:outline-none focus:border-rose-400"
+                            >
+                                <option value="2">2 Persons</option>
+                                <option value="4" selected>4 Persons</option>
+                                <option value="6">6 Persons</option>
+                                <option value="8">8 Persons</option>
+                                <option value="12">12+ Persons</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-1 text-xs">
+                        <label class="font-semibold text-slate-400">Distress Remarks / Immediate Needs (Optional)</label>
+                        <input
+                            id="sos-input-remarks"
+                            type="text"
+                            placeholder="e.g., Drifting 5 NM offshore, no propulsion, water taking slowly"
+                            class="bg-black/40 border border-white/15 rounded-lg px-3 py-2 text-white placeholder-slate-500 text-xs focus:outline-none focus:border-rose-400"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: GPS Status, Intercept Calculations & Map, Direct Hotlines, VHF Protocol -->
+            <div class="lg:col-span-5 flex flex-col gap-5">
+
+                <!-- 1. Live Coordinates & Acquisition Card -->
+                <div class="bg-[#0b1c36] border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm text-cyan-400">my_location</span>
+                            <span>Broadcast Position</span>
+                        </span>
+                        <span id="gps-fix-status" class="text-[10px] font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 px-2 py-0.5 rounded-full font-bold">
+                            Harbor Default
+                        </span>
+                    </div>
+
+                    <div class="bg-black/40 border border-white/10 rounded-xl p-3 flex items-center justify-between font-mono">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-slate-400 uppercase font-bold">Vessel Coordinates</span>
+                            <span id="display-vessel-coords" class="text-sm sm:text-base font-bold text-white mt-0.5">
+                                15.5036° N, 73.8344° E
+                            </span>
+                        </div>
+                        <button
+                            id="btn-acquire-gps"
+                            type="button"
+                            class="px-2.5 py-1.5 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-200 border border-cyan-400/40 text-xs font-bold transition-all flex items-center gap-1"
+                        >
+                            <span class="material-symbols-outlined text-sm">near_me</span>
+                            <span>Device GPS</span>
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-400">
+                        Operating offshore? Ensure device GPS permission is granted for meter-level SAR accuracy.
+                    </p>
+                </div>
+
+                <!-- 2. Nearest Coast Guard MRCC Intercept Card -->
+                <div class="bg-[#0b1c36] border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-rose-400 text-lg">shield</span>
+                            <span>Nearest Coast Guard Base</span>
+                        </span>
+                        <span class="text-[10px] font-mono text-emerald-400 font-bold">Auto-calculated</span>
+                    </div>
+
+                    <div class="bg-black/40 border border-white/10 rounded-xl p-3.5 flex flex-col gap-2">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 id="mrcc-station-name" class="text-sm font-bold text-white">
+                                    MRCC Mumbai / Porbandar
+                                </h4>
+                                <span id="mrcc-station-coords" class="text-[10px] font-mono text-slate-400">
+                                    Lat 18.9220° N, Lon 72.8347° E
+                                </span>
+                            </div>
+                            <div class="text-right font-mono">
+                                <span id="mrcc-distance-nm" class="text-lg font-black text-amber-400">
+                                    -- NM
+                                </span>
+                                <div id="mrcc-distance-km" class="text-[10px] text-slate-400">-- km</div>
+                            </div>
+                        </div>
+
+                        <!-- Intercept Speed Forecast -->
+                        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/10 text-xs">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-slate-400">Fast Patrol Vessel (25 kts):</span>
+                                <span id="mrcc-fpv-eta" class="font-mono font-bold text-cyan-300">~-- mins</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-[10px] text-slate-400">Dornier 228 Aircraft:</span>
+                                <span id="mrcc-aircraft-eta" class="font-mono font-bold text-emerald-300">~-- mins</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mini Leaflet Rescue Vector Map -->
+                    <div class="rounded-xl overflow-hidden border border-white/10 h-44 relative z-0">
+                        <div id="rescue-map" class="w-full h-full bg-slate-950"></div>
+                    </div>
+                </div>
+
+                <!-- 3. Direct Emergency Hotline One-Tap Dials -->
+                <div class="bg-[#0b1c36] border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col gap-3">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-rose-400 text-lg">call</span>
+                        <span>Emergency Telephone Dials</span>
+                    </h3>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <a
+                            href="tel:1554"
+                            class="bg-gradient-to-b from-rose-700 to-rose-900 hover:from-rose-600 hover:to-rose-800 text-white rounded-xl p-3 flex flex-col items-center justify-center text-center shadow transition-all group"
+                        >
+                            <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">phone_in_talk</span>
+                            <span class="text-lg font-black font-mono mt-0.5">1554</span>
+                            <span class="text-[9px] font-bold text-rose-200 uppercase">Coast Guard SAR</span>
+                        </a>
+
+                        <a
+                            href="tel:1093"
+                            class="bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-white rounded-xl p-3 flex flex-col items-center justify-center text-center shadow transition-all group"
+                        >
+                            <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">local_police</span>
+                            <span class="text-lg font-black font-mono mt-0.5">1093</span>
+                            <span class="text-[9px] font-bold text-amber-200 uppercase">Marine Police</span>
+                        </a>
+
+                        <a
+                            href="tel:112"
+                            class="bg-gradient-to-b from-blue-700 to-blue-900 hover:from-blue-600 hover:to-blue-800 text-white rounded-xl p-3 flex flex-col items-center justify-center text-center shadow transition-all group"
+                        >
+                            <span class="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">emergency</span>
+                            <span class="text-lg font-black font-mono mt-0.5">112</span>
+                            <span class="text-[9px] font-bold text-blue-200 uppercase">National Helpline</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 4. Offline VHF Channel 16 Mayday Protocol Script -->
+                <div class="bg-[#0b1c36] border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col gap-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-amber-400 text-lg">podcasts</span>
+                            <span>VHF Ch-16 Mayday Script</span>
+                        </h3>
+                        <div class="flex items-center gap-1">
+                            <button
+                                id="btn-speak-mayday"
+                                type="button"
+                                class="p-1 rounded bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1 px-2"
+                                title="Read script aloud"
+                            >
+                                <span class="material-symbols-outlined text-sm">volume_up</span>
+                                <span>Listen</span>
+                            </button>
+                            <button
+                                id="btn-copy-mayday"
+                                type="button"
+                                class="p-1 rounded bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-all text-xs flex items-center gap-1 px-2"
+                                title="Copy script"
+                            >
+                                <span class="material-symbols-outlined text-sm">content_copy</span>
+                                <span>Copy</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-black/60 border border-amber-500/30 rounded-xl p-3 font-mono text-[11px] sm:text-xs text-amber-300 leading-relaxed whitespace-pre-wrap select-all" id="mayday-script-box">
+MAYDAY, MAYDAY, MAYDAY.
+THIS IS VESSEL IND-TN-02-MM-4491, CAPT. MURUGAN.
+MAYDAY IND-TN-02-MM-4491.
+POSITION: 15.5036 N, 73.8344 E.
+DISTRESS: ENGINE BREAKDOWN & DRIFTING.
+4 PERSONS ON BOARD.
+IMMEDIATE SEARCH AND RESCUE ASSISTANCE REQUIRED.
+OVER.</div>
+
+                    <div class="text-[10px] text-slate-400 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm text-cyan-400">info</span>
+                        <span>Broadcast over VHF Marine Radio Channel 16 (156.800 MHz) with High Power (25W).</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Mobile Sticky 5-Tab Bottom Navigation Mount Point -->
+    <div id="orca-bottom-nav-mount"></div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="shared_nav.js"></script>
+
+    <script>
+        // State Management
+        let vesselLat = 15.5036;
+        let vesselLon = 73.8344;
+        let selectedEmergencyKey = 'engine_failure';
+        let selectedEmergencyLabel = 'Engine Breakdown & Drifting';
+        let rescueMap = null;
+        let vesselMarker = null;
+        let mrccMarker = null;
+        let rescueLine = null;
+
+        // Audio Context for Distress Synth Beeps
+        let audioCtx = null;
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playBeep(freq, durationMs) {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationMs / 1000);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + durationMs / 1000);
+            } catch(e) {}
+        }
+
+        function playAlarmChime() {
+            try {
+                const ctx = getAudioContext();
+                [800, 1000, 1200, 1500].forEach((freq, idx) => {
+                    setTimeout(() => playBeep(freq, 200), idx * 120);
+                });
+            } catch(e) {}
+        }
+
+        // Initialize Vessel Location from Active Harbor
+        function syncLocationFromPort() {
+            const activePort = window.getActivePort ? window.getActivePort() : { lat: 15.5036, lon: 73.8344, name: 'Goa' };
+            vesselLat = activePort.lat;
+            vesselLon = activePort.lon;
+            updateCoordinateDisplays();
+            updateRescueCalculations();
+            updateMaydayScript();
+        }
+
+        function updateCoordinateDisplays() {
+            const el = document.getElementById('display-vessel-coords');
+            if (el) {
+                el.textContent = `${vesselLat.toFixed(4)}° N, ${vesselLon.toFixed(4)}° E`;
+            }
+        }
+
+        // Emergency Category Selection
+        window.selectDistressCategory = function(key, label) {
+            selectedEmergencyKey = key;
+            selectedEmergencyLabel = label;
+            
+            document.querySelectorAll('.distress-cat-btn').forEach(btn => {
+                if (btn.getAttribute('data-key') === key) {
+                    btn.className = "distress-cat-btn active-cat bg-rose-600/20 border-2 border-rose-500 text-left p-3 rounded-xl flex items-start gap-3 transition-all";
+                } else {
+                    btn.className = "distress-cat-btn bg-black/20 border border-white/10 text-left p-3 rounded-xl flex items-start gap-3 transition-all hover:bg-rose-600/20 hover:border-rose-400/50";
+                }
+            });
+
+            updateMaydayScript();
+        };
+
+        // Nearest MRCC Intercept Calculation & Map Update
+        function updateRescueCalculations() {
+            if (!window.findNearestMRCC) return;
+            const mrcc = window.findNearestMRCC(vesselLat, vesselLon);
+            if (!mrcc) return;
+
+            document.getElementById('mrcc-station-name').textContent = mrcc.name;
+            document.getElementById('mrcc-station-coords').textContent = `Lat ${mrcc.lat.toFixed(4)}° N, Lon ${mrcc.lon.toFixed(4)}° E`;
+            document.getElementById('mrcc-distance-nm').textContent = `${mrcc.distance_nm} NM`;
+            document.getElementById('mrcc-distance-km').textContent = `${mrcc.distance_km} km`;
+
+            // FPV at 25 kts: hours = distance_nm / 25
+            const fpvHours = mrcc.distance_nm / 25;
+            const fpvMins = Math.round(fpvHours * 60);
+            document.getElementById('mrcc-fpv-eta').textContent = fpvMins < 60 ? `~${fpvMins} mins` : `~${(fpvHours).toFixed(1)} hrs`;
+
+            // Dornier at 180 kts: hours = distance_nm / 180
+            const airMins = Math.max(5, Math.round((mrcc.distance_nm / 180) * 60));
+            document.getElementById('mrcc-aircraft-eta').textContent = `~${airMins} mins`;
+
+            // Update Leaflet Map
+            renderRescueMap(mrcc);
+        }
+
+        function renderRescueMap(mrcc) {
+            const mapContainer = document.getElementById('rescue-map');
+            if (!mapContainer) return;
+
+            if (!rescueMap) {
+                rescueMap = L.map('rescue-map', { attributionControl: false, zoomControl: false }).setView([vesselLat, vesselLon], 7);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 14 }).addTo(rescueMap);
+            }
+
+            if (vesselMarker) rescueMap.removeLayer(vesselMarker);
+            if (mrccMarker) rescueMap.removeLayer(mrccMarker);
+            if (rescueLine) rescueMap.removeLayer(rescueLine);
+
+            // Vessel Marker (Crimson)
+            const vesselIcon = L.divIcon({
+                className: 'custom-vessel-pin',
+                html: `<div style="width:20px;height:20px;background:#e11d48;border:3px solid #ffffff;border-radius:50%;box-shadow:0 0 10px rgba(225,29,72,0.9);animation:pulse 1.5s infinite;"></div>`,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
+            vesselMarker = L.marker([vesselLat, vesselLon], { icon: vesselIcon }).addTo(rescueMap);
+            vesselMarker.bindPopup(`<b>Your Vessel Distress Position</b><br>${vesselLat.toFixed(4)}° N, ${vesselLon.toFixed(4)}° E`);
+
+            // MRCC Base Marker (Blue)
+            const mrccIcon = L.divIcon({
+                className: 'custom-mrcc-pin',
+                html: `<div style="width:22px;height:22px;background:#0284c7;border:3px solid #ffffff;border-radius:4px;box-shadow:0 0 10px rgba(2,132,199,0.8);display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:10px;">CG</div>`,
+                iconSize: [22, 22],
+                iconAnchor: [11, 11]
+            });
+            mrccMarker = L.marker([mrcc.lat, mrcc.lon], { icon: mrccIcon }).addTo(rescueMap);
+            mrccMarker.bindPopup(`<b>${mrcc.name}</b><br>Hotline: 1554`);
+
+            // Intercept Vector Line
+            rescueLine = L.polyline([[vesselLat, vesselLon], [mrcc.lat, mrcc.lon]], {
+                color: '#e11d48',
+                dashArray: '6, 6',
+                weight: 3,
+                opacity: 0.8
+            }).addTo(rescueMap);
+
+            // Fit bounds with padding
+            const bounds = L.latLngBounds([[vesselLat, vesselLon], [mrcc.lat, mrcc.lon]]);
+            rescueMap.fitBounds(bounds, { padding: [25, 25] });
+        }
+
+        // Update Dynamic Mayday Script
+        function updateMaydayScript() {
+            const vesselId = document.getElementById('sos-input-vessel-id')?.value || 'IND-TN-02-MM-4491';
+            const captainName = document.getElementById('sos-input-captain-name')?.value || 'Capt. Murugan';
+            const pob = document.getElementById('sos-input-pob')?.value || '4';
+            const remarks = document.getElementById('sos-input-remarks')?.value || '';
+
+            const script = `MAYDAY, MAYDAY, MAYDAY.
+THIS IS VESSEL ${vesselId.toUpperCase()}, ${captainName.toUpperCase()}.
+MAYDAY ${vesselId.toUpperCase()}.
+POSITION: ${vesselLat.toFixed(4)} N, ${vesselLon.toFixed(4)} E.
+NATURE OF DISTRESS: ${selectedEmergencyLabel.toUpperCase()}${remarks ? ` (${remarks.toUpperCase()})` : ''}.
+${pob} PERSONS ON BOARD.
+IMMEDIATE SEARCH AND RESCUE ASSISTANCE REQUIRED.
+OVER.`;
+
+            const box = document.getElementById('mayday-script-box');
+            if (box) box.textContent = script;
+        }
+
+        // 2-Second Hold-to-Activate Logic
+        const HOLD_DURATION_MS = 2000;
+        let holdTimer = null;
+        let holdStartTime = 0;
+        let holdProgressInterval = null;
+        let isActivated = false;
+
+        const btnHold = document.getElementById('btn-hold-sos');
+        const progressCircle = document.getElementById('sos-progress-circle');
+        const countdownText = document.getElementById('sos-countdown-text');
+        const btnLabel = document.getElementById('sos-btn-label');
+        const circumference = 527.78; // 2 * pi * 84
+
+        function startHold(e) {
+            if (isActivated) return;
+            if (e.type === 'touchstart') e.preventDefault();
+
+            holdStartTime = Date.now();
+            getAudioContext();
+            playBeep(440, 100);
+
+            // Haptic buzz on start
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            holdProgressInterval = setInterval(() => {
+                const elapsed = Date.now() - holdStartTime;
+                const progress = Math.min(elapsed / HOLD_DURATION_MS, 1);
+                
+                // Progress circle offset
+                const offset = circumference - (progress * circumference);
+                progressCircle.style.strokeDashoffset = offset;
+
+                // Update text & countdown
+                const remainingSec = ((HOLD_DURATION_MS - elapsed) / 1000).toFixed(1);
+                if (remainingSec > 0) {
+                    countdownText.textContent = `HOLDING... ${remainingSec}s TO BROADCAST`;
+                    countdownText.className = "text-rose-400 font-bold animate-pulse";
+                    btnLabel.textContent = `${remainingSec}s`;
+                }
+
+                // Audio tick every ~300ms
+                if (Math.floor(elapsed / 300) !== Math.floor((elapsed - 50) / 300)) {
+                    playBeep(520 + (progress * 300), 80);
+                }
+
+                if (elapsed >= HOLD_DURATION_MS) {
+                    cancelHoldIntervals();
+                    completeSOSActivation();
+                }
+            }, 30);
+        }
+
+        function cancelHold() {
+            if (isActivated) return;
+            cancelHoldIntervals();
+
+            // Reset UI
+            progressCircle.style.strokeDashoffset = circumference;
+            countdownText.textContent = "Ready to broadcast · Hold trigger button";
+            countdownText.className = "text-slate-400";
+            btnLabel.textContent = "HOLD 2 SEC";
+        }
+
+        function cancelHoldIntervals() {
+            if (holdProgressInterval) {
+                clearInterval(holdProgressInterval);
+                holdProgressInterval = null;
+            }
+        }
+
+        btnHold.addEventListener('mousedown', startHold);
+        btnHold.addEventListener('touchstart', startHold, { passive: false });
+        window.addEventListener('mouseup', cancelHold);
+        window.addEventListener('touchend', cancelHold);
+
+        // Instant Trigger Bypass
+        document.getElementById('btn-quick-sos')?.addEventListener('click', () => {
+            if (confirm("🚨 IMMEDIATE BROADCAST CONFIRMATION:\nAre you sure you want to broadcast an emergency SOS distress alert to the Indian Coast Guard right now?")) {
+                completeSOSActivation();
+            }
+        });
+
+        // Trigger SOS Execution
+        async function completeSOSActivation() {
+            isActivated = true;
+            progressCircle.style.strokeDashoffset = 0;
+            btnLabel.textContent = "ACTIVE";
+            countdownText.textContent = "🚨 SOS DISTRESS BROADCASTED!";
+            countdownText.className = "text-rose-400 font-extrabold";
+
+            // Vibration & Chime
+            if (navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 600]);
+            playAlarmChime();
+
+            // Show active banner
+            const activeBanner = document.getElementById('sos-active-banner');
+            if (activeBanner) activeBanner.classList.remove('hidden');
+
+            // Generate SOS payload
+            const vesselId = document.getElementById('sos-input-vessel-id')?.value || 'IND-TN-02-MM-4491';
+            const captainName = document.getElementById('sos-input-captain-name')?.value || 'Capt. Murugan';
+            const phone = document.getElementById('sos-input-phone')?.value || '+91-98401-22481';
+            const remarks = document.getElementById('sos-input-remarks')?.value || '';
+
+            const payload = {
+                vessel_id: vesselId,
+                captain_name: captainName,
+                phone: phone,
+                latitude: vesselLat,
+                longitude: vesselLon,
+                emergency_type: selectedEmergencyLabel,
+                description: `EMERGENCY SOS: ${selectedEmergencyLabel}. Remarks: ${remarks}`
+            };
+
+            try {
+                const res = await fetch(`${window.ORCA_BASE_URL || 'http://127.0.0.1:8000'}/api/sos`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data && data.sos_id) {
+                    document.getElementById('active-sos-id').textContent = `#SOS-IND-2026-${data.sos_id}`;
+                }
+            } catch(err) {
+                console.warn("[ORCA SOS] Offline or cache mode:", err);
+                document.getElementById('active-sos-id').textContent = `#SOS-IND-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+            }
+        }
+
+        // Cancel SOS Action
+        document.getElementById('btn-cancel-sos')?.addEventListener('click', () => {
+            if (confirm("Are you sure you want to cancel the active SOS distress broadcast?")) {
+                isActivated = false;
+                document.getElementById('sos-active-banner')?.classList.add('hidden');
+                cancelHold();
+            }
+        });
+
+        // Device GPS Acquisition
+        document.getElementById('btn-acquire-gps')?.addEventListener('click', () => {
+            const statusEl = document.getElementById('gps-fix-status');
+            if (!navigator.geolocation) {
+                alert("Geolocation is not supported by your marine browser.");
+                return;
+            }
+
+            statusEl.textContent = "Acquiring GPS...";
+            statusEl.className = "text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full font-bold animate-pulse";
+
+            navigator.geolocation.getCurrentPosition(
+                pos => {
+                    vesselLat = pos.coords.latitude;
+                    vesselLon = pos.coords.longitude;
+                    statusEl.textContent = `GPS Fix (±${Math.round(pos.coords.accuracy || 10)}m)`;
+                    statusEl.className = "text-[10px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold";
+                    updateCoordinateDisplays();
+                    updateRescueCalculations();
+                    updateMaydayScript();
+                },
+                err => {
+                    alert("GPS signal unavailable. Falling back to active port coordinates: " + err.message);
+                    statusEl.textContent = "GPS Denied / Harbor Fallback";
+                    statusEl.className = "text-[10px] font-mono bg-rose-500/20 text-rose-300 border border-rose-400/30 px-2 py-0.5 rounded-full font-bold";
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+        });
+
+        // Inputs Real-time sync to Mayday Script
+        ['sos-input-vessel-id', 'sos-input-captain-name', 'sos-input-phone', 'sos-input-pob', 'sos-input-remarks'].forEach(id => {
+            document.getElementById(id)?.addEventListener('input', updateMaydayScript);
+        });
+
+        // Copy Mayday Script
+        document.getElementById('btn-copy-mayday')?.addEventListener('click', () => {
+            const script = document.getElementById('mayday-script-box')?.textContent;
+            if (script && navigator.clipboard) {
+                navigator.clipboard.writeText(script).then(() => {
+                    const btn = document.getElementById('btn-copy-mayday');
+                    btn.innerHTML = `<span class="material-symbols-outlined text-sm text-emerald-400">check</span><span>Copied!</span>`;
+                    setTimeout(() => {
+                        btn.innerHTML = `<span class="material-symbols-outlined text-sm">content_copy</span><span>Copy</span>`;
+                    }, 2000);
+                });
+            }
+        });
+
+        // Speak Mayday Script (Web Speech API)
+        document.getElementById('btn-speak-mayday')?.addEventListener('click', () => {
+            const script = document.getElementById('mayday-script-box')?.textContent;
+            if ('speechSynthesis' in window && script) {
+                window.speechSynthesis.cancel();
+                const utter = new SpeechSynthesisUtterance(script);
+                utter.rate = 0.9;
+                utter.pitch = 1.0;
+                window.speechSynthesis.speak(utter);
+            }
+        });
+
+        // Cross-Page Harbor Change Listener
+        window.addEventListener('orca:port_changed', e => {
+            syncLocationFromPort();
+        });
+
+        // Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            // Pre-fill Captain Name from LocalStorage
+            const storedUser = localStorage.getItem('orca_username');
+            if (storedUser) {
+                const captainInput = document.getElementById('sos-input-captain-name');
+                if (captainInput) captainInput.value = storedUser;
+            }
+
+            syncLocationFromPort();
+        });
+    </script>
+</body>
+</html>

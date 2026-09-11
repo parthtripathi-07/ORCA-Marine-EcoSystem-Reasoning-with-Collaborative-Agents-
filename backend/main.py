@@ -670,6 +670,7 @@ def get_vessel_track(vessel_id: str):
     return {"status": "success", "vessel_id": vessel_id, "track": track}
 
 @app.post("/api/sos/trigger")
+@app.post("/api/sos")
 def trigger_sos(req: SOSRequest):
     """Broadcasts a high-priority distress SOS emergency alert to Coast Guard and logs to PostgreSQL."""
     return trigger_sos_alert(

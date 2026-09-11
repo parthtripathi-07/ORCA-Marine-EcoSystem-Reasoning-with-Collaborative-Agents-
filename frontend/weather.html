@@ -1,0 +1,406 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ORCA — Marine Weather & 7-Day Forecast | Open-Meteo & IMD Telemetry</title>
+    <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
+    <link rel="apple-touch-icon" href="assets/orca_logo.jpg">
+
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js for 24-Hour Dual-Axis Graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Material Symbols & Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="bg-[#f7f9fc] text-slate-800 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header & Navigation Mount Point -->
+    <div id="orca-header-mount"></div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-5 pb-24 md:pb-8">
+
+        <!-- 1. Live Safety Hero Banner -->
+        <section id="weather-hero-banner" class="bg-gradient-to-r from-[#00264b] via-[#003870] to-[#004d80] text-white rounded-2xl p-5 sm:p-6 shadow-md border border-white/10 relative overflow-hidden transition-all">
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span id="weather-safety-badge" class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span>SEA: SAFE (FAVOURABLE FOR SAILING)</span>
+                        </span>
+                        <span class="text-[10px] font-mono text-cyan-200 bg-white/10 px-2 py-0.5 rounded">
+                            IMD / INCOIS CRITERIA
+                        </span>
+                    </div>
+
+                    <h1 id="weather-harbor-title" class="text-xl sm:text-2xl font-extrabold tracking-tight text-white mt-1">
+                        Goa (Malim / Panaji) Fishing Jetty
+                    </h1>
+                    <p id="weather-harbor-subtitle" class="text-xs sm:text-sm text-cyan-100/80 font-medium">
+                        Konkan Coast · Arabian Sea · Lat 15.5036° N, Lon 73.8344° E
+                    </p>
+
+                    <!-- Official Advisory Text -->
+                    <div class="mt-2 bg-black/20 p-3 rounded-xl border border-white/10 text-xs sm:text-sm text-slate-100 leading-relaxed max-w-3xl">
+                        <span class="font-bold text-cyan-300">Official Advisory:</span>
+                        <span id="weather-advisory-text">Favourable weather and sea conditions for fishing operations and maritime navigation. Small motorized crafts can venture up to 20-30 NM.</span>
+                    </div>
+                </div>
+
+                <!-- Departure Window Box -->
+                <div class="bg-white/10 backdrop-blur-md p-4 rounded-xl border border-white/15 flex flex-col justify-center min-w-[240px]">
+                    <span class="text-[10px] uppercase font-bold text-cyan-200 tracking-wider flex items-center gap-1">
+                        <span class="material-symbols-outlined text-sm">schedule</span> Recommended Sailing
+                    </span>
+                    <div id="weather-departure-window" class="text-sm font-bold text-white mt-1">
+                        Today 04:00 AM – 02:00 PM
+                    </div>
+                    <span class="text-[11px] text-emerald-300 font-medium mt-0.5">Calm Wave State (Hs < 1.2m)</span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. 6-Metric Marine Atmospheric Grid -->
+        <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+            
+            <!-- Metric 1: Wave Height -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col">
+                <div class="flex items-center justify-between text-slate-400">
+                    <span class="text-[10px] font-bold uppercase tracking-wider">Significant Wave</span>
+                    <span class="material-symbols-outlined text-lg text-cyan-600">tsunami</span>
+                </div>
+                <div class="flex items-baseline gap-1 mt-2">
+                    <span id="card-wave-val" class="text-2xl font-extrabold text-[#00264b] font-mono">0.86</span>
+                    <span class="text-xs text-slate-500">m</span>
+                </div>
+                <span id="card-wave-state" class="text-[11px] font-semibold text-emerald-600 mt-0.5">Calm / Slight</span>
+            </div>
+
+            <!-- Metric 2: Wind Speed & Direction -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col">
+                <div class="flex items-center justify-between text-slate-400">
+                    <span class="text-[10px] font-bold uppercase tracking-wider">Wind Speed</span>
+                    <span class="material-symbols-outlined text-lg text-amber-500">air</span>
+                </div>
+                <div class="flex items-baseline gap-1 mt-2">
+                    <span id="card-wind-val" class="text-2xl font-extrabold text-[#00264b] font-mono">18</span>
+                    <span class="text-xs text-slate-500">km/h</span>
+                </div>
+                <span id="card-wind-dir" class="text-[11px] font-semibold text-slate-600 mt-0.5">9.7 kts · ENE (75°)</span>
+            </div>
+
+            <!-- Metric 3: Wave Period -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col">
+                <div class="flex items-center justify-between text-slate-400">
+                    <span class="text-[10px] font-bold uppercase tracking-wider">Wave Period</span>
+                    <span class="material-symbols-outlined text-lg text-indigo-500">timer</span>
+                </div>
+                <div class="flex items-baseline gap-1 mt-2">
+                    <span id="card-period-val" class="text-2xl font-extrabold text-[#00264b] font-mono">7.5</span>
+                    <span class="text-xs text-slate-500">s</span>
+                </div>
+                <span class="text-[11px] font-semibold text-slate-600 mt-0.5">Medium Swell Period</span>
+            </div>
+
+            <!-- Metric 4: SST -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col">
+                <div class="flex items-center justify-between text-slate-400">
+                    <span class="text-[10px] font-bold uppercase tracking-wider">Sea Surface Temp</span>
+                    <span class="material-symbols-outlined text-lg text-rose-500">device_thermostat</span>
+                </div>
+                <div class="flex items-baseline gap-1 mt-2">
+                    <span id="card-sst-val" class="text-2xl font-extrabold text-[#00264b] font-mono">28.4</span>
+                    <span class="text-xs text-slate-500">°C</span>
+                </div>
+                <span class="text-[11px] font-semibold text-cyan-700 mt-0.5">Active Thermal Front</span>
+            </div>
+
+            <!-- Metric 5: Ocean Current Drift -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col">
+                <div class="flex items-center justify-between text-slate-400">
+                    <span class="text-[10px] font-bold uppercase tracking-wider">Ocean Current</span>
+                    <span class="material-symbols-outlined text-lg text-teal-600">waves</span>
+                </div>
+                <div class="flex items-baseline gap-1 mt-2">
+                    <span id="card-curr-val" class="text-2xl font-extrabold text-[#00264b] font-mono">0.35</span>
+                    <span class="text-xs text-slate-500">m/s</span>
+                </div>
+                <span id="card-curr-knots" class="text-[11px] font-semibold text-emerald-600 mt-0.5">0.68 kts · Safe Drift</span>
+            </div>
+
+            <!-- Metric 6: Surface Visibility -->
+            <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col">
+                <div class="flex items-center justify-between text-slate-400">
+                    <span class="text-[10px] font-bold uppercase tracking-wider">Visibility</span>
+                    <span class="material-symbols-outlined text-lg text-sky-500">visibility</span>
+                </div>
+                <div class="flex items-baseline gap-1 mt-2">
+                    <span id="card-vis-val" class="text-2xl font-extrabold text-[#00264b] font-mono">10.0</span>
+                    <span class="text-xs text-slate-500">km</span>
+                </div>
+                <span id="card-weather-cond" class="text-[11px] font-semibold text-slate-600 mt-0.5">Clear Sky</span>
+            </div>
+
+        </section>
+
+        <!-- 3. 24-Hour Wave Trend & Hourly Wind Graph (Chart.js Dual-Axis) -->
+        <section class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col gap-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div>
+                    <h2 class="text-base font-bold text-[#00264b] flex items-center gap-2">
+                        <span class="material-symbols-outlined text-cyan-600">show_chart</span>
+                        24-Hour Coastal Wave Height & Wind Speed Dual-Axis Projection
+                    </h2>
+                    <p class="text-xs text-slate-500">
+                        Blue line represents Significant Wave Height (Hs in meters); Orange dashed line represents Wind Speed (km/h).
+                    </p>
+                </div>
+                <div class="flex items-center gap-3 text-xs font-medium font-mono">
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-cyan-600"></span> Wave (m)</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> Wind (km/h)</span>
+                </div>
+            </div>
+
+            <div class="h-64 sm:h-72 w-full">
+                <canvas id="weatherDualChart"></canvas>
+            </div>
+        </section>
+
+        <!-- 4. 7-Day Extended Marine Forecast Cards -->
+        <section class="flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-[#00264b] flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-500">calendar_month</span>
+                        7-Day Extended Marine Weather & Departure Planner
+                    </h2>
+                    <p class="text-xs text-slate-500">Daily forecast breakdown based on Open-Meteo & ISRO MOSDAC models.</p>
+                </div>
+            </div>
+
+            <!-- 7 Cards Container -->
+            <div id="forecast-7d-cards" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
+                <!-- Dynamically populated via JavaScript -->
+                <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs text-center text-xs text-slate-400">
+                    Loading 7-day forecast...
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Mobile Sticky 5-Tab Bottom Navigation Mount -->
+    <div id="orca-bottom-nav-mount"></div>
+
+    <!-- Core Scripts -->
+    <script src="config.js"></script>
+    <script src="shared_nav.js"></script>
+    <script>
+        let dualChartInstance = null;
+
+        async function loadWeatherPage() {
+            const port = window.getActivePort();
+            const BASE_URL = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
+
+            document.getElementById('weather-harbor-title').textContent = `${port.name} Fishing Jetty`;
+            document.getElementById('weather-harbor-subtitle').textContent = `${port.region} · Lat ${port.lat.toFixed(4)}° N, Lon ${port.lon.toFixed(4)}° E`;
+
+            try {
+                const res = await fetch(`${BASE_URL}/api/marine-data?lat=${port.lat}&lon=${port.lon}`);
+                if (!res.ok) throw new Error("HTTP error " + res.status);
+                const data = await res.json();
+
+                renderWeatherMetrics(data);
+                renderDualChart(data.hourly_24h || []);
+                render7DayCards(data.forecast_7d || []);
+
+            } catch (err) {
+                console.warn("[ORCA Weather] Failed to fetch marine data:", err);
+            }
+        }
+
+        function renderWeatherMetrics(w) {
+            // Hero Banner
+            document.getElementById('weather-advisory-text').textContent = w.advisory || "Favourable weather for fishing.";
+            if (w.optimal_departure_window) {
+                document.getElementById('weather-departure-window').textContent = w.optimal_departure_window;
+            }
+
+            const badge = document.getElementById('weather-safety-badge');
+            if (w.safety_status === 'DANGER') {
+                badge.className = 'inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/40';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-rose-400 animate-ping"></span><span>SEA: DANGER (HAZARDOUS SWELL)</span>';
+            } else if (w.safety_status === 'CAUTION') {
+                badge.className = 'inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span><span>SEA: CAUTION (MODERATE SWELL)</span>';
+            } else {
+                badge.className = 'inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
+                badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span><span>SEA: SAFE (FAVOURABLE FOR SAILING)</span>';
+            }
+
+            // 6 Grid Cards
+            document.getElementById('card-wave-val').textContent = w.wave_height_m || '0.86';
+            document.getElementById('card-wave-state').textContent = w.sea_state || 'Calm / Slight';
+            document.getElementById('card-wind-val').textContent = Math.round(w.wind_speed_kmh || 18);
+            document.getElementById('card-wind-dir').textContent = `${w.wind_speed_knots || 9.7} kts · ${w.wind_direction_compass || 'ENE'}`;
+            document.getElementById('card-period-val').textContent = w.wave_period_s || '7.5';
+            document.getElementById('card-sst-val').textContent = w.sea_surface_temp_c || '28.4';
+            document.getElementById('card-curr-val').textContent = w.ocean_current_ms || '0.35';
+            document.getElementById('card-curr-knots').textContent = `${w.ocean_current_knots || 0.7} kts · Drift Safe`;
+            document.getElementById('card-vis-val').textContent = w.visibility_km || '10.0';
+            document.getElementById('card-weather-cond').textContent = w.weather_condition || 'Partly Cloudy';
+        }
+
+        // Dual-Axis Chart.js Renderer
+        function renderDualChart(hourly) {
+            if (!hourly || hourly.length === 0) return;
+
+            const labels = hourly.map(h => h.hour);
+            const waveData = hourly.map(h => h.wave_height_m);
+            const windData = hourly.map(h => h.wind_speed_kmh);
+
+            const ctx = document.getElementById('weatherDualChart').getContext('2d');
+            if (dualChartInstance) dualChartInstance.destroy();
+
+            dualChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Wave Height (m)',
+                            data: waveData,
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                            fill: true,
+                            tension: 0.35,
+                            yAxisID: 'yWave',
+                            borderWidth: 2.5,
+                            pointRadius: 2.5,
+                            pointBackgroundColor: '#00264b'
+                        },
+                        {
+                            label: 'Wind Speed (km/h)',
+                            data: windData,
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'transparent',
+                            borderDash: [5, 4],
+                            tension: 0.35,
+                            yAxisID: 'yWind',
+                            borderWidth: 2,
+                            pointRadius: 2,
+                            pointBackgroundColor: '#d97706'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        yWave: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Wave Height (m)', font: { size: 10, weight: 'bold' } },
+                            min: 0,
+                            suggestedMax: 2.5,
+                            ticks: { font: { size: 10 } }
+                        },
+                        yWind: {
+                            type: 'linear',
+                            position: 'right',
+                            title: { display: true, text: 'Wind Speed (km/h)', font: { size: 10, weight: 'bold' } },
+                            min: 0,
+                            grid: { drawOnChartArea: false },
+                            ticks: { font: { size: 10 } }
+                        },
+                        x: {
+                            ticks: { font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 7-Day Extended Cards Renderer
+        function render7DayCards(days) {
+            const container = document.getElementById('forecast-7d-cards');
+            if (!days || days.length === 0) {
+                container.innerHTML = '<div class="col-span-full p-4 text-center text-xs text-slate-400">No 7-day forecast data available.</div>';
+                return;
+            }
+
+            container.innerHTML = days.map((d, i) => {
+                let badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+                if (d.safety_status === 'DANGER') badgeColor = 'bg-rose-50 text-rose-800 border-rose-200';
+                else if (d.safety_status === 'CAUTION') badgeColor = 'bg-amber-50 text-amber-800 border-amber-200';
+
+                return `
+                    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col justify-between hover:border-cyan-500 transition-all ${
+                        i === 0 ? 'ring-2 ring-cyan-500/20' : ''
+                    }">
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-xs font-bold text-[#00264b]">${d.day_name}</span>
+                                <span class="text-[9px] font-mono text-slate-400">${d.date_formatted.slice(0, 6)}</span>
+                            </div>
+
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeColor} inline-block mb-3">
+                                ${d.safety_status}
+                            </span>
+
+                            <div class="space-y-1.5 text-xs text-slate-700">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 text-[11px]">Waves:</span>
+                                    <span class="font-bold font-mono text-[#00264b]">${d.max_wave_height_m}m</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 text-[11px]">Wind:</span>
+                                    <span class="font-bold font-mono text-amber-700">${Math.round(d.max_wind_kmh)} km/h</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 text-[11px]">Sea State:</span>
+                                    <span class="font-medium text-slate-600">${d.sea_state}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3.5 pt-2.5 border-t border-slate-100 text-[10px] text-slate-500">
+                            <span class="font-bold text-slate-700 block">Window:</span>
+                            <span class="truncate block text-cyan-800">${d.optimal_window}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Port Change Event Listener
+        window.addEventListener('orca:port_changed', () => {
+            loadWeatherPage();
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWeatherPage();
+        });
+    </script>
+</body>
+</html>

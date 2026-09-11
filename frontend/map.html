@@ -1,0 +1,413 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ORCA — Ocean GIS & PFZ Navigator | ISRO Maritime Spatial Engine</title>
+    <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
+    <link rel="apple-touch-icon" href="assets/orca_logo.jpg">
+
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Leaflet.js v1.9.4 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Google Material Symbols & Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        #gis-map { height: calc(100vh - 110px); width: 100%; z-index: 10; }
+        @media (max-width: 768px) {
+            #gis-map { height: calc(100vh - 125px); }
+        }
+    </style>
+</head>
+<body class="bg-[#f7f9fc] text-slate-800 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-white overflow-hidden">
+
+    <!-- Header & Navigation Mount Point -->
+    <div id="orca-header-mount"></div>
+
+    <!-- Map Viewport Wrapper (Relative Container for Floating Controls) -->
+    <div class="relative flex-1 w-full overflow-hidden">
+        
+        <!-- Leaflet Map Canvas -->
+        <div id="gis-map"></div>
+
+        <!-- 1. Floating GIS Layers Control Drawer (Top-Right) -->
+        <div class="absolute top-3 right-3 z-20 bg-white/95 backdrop-blur-md rounded-2xl p-3.5 border border-slate-200 shadow-lg max-w-xs w-full transition-all">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span class="text-xs font-bold text-[#00264b] flex items-center gap-1.5 uppercase tracking-wide">
+                    <span class="material-symbols-outlined text-sm text-cyan-600">layers</span> GIS Overlays
+                </span>
+                <div class="flex items-center gap-1 text-[10px] font-mono">
+                    <button id="btn-tile-osm" onclick="setBaseTile('osm')" class="px-2 py-0.5 rounded font-bold bg-[#00264b] text-white">Chart</button>
+                    <button id="btn-tile-sat" onclick="setBaseTile('sat')" class="px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-600 hover:bg-slate-200">Satellite</button>
+                </div>
+            </div>
+
+            <!-- 5 Layer Toggle Switches -->
+            <div class="mt-2.5 space-y-2 text-xs">
+                <label class="flex items-center justify-between cursor-pointer group">
+                    <span class="flex items-center gap-2 text-slate-700 font-medium">
+                        <span class="w-3 h-3 rounded-full bg-cyan-500"></span>
+                        Indian EEZ (200NM)
+                    </span>
+                    <input type="checkbox" id="toggle-eez" checked onchange="toggleLayer('eez', this.checked)" class="accent-cyan-600 cursor-pointer"/>
+                </label>
+
+                <label class="flex items-center justify-between cursor-pointer group">
+                    <span class="flex items-center gap-2 text-slate-700 font-medium">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                        PFZ Hotspots (INCOIS)
+                    </span>
+                    <input type="checkbox" id="toggle-pfz" checked onchange="toggleLayer('pfz', this.checked)" class="accent-emerald-600 cursor-pointer"/>
+                </label>
+
+                <label class="flex items-center justify-between cursor-pointer group">
+                    <span class="flex items-center gap-2 text-slate-700 font-medium">
+                        <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                        IMBL Border & Buffer
+                    </span>
+                    <input type="checkbox" id="toggle-imbl" checked onchange="toggleLayer('imbl', this.checked)" class="accent-rose-600 cursor-pointer"/>
+                </label>
+
+                <label class="flex items-center justify-between cursor-pointer group">
+                    <span class="flex items-center gap-2 text-slate-700 font-medium">
+                        <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                        Protected MPAs (No-Trawl)
+                    </span>
+                    <input type="checkbox" id="toggle-mpa" checked onchange="toggleLayer('mpa', this.checked)" class="accent-amber-600 cursor-pointer"/>
+                </label>
+
+                <label class="flex items-center justify-between cursor-pointer group">
+                    <span class="flex items-center gap-2 text-slate-700 font-medium">
+                        <span class="w-3 h-3 rounded-full bg-indigo-500"></span>
+                        Safe Waypoint Route
+                    </span>
+                    <input type="checkbox" id="toggle-route" checked onchange="toggleLayer('route', this.checked)" class="accent-indigo-600 cursor-pointer"/>
+                </label>
+            </div>
+        </div>
+
+        <!-- 2. Floating PFZ Inspector Card (Bottom-Right on Desktop, Bottom Center on Mobile) -->
+        <div id="pfz-inspector-card" class="absolute bottom-16 sm:bottom-12 right-3 z-20 bg-white/95 backdrop-blur-md rounded-2xl p-4 border border-slate-200 shadow-xl max-w-sm w-[92%] sm:w-full transition-all">
+            <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center flex-shrink-0">
+                        <span class="material-symbols-outlined text-lg">radar</span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] font-bold font-mono uppercase text-emerald-700 tracking-wider">PRIMARY TARGET PFZ</span>
+                        <h3 id="inspect-pfz-name" class="text-xs sm:text-sm font-bold text-[#00264b] leading-tight">
+                            Goa High-Yield Oceanic Front
+                        </h3>
+                    </div>
+                </div>
+                <span id="inspect-pfz-dist" class="font-mono text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                    ~24.5 NM
+                </span>
+            </div>
+
+            <!-- Telemetry Metrics Grid -->
+            <div class="mt-3 grid grid-cols-3 gap-2 text-center text-xs bg-slate-50 p-2 rounded-xl border border-slate-200 font-mono">
+                <div>
+                    <span class="text-[9px] text-slate-400 font-sans font-semibold uppercase">Bearing</span>
+                    <div id="inspect-pfz-bearing" class="font-bold text-[#00264b]">255° (WSW)</div>
+                </div>
+                <div>
+                    <span class="text-[9px] text-slate-400 font-sans font-semibold uppercase">SST Front</span>
+                    <div id="inspect-pfz-sst" class="font-bold text-cyan-700">28.2 °C</div>
+                </div>
+                <div>
+                    <span class="text-[9px] text-slate-400 font-sans font-semibold uppercase">Est. Fuel</span>
+                    <div id="inspect-pfz-fuel" class="font-bold text-amber-700">26.5 L</div>
+                </div>
+            </div>
+
+            <p id="inspect-pfz-species" class="text-[11px] text-slate-600 mt-2 font-medium">
+                Target Pelagic Species: Oil Sardine, Skipjack Tuna, Mackerel (Confidence: 92%)
+            </p>
+
+            <!-- 1-Tap Action Button to AI Advisor -->
+            <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+                <span class="text-[10px] text-slate-400 font-mono">ISRO MOSDAC / INCOIS</span>
+                <a id="inspect-ask-btn" href="advisor.html?q=Where+is+the+nearest+Potential+Fishing+Zone+today%3F" class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#00264b] hover:bg-cyan-700 px-3 py-1.5 rounded-lg transition-colors">
+                    <span>Ask AI Advisor</span>
+                    <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 3. Floating Quick Port Fly-To Bar (Top-Left under Leaflet Zoom) -->
+        <div class="absolute top-3 left-14 z-20 hidden sm:flex items-center gap-1 bg-white/90 backdrop-blur-md px-2 py-1.5 rounded-xl border border-slate-200 shadow-sm text-xs overflow-x-auto max-w-[50vw] scrollbar-hide">
+            <span class="text-[10px] font-bold text-slate-400 uppercase mr-1">FLY:</span>
+            <button onclick="flyToHarbor('chennai')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Chennai</button>
+            <button onclick="flyToHarbor('rameswaram')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Rameswaram</button>
+            <button onclick="flyToHarbor('kochi')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Kochi</button>
+            <button onclick="flyToHarbor('goa')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Goa</button>
+            <button onclick="flyToHarbor('mumbai')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Mumbai</button>
+            <button onclick="flyToHarbor('veraval')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Veraval</button>
+            <button onclick="flyToHarbor('visakhapatnam')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Vizag</button>
+            <button onclick="flyToHarbor('port_blair')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Port Blair</button>
+        </div>
+
+        <!-- 4. Live Cursor Lat/Lon HUD (Bottom-Left) -->
+        <div class="absolute bottom-16 sm:bottom-4 left-3 z-20 bg-black/75 backdrop-blur-md text-white px-3 py-1.5 rounded-lg border border-white/10 font-mono text-[11px] flex items-center gap-2 shadow-md">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+            <span id="hud-coordinates">Lat 15.5036° N, Lon 73.8344° E</span>
+            <span class="text-white/40">|</span>
+            <span id="hud-port-name" class="text-cyan-300 font-bold uppercase">GOA HARBOR</span>
+        </div>
+
+    </div>
+
+    <!-- Mobile Sticky 5-Tab Bottom Navigation Mount -->
+    <div id="orca-bottom-nav-mount"></div>
+
+    <!-- Core Scripts -->
+    <script src="config.js"></script>
+    <script src="shared_nav.js"></script>
+    <script>
+        let map;
+        let osmTileLayer, satTileLayer;
+        let layerGroups = {
+            eez: L.layerGroup(),
+            pfz: L.layerGroup(),
+            imbl: L.layerGroup(),
+            mpa: L.layerGroup(),
+            route: L.layerGroup(),
+            ports: L.layerGroup()
+        };
+
+        // Initialize Leaflet Map
+        function initMap() {
+            const activePort = window.getActivePort();
+
+            map = L.map('gis-map', {
+                zoomControl: true,
+                attributionControl: false
+            }).setView([activePort.lat, activePort.lon], 8);
+
+            // Base Tile Layers
+            osmTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18
+            }).addTo(map);
+
+            satTileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                maxZoom: 18
+            });
+
+            // Add Layer Groups to Map
+            Object.values(layerGroups).forEach(lg => lg.addTo(map));
+
+            // Cursor Hover HUD
+            map.on('mousemove', (e) => {
+                document.getElementById('hud-coordinates').textContent = `Lat ${e.latlng.lat.toFixed(4)}° N, Lon ${e.latlng.lng.toFixed(4)}° E`;
+            });
+
+            loadAllLayers(activePort);
+        }
+
+        function setBaseTile(type) {
+            const btnOsm = document.getElementById('btn-tile-osm');
+            const btnSat = document.getElementById('btn-tile-sat');
+
+            if (type === 'sat') {
+                if (map.hasLayer(osmTileLayer)) map.removeLayer(osmTileLayer);
+                if (!map.hasLayer(satTileLayer)) map.addLayer(satTileLayer);
+                btnSat.className = 'px-2 py-0.5 rounded font-bold bg-[#00264b] text-white';
+                btnOsm.className = 'px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-600 hover:bg-slate-200';
+            } else {
+                if (map.hasLayer(satTileLayer)) map.removeLayer(satTileLayer);
+                if (!map.hasLayer(osmTileLayer)) map.addLayer(osmTileLayer);
+                btnOsm.className = 'px-2 py-0.5 rounded font-bold bg-[#00264b] text-white';
+                btnSat.className = 'px-2 py-0.5 rounded font-bold bg-slate-100 text-slate-600 hover:bg-slate-200';
+            }
+        }
+
+        function toggleLayer(key, isChecked) {
+            const lg = layerGroups[key];
+            if (!lg) return;
+            if (isChecked) {
+                if (!map.hasLayer(lg)) map.addLayer(lg);
+            } else {
+                if (map.hasLayer(lg)) map.removeLayer(lg);
+            }
+        }
+
+        // Load GIS Layers (EEZ, IMBL, PFZ, Harbors, Route)
+        async function loadAllLayers(port) {
+            const BASE_URL = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
+
+            // 1. Render Ports & MRCC Stations
+            layerGroups.ports.clearLayers();
+            Object.values(window.PORT_COORDINATES || {}).forEach(p => {
+                const isCurrent = p.id === port.id;
+                const m = L.circleMarker([p.lat, p.lon], {
+                    radius: isCurrent ? 8 : 6,
+                    color: isCurrent ? '#0284c7' : '#00264b',
+                    fillColor: isCurrent ? '#38bdf8' : '#64748b',
+                    fillOpacity: 0.9,
+                    weight: isCurrent ? 3 : 2
+                }).addTo(layerGroups.ports);
+
+                m.bindPopup(`
+                    <div class="text-xs p-1">
+                        <b class="text-[#00264b]">${p.name}</b><br>
+                        <span class="text-slate-500">${p.state} · ${p.region}</span><br>
+                        <button onclick="window.switchPort('${p.id}')" class="mt-2 px-2 py-1 bg-[#00264b] text-white font-bold text-[10px] rounded hover:bg-cyan-700">Select As Base</button>
+                    </div>
+                `);
+            });
+
+            // 2. Fetch Geofence Layers (EEZ, IMBL, MPAs)
+            try {
+                const geoRes = await fetch(`${BASE_URL}/api/geofence-layers`);
+                if (geoRes.ok) {
+                    const geojson = await geoRes.json();
+                    renderGeoJsonLayers(geojson);
+                }
+            } catch (err) {
+                console.warn("[ORCA Map] Geofence layer load warning:", err);
+            }
+
+            // 3. Fetch PFZ Hotspots for Active Port
+            try {
+                const pfzRes = await fetch(`${BASE_URL}/api/pfz?port=${port.id}`);
+                if (pfzRes.ok) {
+                    const data = await pfzRes.json();
+                    renderPFZHotspots(data.pfz_zones || [], port);
+                }
+            } catch (err) {
+                console.warn("[ORCA Map] PFZ fetch warning:", err);
+            }
+        }
+
+        function renderGeoJsonLayers(data) {
+            layerGroups.eez.clearLayers();
+            layerGroups.imbl.clearLayers();
+            layerGroups.mpa.clearLayers();
+
+            L.geoJSON(data, {
+                style: function(feature) {
+                    const props = feature.properties || {};
+                    if (props.layer === 'eez') {
+                        return { color: '#0284c7', weight: 2, fillOpacity: 0.05, dashArray: '6, 4' };
+                    }
+                    if (props.layer === 'imbl') {
+                        return { color: '#e11d48', weight: 3.5, dashArray: '4, 4' };
+                    }
+                    if (props.layer === 'buffer') {
+                        return { color: '#f59e0b', weight: 1.5, fillOpacity: 0.15, fillColor: '#f59e0b' };
+                    }
+                    if (props.layer === 'mpa') {
+                        return { color: '#10b981', weight: 2, fillOpacity: 0.15, fillColor: '#10b981' };
+                    }
+                    return { color: '#64748b', weight: 1.5 };
+                },
+                onEachFeature: function(feature, layer) {
+                    const p = feature.properties || {};
+                    const title = p.name || p.layer || 'Maritime Geofence';
+                    layer.bindPopup(`
+                        <div class="text-xs p-1">
+                            <b class="text-[#00264b]">${title}</b><br>
+                            <span class="text-slate-500">${p.type || 'Sovereign Coastal Zone'}</span>
+                        </div>
+                    `);
+                    
+                    if (p.layer === 'eez') layer.addTo(layerGroups.eez);
+                    else if (p.layer === 'imbl' || p.layer === 'buffer') layer.addTo(layerGroups.imbl);
+                    else if (p.layer === 'mpa') layer.addTo(layerGroups.mpa);
+                    else layer.addTo(layerGroups.eez);
+                }
+            });
+        }
+
+        function renderPFZHotspots(zones, port) {
+            layerGroups.pfz.clearLayers();
+            layerGroups.route.clearLayers();
+
+            if (!zones || zones.length === 0) return;
+
+            zones.forEach((z, idx) => {
+                const marker = L.circleMarker([z.lat, z.lon], {
+                    radius: idx === 0 ? 11 : 8,
+                    color: '#10b981',
+                    fillColor: '#34d399',
+                    fillOpacity: 0.9,
+                    weight: 3
+                }).addTo(layerGroups.pfz);
+
+                marker.bindPopup(`
+                    <div class="text-xs p-1 font-sans min-w-[200px]">
+                        <b class="text-emerald-700 text-sm">🐟 ${z.name}</b><br>
+                        <div class="text-slate-600 mt-1 space-y-0.5">
+                            <div><b>Distance:</b> ${z.distance_nm} NM (${z.bearing_deg}° ${z.bearing_dir})</div>
+                            <div><b>SST:</b> ${z.sst_c}°C · <b>Chlorophyll:</b> ${z.chlorophyll_mg_m3} mg/m³</div>
+                            <div><b>Target Species:</b> ${z.primary_species ? z.primary_species.join(', ') : 'Pelagic Pelleted'}</div>
+                        </div>
+                        <a href="advisor.html?q=Where+is+the+nearest+Potential+Fishing+Zone+today%3F" class="mt-2.5 block text-center py-1 bg-emerald-700 text-white font-bold text-[10px] rounded hover:bg-emerald-800">
+                            Ask AI Advisor ➔
+                        </a>
+                    </div>
+                `);
+
+                // Update Inspector Card with Top PFZ
+                if (idx === 0) {
+                    document.getElementById('inspect-pfz-name').textContent = z.name;
+                    document.getElementById('inspect-pfz-dist').textContent = `~${z.distance_nm} NM`;
+                    document.getElementById('inspect-pfz-bearing').textContent = `${z.bearing_deg}° (${z.bearing_dir})`;
+                    document.getElementById('inspect-pfz-sst').textContent = `${z.sst_c} °C`;
+                    const estFuel = Math.round(z.distance_nm * 1.1 * 10) / 10;
+                    document.getElementById('inspect-pfz-fuel').textContent = `${estFuel} L`;
+                    document.getElementById('inspect-pfz-species').textContent = `Target Species: ${z.primary_species ? z.primary_species.join(', ') : 'Tuna, Mackerel'} (Confidence: ${z.confidence_score || 90}%)`;
+
+                    // Draw Safe Navigational Waypoint Line from Port to Top PFZ
+                    const routeLine = L.polyline([[port.lat, port.lon], [z.lat, z.lon]], {
+                        color: '#4f46e5',
+                        weight: 3,
+                        dashArray: '6, 6',
+                        opacity: 0.85
+                    }).addTo(layerGroups.route);
+
+                    routeLine.bindPopup(`
+                        <div class="text-xs p-1">
+                            <b class="text-indigo-900">Safe Waypoint Navigation Line</b><br>
+                            Departure: ${port.name}<br>
+                            Destination: ${z.name}<br>
+                            Distance: ${z.distance_nm} NM
+                        </div>
+                    `);
+                }
+            });
+        }
+
+        function flyToHarbor(key) {
+            window.switchPort(key);
+            const p = window.PORT_COORDINATES[key];
+            if (p && map) {
+                map.flyTo([p.lat, p.lon], 8, { duration: 1.2 });
+            }
+        }
+
+        // Handle Port Change Events
+        window.addEventListener('orca:port_changed', (e) => {
+            const port = e.detail.port;
+            if (map && port) {
+                map.flyTo([port.lat, port.lon], 8, { duration: 1.2 });
+                document.getElementById('hud-port-name').textContent = `${port.name.toUpperCase()}`;
+                loadAllLayers(port);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+        });
+    </script>
+</body>
+</html>

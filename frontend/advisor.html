@@ -1,0 +1,538 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ORCA — AI Decision Assistant | 6-Agent Reasoning Core</title>
+    <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
+    <link rel="apple-touch-icon" href="assets/orca_logo.jpg">
+
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js for Wave Telemetry Chart -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Material Symbols & Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .chat-bubble-bot { border-top-left-radius: 4px; }
+        .chat-bubble-user { border-top-right-radius: 4px; }
+    </style>
+</head>
+<body class="bg-[#f7f9fc] text-slate-800 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header & Navigation Mount Point -->
+    <div id="orca-header-mount"></div>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-5xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6 flex flex-col gap-4 pb-24 md:pb-8">
+
+        <!-- Page Header & 6-Agent Stepper -->
+        <section class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col gap-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg sm:text-xl font-extrabold text-[#00264b]">AI Maritime Decision Assistant</h1>
+                        <span class="text-[10px] font-bold uppercase bg-cyan-50 text-cyan-700 border border-cyan-300 px-2 py-0.5 rounded-full">
+                            Groq LPU / Gemini
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Ask questions in Hindi, English, Tamil, Telugu, or Bengali for real-time safety, PFZ, and navigation advice.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 self-start sm:self-auto">
+                    <span class="text-xs font-bold text-slate-400">Harbor:</span>
+                    <span id="advisor-active-harbor" class="text-xs font-bold text-[#00264b] bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                        Goa (Malim)
+                    </span>
+                </div>
+            </div>
+
+            <!-- 6-Agent Pipeline Stepper -->
+            <div class="flex items-center justify-between overflow-x-auto py-1 gap-2 scrollbar-hide text-xs" id="agent-stepper">
+                <div id="step-1" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 whitespace-nowrap transition-all">
+                    <span class="material-symbols-outlined text-sm">assignment</span>
+                    <span class="font-bold text-[11px]">1. Planner</span>
+                </div>
+                <span class="text-slate-300 text-xs">➔</span>
+                <div id="step-2" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 whitespace-nowrap transition-all">
+                    <span class="material-symbols-outlined text-sm">radar</span>
+                    <span class="font-bold text-[11px]">2. Ocean PFZ</span>
+                </div>
+                <span class="text-slate-300 text-xs">➔</span>
+                <div id="step-3" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 whitespace-nowrap transition-all">
+                    <span class="material-symbols-outlined text-sm">air</span>
+                    <span class="font-bold text-[11px]">3. Weather</span>
+                </div>
+                <span class="text-slate-300 text-xs">➔</span>
+                <div id="step-4" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 whitespace-nowrap transition-all">
+                    <span class="material-symbols-outlined text-sm">gavel</span>
+                    <span class="font-bold text-[11px]">4. Geofence</span>
+                </div>
+                <span class="text-slate-300 text-xs">➔</span>
+                <div id="step-5" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 whitespace-nowrap transition-all">
+                    <span class="material-symbols-outlined text-sm">navigation</span>
+                    <span class="font-bold text-[11px]">5. Route</span>
+                </div>
+                <span class="text-slate-300 text-xs">➔</span>
+                <div id="step-6" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-500 border border-slate-200 whitespace-nowrap transition-all">
+                    <span class="material-symbols-outlined text-sm">auto_awesome</span>
+                    <span class="font-bold text-[11px]">6. Synthesizer</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conversational Chat Stream Box -->
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-col flex-1 min-h-[480px] overflow-hidden">
+            
+            <!-- Chat Messages Scroll Area -->
+            <div id="chat-messages" class="flex-1 p-4 sm:p-5 overflow-y-auto space-y-4 max-h-[580px]">
+                
+                <!-- Initial Welcome Message from ORCA Bot -->
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#00264b] text-white flex items-center justify-center flex-shrink-0 shadow-xs mt-0.5">
+                        <span class="material-symbols-outlined text-base">smart_toy</span>
+                    </div>
+                    <div class="flex flex-col gap-1 max-w-[85%] sm:max-w-[75%]">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-[#00264b]">ORCA AI Engine</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Just now</span>
+                        </div>
+                        <div class="chat-bubble-bot bg-slate-50 border border-slate-200 p-3.5 rounded-2xl text-xs sm:text-sm text-slate-700 leading-relaxed shadow-xs">
+                            <p class="font-semibold text-[#00264b]">
+                                Namaste! I am ORCA, your official ISRO marine safety & fisheries decision assistant.
+                            </p>
+                            <p class="mt-1.5">
+                                You can ask me questions about:
+                            </p>
+                            <ul class="list-disc list-inside mt-1 space-y-0.5 text-slate-600 text-xs">
+                                <li><b>Potential Fishing Zones (PFZ)</b> & ocean thermal front locations.</li>
+                                <li><b>Wave height, wind swell, and sea safety status</b> for today & tomorrow.</li>
+                                <li><b>International Maritime Boundary Line (IMBL)</b> proximity and warnings.</li>
+                                <li><b>Safe navigation waypoints & diesel fuel estimation</b> between coastal ports.</li>
+                            </ul>
+                            <p class="mt-2 text-[11px] text-slate-500 italic">
+                                Select a prompt below or type your question in any Indian language.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Wave Trend Line Chart Drawer (Dynamically populated when weather data arrives) -->
+            <div id="chart-drawer" class="hidden border-t border-slate-200 bg-slate-50/70 p-3.5">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-[#00264b] flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-sm text-cyan-600">show_chart</span>
+                        24-Hour Wave Height Projection (Hs in Meters)
+                    </span>
+                    <button onclick="document.getElementById('chart-drawer').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-xs">
+                        <span class="material-symbols-outlined text-sm">close</span>
+                    </button>
+                </div>
+                <div class="h-36 w-full">
+                    <canvas id="waveChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Input & Prompt Bar -->
+            <div class="border-t border-slate-200 p-3 sm:p-4 bg-white flex flex-col gap-2.5">
+                
+                <!-- Prompt Suggestion Chips -->
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide text-xs" id="advisor-chips">
+                    <button onclick="submitPrompt('Where is the nearest Potential Fishing Zone (PFZ) today?')" class="bg-slate-100 hover:bg-cyan-50 hover:text-cyan-800 hover:border-cyan-300 border border-slate-200 px-3 py-1 rounded-full whitespace-nowrap transition-colors font-medium">
+                        🐟 Nearest PFZ?
+                    </button>
+                    <button onclick="submitPrompt('Kal subah machhli pakadne jaana safe hai kya?')" class="bg-slate-100 hover:bg-cyan-50 hover:text-cyan-800 hover:border-cyan-300 border border-slate-200 px-3 py-1 rounded-full whitespace-nowrap transition-colors font-medium">
+                        🎣 Kal subah safe hai kya?
+                    </button>
+                    <button onclick="submitPrompt('Kya Rameswaram ke paas koi Sri Lanka IMBL border alert hai?')" class="bg-slate-100 hover:bg-cyan-50 hover:text-cyan-800 hover:border-cyan-300 border border-slate-200 px-3 py-1 rounded-full whitespace-nowrap transition-colors font-medium">
+                        🚨 IMBL Border Alert?
+                    </button>
+                    <button onclick="submitPrompt('Calculate the safest navigation route and diesel fuel estimate to the nearest fishing zone')" class="bg-slate-100 hover:bg-cyan-50 hover:text-cyan-800 hover:border-cyan-300 border border-slate-200 px-3 py-1 rounded-full whitespace-nowrap transition-colors font-medium">
+                        🧭 Safe Route & Fuel
+                    </button>
+                </div>
+
+                <!-- Input Field & Controls -->
+                <div class="flex items-center gap-2">
+                    
+                    <!-- Voice Mic Button -->
+                    <button id="voice-btn" onclick="toggleVoiceRecording()" title="Speak in Hindi / English / Tamil" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center justify-center transition-colors flex-shrink-0">
+                        <span class="material-symbols-outlined text-xl" id="voice-icon">mic</span>
+                    </button>
+
+                    <!-- Text Input -->
+                    <div class="relative flex-1">
+                        <input type="text" id="user-input" placeholder="Ask ORCA marine intelligence (e.g., 'Goa weather & PFZ')..." class="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-cyan-500 rounded-xl px-4 py-2.5 text-xs sm:text-sm text-slate-800 outline-none transition-all pr-10" />
+                        <span id="listening-indicator" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-rose-600 animate-pulse font-mono">
+                            LISTENING...
+                        </span>
+                    </div>
+
+                    <!-- Send Button -->
+                    <button id="send-btn" onclick="handleSend()" class="w-10 h-10 rounded-xl bg-[#00264b] hover:bg-cyan-700 text-white flex items-center justify-center transition-colors flex-shrink-0 shadow-xs">
+                        <span class="material-symbols-outlined text-lg">send</span>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Mobile Sticky 5-Tab Bottom Navigation Mount -->
+    <div id="orca-bottom-nav-mount"></div>
+
+    <!-- Core Scripts -->
+    <script src="config.js"></script>
+    <script src="shared_nav.js"></script>
+    <script>
+        let conversationHistory = [];
+        let waveChartInstance = null;
+        let isRecording = false;
+        let recognition = null;
+
+        // Initialize Speech Recognition if supported
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRec();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = function() {
+                isRecording = true;
+                document.getElementById('voice-btn').classList.add('bg-rose-100', 'text-rose-600', 'border-rose-300', 'animate-pulse');
+                document.getElementById('listening-indicator').classList.remove('hidden');
+            };
+
+            recognition.onresult = function(event) {
+                const text = event.results[0][0].transcript;
+                document.getElementById('user-input').value = text;
+                submitPrompt(text);
+            };
+
+            recognition.onerror = function() {
+                stopRecordingUI();
+            };
+
+            recognition.onend = function() {
+                stopRecordingUI();
+            };
+        }
+
+        function toggleVoiceRecording() {
+            if (!recognition) {
+                alert("Voice input is not supported in this browser. Please use Google Chrome or Microsoft Edge.");
+                return;
+            }
+            if (isRecording) {
+                recognition.stop();
+                stopRecordingUI();
+            } else {
+                const lang = localStorage.getItem('orca_language') || 'en';
+                const langCodeMap = { en: 'en-IN', hi: 'hi-IN', ta: 'ta-IN', te: 'te-IN', bn: 'bn-IN' };
+                recognition.lang = langCodeMap[lang] || 'en-IN';
+                recognition.start();
+            }
+        }
+
+        function stopRecordingUI() {
+            isRecording = false;
+            document.getElementById('voice-btn').classList.remove('bg-rose-100', 'text-rose-600', 'border-rose-300', 'animate-pulse');
+            document.getElementById('listening-indicator').classList.add('hidden');
+        }
+
+        // Vernacular Audio Readout (Text-to-Speech)
+        function readAloudText(text) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+
+            // Strip markdown asterisks and symbols for cleaner audio
+            const clean = text.replace(/[*_#`>-]/g, '').trim();
+            const utter = new SpeechSynthesisUtterance(clean);
+            
+            const lang = localStorage.getItem('orca_language') || 'en';
+            const langCodeMap = { en: 'en-IN', hi: 'hi-IN', ta: 'ta-IN', te: 'te-IN', bn: 'bn-IN' };
+            utter.lang = langCodeMap[lang] || 'en-IN';
+            utter.rate = 0.95;
+
+            window.speechSynthesis.speak(utter);
+        }
+
+        // Update Harbor Display
+        function syncAdvisorHarbor() {
+            const port = window.getActivePort();
+            document.getElementById('advisor-active-harbor').textContent = `${port.name} (${port.state})`;
+        }
+
+        // Stepper Animation
+        function setStepperState(running) {
+            const steps = [1, 2, 3, 4, 5, 6];
+            if (running) {
+                steps.forEach((s, idx) => {
+                    setTimeout(() => {
+                        const el = document.getElementById(`step-${s}`);
+                        if (el) el.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-600 text-white border border-cyan-700 whitespace-nowrap transition-all shadow-xs animate-pulse';
+                    }, idx * 250);
+                });
+            } else {
+                steps.forEach(s => {
+                    const el = document.getElementById(`step-${s}`);
+                    if (el) el.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-300 whitespace-nowrap transition-all';
+                });
+            }
+        }
+
+        // Append Messages to Stream
+        function appendUserMessage(text) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'flex items-start justify-end gap-3';
+            div.innerHTML = `
+                <div class="flex flex-col items-end gap-1 max-w-[85%] sm:max-w-[75%]">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-slate-400 font-mono">You</span>
+                        <span class="text-xs font-bold text-slate-700">${localStorage.getItem('orca_username') || 'You'}</span>
+                    </div>
+                    <div class="chat-bubble-user bg-[#00264b] text-white p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed shadow-xs">
+                        ${escapeHtml(text)}
+                    </div>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center flex-shrink-0 shadow-xs mt-0.5">
+                    <span class="material-symbols-outlined text-base">person</span>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendBotMessage(data) {
+            const container = document.getElementById('chat-messages');
+            const div = document.createElement('div');
+            div.className = 'flex items-start gap-3';
+
+            const formattedAnswer = formatMarkdown(data.answer || 'Analysis complete.');
+            const safeTextForAudio = encodeURIComponent(data.answer || '');
+
+            let pfzBadge = '';
+            if (data.pfz) {
+                pfzBadge = `
+                    <div class="mt-3 bg-white p-2.5 rounded-xl border border-slate-200 flex flex-col gap-1 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-emerald-700 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">radar</span> ${escapeHtml(data.pfz.name)}
+                            </span>
+                            <span class="font-mono font-bold text-slate-600">~${data.pfz.distance_nm} NM (${data.pfz.bearing_deg}° ${data.pfz.bearing_dir})</span>
+                        </div>
+                        <span class="text-[11px] text-slate-500">
+                            Target Species: ${data.pfz.primary_species ? data.pfz.primary_species.join(', ') : 'Pelagic Pelleted'} · SST: ${data.pfz.sst_c}°C
+                        </span>
+                    </div>
+                `;
+            }
+
+            let routeBadge = '';
+            if (data.route) {
+                routeBadge = `
+                    <div class="mt-2.5 bg-cyan-50/70 p-2.5 rounded-xl border border-cyan-200 text-xs">
+                        <div class="flex items-center justify-between font-bold text-cyan-900">
+                            <span>🧭 Navigational Route: ${data.route.total_distance_nm} NM</span>
+                            <span class="font-mono">Est Fuel: ${data.route.estimated_fuel_diesel_liters} L</span>
+                        </div>
+                        <div class="text-[11px] text-cyan-800 mt-0.5">
+                            Heading: ${data.route.heading_degrees}° (${data.route.heading_compass}) · Est Time at 8kn: ${data.route.estimated_duration}
+                        </div>
+                    </div>
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-[#00264b] text-white flex items-center justify-center flex-shrink-0 shadow-xs mt-0.5">
+                    <span class="material-symbols-outlined text-base">smart_toy</span>
+                </div>
+                <div class="flex flex-col gap-1 max-w-[88%] sm:max-w-[80%]">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-[#00264b]">ORCA AI Engine</span>
+                            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded text-[9px] uppercase">Verified</span>
+                        </div>
+                        <!-- Audio Readout Button -->
+                        <button onclick="readAloudText(decodeURIComponent('${safeTextForAudio}'))" title="Listen Vernacular Audio" class="flex items-center gap-1 text-[11px] font-bold text-cyan-700 hover:text-cyan-900 bg-cyan-50 px-2 py-0.5 rounded-md border border-cyan-200 transition-colors">
+                            <span class="material-symbols-outlined text-sm">volume_up</span> Read Out
+                        </button>
+                    </div>
+                    
+                    <div class="chat-bubble-bot bg-slate-50 border border-slate-200 p-3.5 sm:p-4 rounded-2xl text-xs sm:text-sm text-slate-800 leading-relaxed shadow-xs">
+                        <div class="space-y-1.5">${formattedAnswer}</div>
+                        ${pfzBadge}
+                        ${routeBadge}
+                    </div>
+
+                    <!-- Sources & Telemetry Footnote -->
+                    <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5 flex-wrap">
+                        <span>ISRO Oceansat-3</span> · <span>INCOIS PFZ</span> · <span>Open-Meteo Marine</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+
+            // Render Chart if chart_data exists
+            if (data.chart_data && data.chart_data.length > 0) {
+                renderWaveChart(data.chart_data);
+            }
+        }
+
+        // Wave Chart Rendering with Chart.js
+        function renderWaveChart(chartData) {
+            const drawer = document.getElementById('chart-drawer');
+            drawer.classList.remove('hidden');
+
+            const labels = chartData.map(d => d.time || d.hour || '');
+            const wavePoints = chartData.map(d => d.wave_height !== undefined ? d.wave_height : d.wave_height_m);
+
+            const ctx = document.getElementById('waveChart').getContext('2d');
+            if (waveChartInstance) waveChartInstance.destroy();
+
+            waveChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Wave Height (m)',
+                        data: wavePoints,
+                        borderColor: '#0284c7',
+                        backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                        fill: true,
+                        tension: 0.35,
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#00264b'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            suggestedMax: 2.5,
+                            ticks: { font: { size: 10 } }
+                        },
+                        x: {
+                            ticks: { font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Submit Prompt Function
+        async function submitPrompt(query) {
+            if (!query || !query.trim()) return;
+            const port = window.getActivePort();
+            const BASE_URL = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
+
+            appendUserMessage(query);
+            document.getElementById('user-input').value = '';
+            setStepperState(true);
+
+            try {
+                const res = await fetch(`${BASE_URL}/api/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: query,
+                        lat: port.lat,
+                        lon: port.lon,
+                        port_name: port.id,
+                        history: conversationHistory.slice(-6),
+                        username: localStorage.getItem('orca_username') || 'Guest'
+                    })
+                });
+
+                setStepperState(false);
+
+                if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+                const data = await res.json();
+
+                conversationHistory.push({ role: 'user', text: query });
+                conversationHistory.push({ role: 'bot', text: data.answer || '' });
+
+                appendBotMessage(data);
+
+            } catch (err) {
+                setStepperState(false);
+                const container = document.getElementById('chat-messages');
+                const errDiv = document.createElement('div');
+                errDiv.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between gap-2';
+                errDiv.innerHTML = `
+                    <span><b>Server Connection Error:</b> Could not reach backend at ${BASE_URL}.</span>
+                    <button onclick="submitPrompt('${query.replace(/'/g, "\\'")}')" class="px-2.5 py-1 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 text-xs">Retry</button>
+                `;
+                container.appendChild(errDiv);
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        function handleSend() {
+            const val = document.getElementById('user-input').value;
+            submitPrompt(val);
+        }
+
+        document.getElementById('user-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+
+        // Simple Markdown Formatter
+        function formatMarkdown(text) {
+            if (!text) return '';
+            let html = escapeHtml(text);
+            // bold
+            html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+            // italic
+            html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
+            // list items
+            html = html.replace(/^[•\-\*]\s+(.*)$/gm, '<li class="ml-3">$1</li>');
+            // line breaks
+            html = html.replace(/\n/g, '<br/>');
+            return html;
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // Port Change Event Listener
+        window.addEventListener('orca:port_changed', () => {
+            syncAdvisorHarbor();
+        });
+
+        // On Load: Auto-execute URL param (?q=...) if present
+        document.addEventListener('DOMContentLoaded', () => {
+            syncAdvisorHarbor();
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryParam = urlParams.get('q');
+            if (queryParam && queryParam.trim()) {
+                document.getElementById('user-input').value = queryParam;
+                setTimeout(() => {
+                    submitPrompt(queryParam);
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>
