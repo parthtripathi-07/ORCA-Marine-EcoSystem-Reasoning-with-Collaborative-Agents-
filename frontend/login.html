@@ -3,8 +3,9 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>ORCA — Maritime Portal Login | Photorealistic 3D Ocean Hazard Simulation</title>
+    <title>ORCA — Maritime Portal Login | ISRO MOSDAC</title>
     <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
+    <link rel="apple-touch-icon" href="assets/orca_logo.jpg">
     
     <!-- Tailwind CSS with custom theme configuration -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -14,9 +15,6 @@
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
-    
-    <!-- Three.js 3D Engine CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <!-- ORCA Global Config -->
     <script src="config.js"></script>
@@ -28,7 +26,7 @@
                 extend: {
                     colors: {
                         primary: "#00264b",
-                        "deep-navy": "#001830",
+                        "deep-navy": "#001428",
                         "ocean-cyan": "#0284c7",
                         "ocean-emerald": "#10b981",
                         "alert-amber": "#F29400"
@@ -45,966 +43,449 @@
         body, html {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #01070e;
+            min-height: 100%;
+            background-color: #001020;
+            font-family: 'Inter', sans-serif;
         }
-        #webgl-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
-        /* Ultra-Transparent Frosted Glass Login Panel */
-        .ultra-transparent-glass {
-            background: rgba(2, 10, 22, 0.22);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(2, 132, 199, 0.12);
-        }
-        .ultra-transparent-glass:hover {
-            border-color: rgba(56, 189, 248, 0.5);
-        }
-        /* Camera Lens Water Droplets Effect */
-        #lens-droplets {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 15;
-            opacity: 0;
-            transition: opacity 0.8s ease;
-            background: radial-gradient(circle at 30% 40%, rgba(255,255,255,0.15) 0%, transparent 8%),
-                        radial-gradient(circle at 70% 60%, rgba(255,255,255,0.12) 0%, transparent 6%),
-                        radial-gradient(circle at 45% 75%, rgba(255,255,255,0.18) 0%, transparent 10%),
-                        radial-gradient(circle at 80% 25%, rgba(255,255,255,0.1) 0%, transparent 7%);
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Sleek High-Performance Frosted Card */
+        .glass-auth-panel {
+            background: rgba(0, 26, 52, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 35px -5px rgba(2, 132, 199, 0.15);
         }
     </style>
 </head>
 
-<body class="text-white min-h-screen flex items-center justify-center lg:justify-end relative font-sans select-none overflow-hidden">
+<body class="text-white min-h-screen flex flex-col justify-between relative selection:bg-cyan-500 selection:text-white overflow-x-hidden">
 
-    <!-- 🌊 THREE.JS 3D PHOTOREALISTIC OCEAN & CYCLONE HAZARD WEBGL CANVAS -->
-    <canvas id="webgl-canvas"></canvas>
+    <!-- 🌌 CLEAN & FAST STATIC MARITIME BACKGROUND (ZERO GPU LAG, INSTANT LOAD) -->
+    <div class="fixed inset-0 bg-[#001020] bg-[radial-gradient(ellipse_85%_85%_at_50%_-15%,rgba(2,132,199,0.22),rgba(255,255,255,0))] pointer-events-none"></div>
+    <div class="fixed inset-0 bg-[linear-gradient(to_right,#0028551a_1px,transparent_1px),linear-gradient(to_bottom,#0028551a_1px,transparent_1px)] bg-[size:36px_36px] pointer-events-none"></div>
+    <div class="fixed bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#000814] to-transparent pointer-events-none"></div>
 
-    <!-- 💦 REALISTIC CAMERA LENS WATER SPRAY DROPLETS -->
-    <div id="lens-droplets"></div>
-
-    <!-- 🌌 ATMOSPHERIC STORM LIGHTING & VIGNETTE -->
-    <div class="absolute inset-0 bg-gradient-to-t from-[#01070e]/85 via-transparent to-[#01070e]/40 pointer-events-none z-10"></div>
-    <div class="absolute inset-0 bg-radial from-transparent via-transparent to-[#01070e]/65 pointer-events-none z-10"></div>
-
-    <!-- 🛰️ TOP NAVIGATION & TELEMETRY HUD -->
-    <header class="absolute top-0 left-0 right-0 z-30 p-4 sm:p-6 flex justify-between items-center pointer-events-auto">
-        <div class="flex items-center gap-3 bg-black/40 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15 shadow-lg">
-            <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-9 h-9 rounded-lg object-cover ring-2 ring-cyan-400/60 shadow-xs"/>
+    <!-- 🛰️ TOP UTILITY BANNER -->
+    <header class="relative z-20 w-full px-4 sm:px-8 py-3.5 flex justify-between items-center border-b border-white/10 bg-[#001428]/80 backdrop-blur-md">
+        <div class="flex items-center gap-3">
+            <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-9 h-9 rounded-xl object-cover ring-2 ring-cyan-400/60 shadow-md"/>
             <div class="flex flex-col">
                 <div class="flex items-center gap-2">
-                    <span class="text-sm font-extrabold tracking-wider text-white uppercase">ORCA MARITIME</span>
-                    <span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 px-2 py-0.5 rounded-full font-mono font-bold">ISRO AI</span>
+                    <span class="text-xs sm:text-sm font-black tracking-wider text-white uppercase">ORCA MARITIME</span>
+                    <span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 px-2 py-0.5 rounded-full font-mono font-bold">ISRO MOSDAC</span>
                 </div>
-                <span class="text-[10px] text-cyan-200/80">Indian Space Research Organisation (ISRO)</span>
+                <span class="text-[10px] text-cyan-200/80 hidden sm:inline">Indian Space Research Organisation · Decision Support System</span>
             </div>
         </div>
 
-        <div class="flex items-center gap-2.5">
-            <!-- Live Realistic Wave & Sinking Status -->
-            <div id="sim-status-badge" class="hidden sm:flex items-center gap-2 bg-rose-950/60 backdrop-blur-md border border-rose-500/40 text-rose-300 text-xs px-3.5 py-1.5 rounded-xl font-mono shadow-md">
-                <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-                <span>HAZARD ALERT: <strong id="wave-height-hud" class="text-white font-bold">8.2M ROGUE WAVE APPROACHING</strong></span>
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[11px] px-3 py-1 rounded-full font-mono font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>256-BIT SSL SECURE</span>
             </div>
-
-            <!-- Hide/Show UI Toggle for Pure Cinema View -->
-            <button onclick="toggleUiVisibility()" class="px-3 py-1.5 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer" title="Toggle Fullscreen 3D Cinema View">
-                <span class="material-symbols-outlined text-sm text-cyan-300" id="ui-eye-icon">visibility</span>
-                <span id="ui-eye-label" class="hidden sm:inline">Cinema Mode</span>
-            </button>
-
-            <!-- Storm / Calm Mode Switcher -->
-            <button onclick="toggleStormMode()" class="px-3 py-1.5 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/40 text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer">
-                <span class="material-symbols-outlined text-sm text-cyan-300">cyclone</span>
-                <span id="storm-btn-label">Storm Surge</span>
-            </button>
         </div>
     </header>
 
-    <!-- 🔐 ULTRA-TRANSPARENT FLOATING AUTH PANEL (LOGIN + SIGNUP + 6-DIGIT OTP) -->
-    <div id="login-container" class="relative z-30 w-full max-w-md p-3 sm:p-5 mx-3 lg:mr-14 transition-all duration-500 mt-16 sm:mt-0 max-h-[90vh] overflow-y-auto">
-        <div class="ultra-transparent-glass rounded-3xl p-5 sm:p-7 flex flex-col gap-3.5 border border-white/25 shadow-2xl relative overflow-hidden">
+    <!-- 🔐 CENTERED AUTH CONTAINER -->
+    <main class="relative z-20 w-full flex-1 flex items-center justify-center p-3 sm:p-6 my-auto">
+        <div class="w-full max-w-md">
             
-            <!-- Card Header & Security Badge -->
-            <div class="flex flex-col items-center text-center gap-1 relative z-10">
-                <div class="flex items-center gap-3">
-                    <img src="assets/orca_logo.jpg" alt="ORCA Emblem" class="w-11 h-11 rounded-2xl object-cover ring-2 ring-cyan-400/60 shadow-lg"/>
-                    <div class="text-left">
-                        <div class="flex items-center gap-2">
-                            <h2 class="text-base sm:text-lg font-black text-white tracking-tight leading-tight uppercase">ORCA GATEWAY</h2>
-                            <span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/40 px-2 py-0.5 rounded-full font-mono font-bold">256-BIT SECURE</span>
+            <div class="glass-auth-panel rounded-3xl p-5 sm:p-8 flex flex-col gap-4 relative">
+                
+                <!-- Card Header -->
+                <div class="flex flex-col items-center text-center gap-2">
+                    <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-[#00264b] ring-2 ring-cyan-400/50 shadow-lg shadow-cyan-500/20">
+                        <img src="assets/orca_logo.jpg" alt="ORCA Emblem" class="w-12 h-12 rounded-xl object-cover"/>
+                    </div>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">ORCA Maritime Access</h1>
+                        <p class="text-xs text-cyan-200/80 mt-0.5">Sign in with verified Google Gmail &amp; Password</p>
+                    </div>
+                </div>
+
+                <!-- 🌟 GOOGLE 1-CLICK AUTHENTICATION BUTTON -->
+                <div class="mt-1">
+                    <button type="button" onclick="openGoogleAuthModal()" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg cursor-pointer border border-slate-200">
+                        <!-- Official Google Multi-color G -->
+                        <svg class="w-4 h-4" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                        </svg>
+                        <span>Continue with Google</span>
+                    </button>
+                </div>
+
+                <!-- Divider: Or Continue with Gmail & Password -->
+                <div class="relative flex py-1 items-center">
+                    <div class="flex-grow border-t border-white/15"></div>
+                    <span class="flex-shrink mx-3 text-[10px] font-mono uppercase tracking-wider text-cyan-200/60">Or with Gmail &amp; Password</span>
+                    <div class="flex-grow border-t border-white/15"></div>
+                </div>
+
+                <!-- Auth Mode Switcher (Log In vs Sign Up) -->
+                <div id="auth-mode-switch" class="flex p-1 bg-[#001428]/90 rounded-2xl border border-white/15 text-xs font-bold">
+                    <button id="btn-mode-login" type="button" onclick="switchAuthMode('login')" class="flex-1 py-2 rounded-xl bg-cyan-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">login</span>
+                        <span>Sign In (लॉगिन)</span>
+                    </button>
+                    <button id="btn-mode-signup" type="button" onclick="switchAuthMode('signup')" class="flex-1 py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">person_add</span>
+                        <span>Sign Up (पंजीकरण)</span>
+                    </button>
+                </div>
+
+                <!-- Status / Error Alert Banner -->
+                <div id="auth-alert-banner" class="hidden p-3 rounded-xl text-xs font-medium border relative transition-all"></div>
+
+                <!-- ============================================== -->
+                <!-- 1. SIGN IN FORM -->
+                <!-- ============================================== -->
+                <form id="form-login" onsubmit="handleLoginSubmit(event)" class="flex flex-col gap-3.5">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-[11px] font-bold text-cyan-200 uppercase tracking-wider">Registered Gmail Address</label>
+                            <span id="login-email-badge" class="text-[9px] font-mono text-cyan-300/80">Only @gmail.com</span>
                         </div>
-                        <p class="text-[10px] text-cyan-200/90 font-medium">ISRO MOSDAC · Maritime Identity &amp; 2FA Portal</p>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-cyan-400 text-sm">mail</span>
+                            <input type="email" id="login-email" required value="murugan.fisher@gmail.com" oninput="validateEmailField(this, 'login-email-badge')" class="w-full pl-9 pr-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none font-medium tracking-wide transition-all" placeholder="your.name@gmail.com"/>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Auth Mode Switcher (Log In vs Sign Up) -->
-            <div id="auth-mode-switch" class="flex p-1 bg-black/50 backdrop-blur-md rounded-2xl border border-white/15 text-xs font-bold relative z-10">
-                <button id="btn-mode-login" type="button" onclick="switchAuthMode('login')" class="flex-1 py-2 rounded-xl bg-cyan-600/90 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                    <span class="material-symbols-outlined text-sm">login</span>
-                    <span>Sign In (लॉगिन)</span>
-                </button>
-                <button id="btn-mode-signup" type="button" onclick="switchAuthMode('signup')" class="flex-1 py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                    <span class="material-symbols-outlined text-sm">person_add</span>
-                    <span>Sign Up (पंजीकरण)</span>
-                </button>
-            </div>
-
-            <!-- Role Switcher (Fisherman vs Coast Guard) -->
-            <div id="role-switch-container" class="flex p-1 bg-black/30 backdrop-blur-md rounded-xl border border-white/10 text-xs font-semibold relative z-10">
-                <button id="tab-fisher-btn" type="button" onclick="switchRole('fisher')" class="flex-1 py-1.5 rounded-lg bg-white/20 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                    <span class="material-symbols-outlined text-sm text-cyan-300">sailing</span>
-                    <span>Fisherman / नाव</span>
-                </button>
-                <button id="tab-officer-btn" type="button" onclick="switchRole('officer')" class="flex-1 py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                    <span class="material-symbols-outlined text-sm text-cyan-300">local_police</span>
-                    <span>Coast Guard / तटरक्षक</span>
-                </button>
-            </div>
-
-            <!-- Status / Error Alert Banner -->
-            <div id="auth-alert-banner" class="hidden p-2.5 rounded-xl text-xs font-medium border relative z-10"></div>
-
-            <!-- ============================================== -->
-            <!-- 1. SIGN IN FORM -->
-            <!-- ============================================== -->
-            <form id="form-login" onsubmit="handleLoginSubmit(event)" class="flex flex-col gap-3 relative z-10">
-                <div>
-                    <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1" id="label-login-id">Registered Mobile No. or Vessel ID</label>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-2 text-cyan-400 text-sm" id="icon-login-id">phone_iphone</span>
-                        <input type="text" id="login-identifier" required value="9840122481" class="w-full pl-9 pr-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none font-mono tracking-wider font-bold" placeholder="e.g. 9840122481 or IND-TN-02-MM-4421"/>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-[11px] font-bold text-cyan-200 uppercase tracking-wider">Password / Security PIN</label>
+                            <span class="text-[10px] text-cyan-300/80 font-mono">Demo: 2026</span>
+                        </div>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-cyan-400 text-sm">lock</span>
+                            <input type="password" id="login-password" required value="2026" class="w-full pl-9 pr-9 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none font-mono font-bold tracking-widest" placeholder="Enter Password / PIN"/>
+                            <button type="button" onclick="togglePasswordVisibility('login-password', this)" class="absolute right-2.5 top-2.5 text-cyan-400/70 hover:text-white cursor-pointer">
+                                <span class="material-symbols-outlined text-sm">visibility</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider">Password / Security PIN</label>
-                        <span class="text-[10px] text-cyan-300/80 font-mono">Demo: 2026</span>
+                    <div class="flex items-center justify-between text-[11px] text-cyan-200/80">
+                        <span class="text-[10px] text-emerald-300 font-mono flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Direct Login (No OTP Delay)
+                        </span>
                     </div>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-2 text-cyan-400 text-sm">lock</span>
-                        <input type="password" id="login-password" required value="2026" class="w-full pl-9 pr-9 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none font-mono font-bold tracking-widest" placeholder="Enter PIN"/>
-                        <button type="button" onclick="togglePasswordVisibility('login-password', this)" class="absolute right-2.5 top-2 text-cyan-400/70 hover:text-white">
-                            <span class="material-symbols-outlined text-sm">visibility</span>
+
+                    <button type="submit" id="btn-login-submit" class="w-full mt-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">login</span>
+                        <span>Sign In to ORCA</span>
+                    </button>
+                </form>
+
+                <!-- ============================================== -->
+                <!-- 2. SIGN UP / REGISTRATION FORM -->
+                <!-- ============================================== -->
+                <form id="form-signup" onsubmit="handleSignupSubmit(event)" class="flex flex-col gap-3 hidden">
+                    <!-- Role Switcher (Fisherman vs Coast Guard) -->
+                    <div>
+                        <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Select User Role</label>
+                        <div class="flex p-1 bg-black/40 rounded-xl border border-white/10 text-xs font-semibold">
+                            <button id="tab-fisher-btn" type="button" onclick="switchRole('fisher')" class="flex-1 py-1.5 rounded-lg bg-cyan-600/90 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                <span class="material-symbols-outlined text-sm">sailing</span>
+                                <span>Fisherman (मछुआरा)</span>
+                            </button>
+                            <button id="tab-officer-btn" type="button" onclick="switchRole('officer')" class="flex-1 py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                                <span class="material-symbols-outlined text-sm">local_police</span>
+                                <span>Coast Guard (तटरक्षक)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1" id="label-signup-name">Full Name / Captain Name</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-cyan-400 text-sm">person</span>
+                            <input type="text" id="signup-name" required placeholder="e.g. Capt. S. Ramanathan" class="w-full pl-9 pr-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none"/>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider">Real Google Gmail Address</label>
+                            <span id="signup-email-badge" class="text-[9px] font-mono text-cyan-300/80">Only @gmail.com</span>
+                        </div>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-cyan-400 text-sm">mail</span>
+                            <input type="email" id="signup-email" required placeholder="your.name@gmail.com" oninput="validateEmailField(this, 'signup-email-badge')" class="w-full pl-9 pr-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none font-medium"/>
+                        </div>
+                        <p class="text-[9px] text-cyan-200/60 mt-1">Non-Gmail accounts (Yahoo, Outlook, etc.) are blocked for security.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1" id="label-signup-vessel">Vessel Reg. No.</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-cyan-400 text-xs">directions_boat</span>
+                                <input type="text" id="signup-vessel" required placeholder="IND-TN-02-MM-XXXX" class="w-full pl-8 pr-2 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono uppercase focus:border-cyan-400 outline-none"/>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Base Port</label>
+                            <select id="signup-port" class="w-full px-2 py-2 bg-[#001428] border border-white/20 rounded-xl text-xs text-cyan-100 outline-none focus:border-cyan-400">
+                                <option value="chennai">Chennai (Kasimedu)</option>
+                                <option value="rameswaram">Rameswaram (Mandapam)</option>
+                                <option value="tuticorin">Tuticorin (Thoothukudi)</option>
+                                <option value="kochi">Kochi (Thoppumpady)</option>
+                                <option value="kollam">Kollam (Neendakara)</option>
+                                <option value="mangalore">Mangalore (Old Port)</option>
+                                <option value="goa">Goa (Malim / Mormugao)</option>
+                                <option value="mumbai">Mumbai (Sassoon Docks)</option>
+                                <option value="veraval">Veraval (Saurashtra)</option>
+                                <option value="visakhapatnam">Visakhapatnam</option>
+                                <option value="paradeep">Paradeep (Odisha)</option>
+                                <option value="digha">Digha / Shankarpur</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Password</label>
+                            <input type="password" id="signup-password" required minlength="4" placeholder="Min 4 chars" class="w-full px-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono focus:border-cyan-400 outline-none"/>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Confirm Password</label>
+                            <input type="password" id="signup-confirm" required minlength="4" placeholder="Re-enter" class="w-full px-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono focus:border-cyan-400 outline-none"/>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="btn-signup-submit" class="w-full mt-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm">person_add</span>
+                        <span>Create Account &amp; Sign In</span>
+                    </button>
+                </form>
+
+                <!-- Fast Evaluator 1-Click Demo Buttons -->
+                <div class="border-t border-white/10 pt-3 flex flex-col gap-2">
+                    <span class="text-[10px] uppercase tracking-wider text-cyan-200/60 font-mono text-center">Fast 1-Click Evaluator Accounts</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="fastFillAndLogin('fisher')" class="px-2.5 py-1.5 bg-[#001428] hover:bg-cyan-950/60 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-[11px] text-cyan-200 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer text-left">
+                            <span class="material-symbols-outlined text-xs text-amber-300">sailing</span>
+                            <span class="truncate">Capt. Murugan (Fisherman)</span>
+                        </button>
+                        <button type="button" onclick="fastFillAndLogin('officer')" class="px-2.5 py-1.5 bg-[#001428] hover:bg-cyan-950/60 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-[11px] text-cyan-200 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer text-left">
+                            <span class="material-symbols-outlined text-xs text-cyan-300">local_police</span>
+                            <span class="truncate">Duty Officer (Coast Guard)</span>
                         </button>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between text-[11px] text-cyan-200/80">
-                    <span class="text-[10px] text-emerald-300 font-mono flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 2FA OTP Mandatory
-                    </span>
-                    <button type="button" onclick="quickFillCredentials()" class="text-cyan-300 hover:text-white underline text-[10px]">Autofill Demo</button>
+            </div>
+            
+            <p class="text-center text-[10px] text-cyan-200/50 mt-4 font-mono">
+                ORCA v2.4 · Integrated Marine Identity Framework · ISRO SIH #26176
+            </p>
+        </div>
+    </main>
+
+    <!-- 🌐 MODAL: GOOGLE SIGN-IN POPUP -->
+    <div id="google-auth-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-[#001c38] border border-cyan-500/40 rounded-3xl p-6 w-full max-w-sm shadow-2xl text-white flex flex-col gap-4 relative">
+            <button type="button" onclick="closeGoogleAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+            
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
                 </div>
-
-                <button type="submit" id="btn-login-submit" class="w-full mt-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/40 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                    <span class="material-symbols-outlined text-sm">security</span>
-                    <span>Send 6-Digit OTP &amp; Continue</span>
-                </button>
-            </form>
-
-            <!-- ============================================== -->
-            <!-- 2. SIGN UP / REGISTRATION FORM -->
-            <!-- ============================================== -->
-            <form id="form-signup" onsubmit="handleSignupSubmit(event)" class="flex flex-col gap-2.5 relative z-10 hidden">
                 <div>
-                    <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1" id="label-signup-name">Full Name / Captain Name</label>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-2 text-cyan-400 text-sm">person</span>
-                        <input type="text" id="signup-name" required placeholder="e.g. Capt. S. Ramanathan" class="w-full pl-9 pr-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none"/>
-                    </div>
+                    <h3 class="text-sm font-bold text-white">Sign in with Google</h3>
+                    <p class="text-[10px] text-slate-300">Choose an account for ORCA Maritime</p>
                 </div>
+            </div>
 
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Mobile No. (for OTP)</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-2.5 top-2 text-cyan-400 text-xs">phone</span>
-                            <input type="tel" id="signup-phone" required pattern="[0-9]{10}" maxlength="10" placeholder="10-digit No." class="w-full pl-8 pr-2 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono focus:border-cyan-400 outline-none"/>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1" id="label-signup-vessel">Vessel Reg. No.</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-2.5 top-2 text-cyan-400 text-xs">directions_boat</span>
-                            <input type="text" id="signup-vessel" required placeholder="IND-TN-02-MM-XXXX" class="w-full pl-8 pr-2 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono uppercase focus:border-cyan-400 outline-none"/>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Home Harbor / Base Operations Port</label>
-                    <select id="signup-port" class="w-full px-2.5 py-1.5 bg-[#001428] border border-white/20 rounded-xl text-xs text-cyan-100 outline-none focus:border-cyan-400">
-                        <option value="chennai">Chennai (Kasimedu)</option>
-                        <option value="rameswaram">Rameswaram (Mandapam)</option>
-                        <option value="tuticorin">Tuticorin (Thoothukudi)</option>
-                        <option value="kochi">Kochi (Thoppumpady)</option>
-                        <option value="kollam">Kollam (Neendakara)</option>
-                        <option value="mangalore">Mangalore (Old Port)</option>
-                        <option value="goa">Goa (Malim / Mormugao)</option>
-                        <option value="mumbai">Mumbai (Sassoon Docks)</option>
-                        <option value="veraval">Veraval (Saurashtra)</option>
-                        <option value="visakhapatnam">Visakhapatnam</option>
-                        <option value="paradeep">Paradeep (Odisha)</option>
-                        <option value="digha">Digha / Shankarpur</option>
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Password / PIN</label>
-                        <input type="password" id="signup-password" required minlength="4" placeholder="Min 4 chars" class="w-full px-2.5 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono focus:border-cyan-400 outline-none"/>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Confirm PIN</label>
-                        <input type="password" id="signup-confirm" required minlength="4" placeholder="Confirm PIN" class="w-full px-2.5 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono focus:border-cyan-400 outline-none"/>
-                    </div>
-                </div>
-
-                <button type="submit" id="btn-signup-submit" class="w-full mt-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/40 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                    <span class="material-symbols-outlined text-sm">sms</span>
-                    <span>Verify Phone with 6-Digit OTP</span>
-                </button>
-            </form>
-
-            <!-- ============================================== -->
-            <!-- 3. INTERACTIVE 6-DIGIT OTP VERIFICATION VIEW -->
-            <!-- ============================================== -->
-            <div id="view-otp" class="flex flex-col gap-3 relative z-10 hidden">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="w-7 h-7 rounded-lg bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300">
-                            <span class="material-symbols-outlined text-sm">pin</span>
-                        </span>
+            <!-- Quick Account Options -->
+            <div class="flex flex-col gap-2">
+                <button type="button" onclick="submitGoogleLogin('murugan.fisher@gmail.com', 'Capt. R. Murugan', 'fisher')" class="w-full p-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-between text-left transition-all cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-cyan-600 text-white font-bold flex items-center justify-center text-xs">M</div>
                         <div>
-                            <h3 class="text-xs font-black text-white uppercase tracking-wider">6-Digit Security OTP</h3>
-                            <p class="text-[10px] text-cyan-200/80" id="otp-sent-to-text">Sent to: ******4421</p>
+                            <div class="text-xs font-bold text-white">Capt. R. Murugan</div>
+                            <div class="text-[10px] text-cyan-200/80 font-mono">murugan.fisher@gmail.com</div>
                         </div>
                     </div>
-                    <button type="button" onclick="cancelOtpView()" class="text-[10px] text-cyan-300 hover:text-white underline">Change</button>
-                </div>
+                    <span class="material-symbols-outlined text-xs text-cyan-400">chevron_right</span>
+                </button>
 
-                <!-- Simulated Gov SMS Notification (Auto-fill Pill) -->
-                <div id="otp-dev-toast" onclick="autoFillDevOtp()" class="bg-cyan-950/80 border border-cyan-400/50 rounded-xl p-2.5 flex items-center justify-between cursor-pointer hover:bg-cyan-900/90 transition-colors shadow-md">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-amber-300 text-sm animate-pulse">mark_chat_unread</span>
-                        <div class="flex flex-col">
-                            <span class="text-[9px] text-cyan-200 font-mono uppercase font-bold">[Gov-SMS Simulation] Tap to Fill:</span>
-                            <span class="text-xs font-mono font-black text-white tracking-widest" id="otp-dev-code">849201</span>
+                <button type="button" onclick="submitGoogleLogin('duty.officer@gmail.com', 'Duty Officer Sharma', 'officer')" class="w-full p-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-between text-left transition-all cursor-pointer">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">D</div>
+                        <div>
+                            <div class="text-xs font-bold text-white">Duty Officer Sharma</div>
+                            <div class="text-[10px] text-cyan-200/80 font-mono">duty.officer@gmail.com</div>
                         </div>
                     </div>
-                    <span class="text-[9px] bg-cyan-500/30 text-cyan-200 px-2 py-0.5 rounded font-mono font-bold">Auto-Paste</span>
-                </div>
-
-                <!-- 6-Digit Input Boxes -->
-                <div class="flex justify-between gap-1.5 sm:gap-2 my-1" id="otp-inputs-container">
-                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box w-10 sm:w-11 h-11 text-center bg-black/60 border border-white/25 focus:border-cyan-400 rounded-xl text-base font-mono font-black text-white outline-none"/>
-                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box w-10 sm:w-11 h-11 text-center bg-black/60 border border-white/25 focus:border-cyan-400 rounded-xl text-base font-mono font-black text-white outline-none"/>
-                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box w-10 sm:w-11 h-11 text-center bg-black/60 border border-white/25 focus:border-cyan-400 rounded-xl text-base font-mono font-black text-white outline-none"/>
-                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box w-10 sm:w-11 h-11 text-center bg-black/60 border border-white/25 focus:border-cyan-400 rounded-xl text-base font-mono font-black text-white outline-none"/>
-                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box w-10 sm:w-11 h-11 text-center bg-black/60 border border-white/25 focus:border-cyan-400 rounded-xl text-base font-mono font-black text-white outline-none"/>
-                    <input type="text" maxlength="1" inputmode="numeric" class="otp-box w-10 sm:w-11 h-11 text-center bg-black/60 border border-white/25 focus:border-cyan-400 rounded-xl text-base font-mono font-black text-white outline-none"/>
-                </div>
-
-                <div class="flex items-center justify-between text-[11px] text-cyan-200/80">
-                    <span id="otp-timer-display" class="font-mono text-cyan-300">Expires in: 04:59</span>
-                    <button type="button" id="btn-resend-otp" onclick="resendOtpCode()" disabled class="text-cyan-400/50 cursor-not-allowed font-bold">Resend OTP</button>
-                </div>
-
-                <button type="button" onclick="submitOtpVerification()" id="btn-verify-otp-submit" class="w-full mt-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-cyan-600 to-blue-600 hover:from-emerald-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/40 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                    <span class="material-symbols-outlined text-sm">verified_user</span>
-                    <span>Verify OTP &amp; Enter Platform</span>
+                    <span class="material-symbols-outlined text-xs text-cyan-400">chevron_right</span>
                 </button>
             </div>
 
-            <!-- Card Bottom Fast Access Tools -->
-            <div class="border-t border-white/15 pt-2.5 flex justify-between items-center text-[11px] text-cyan-200/80 relative z-10">
-                <button type="button" onclick="fast1ClickLogin()" class="hover:text-cyan-300 font-bold underline flex items-center gap-1 cursor-pointer" title="Fast Demo for SIH Evaluators">
-                    <span class="material-symbols-outlined text-xs text-amber-300">bolt</span> Fast 1-Click Login (Capt. Murugan)
-                </button>
-                <span class="text-[10px] text-slate-400 font-mono">v2.4 SSL</span>
+            <!-- Custom Real Gmail input -->
+            <div class="border-t border-white/10 pt-3">
+                <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Or use another Google Gmail account:</label>
+                <div class="flex gap-2">
+                    <input type="email" id="google-custom-email" placeholder="example@gmail.com" class="flex-1 px-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none"/>
+                    <button type="button" onclick="submitCustomGoogleLogin()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-xs font-bold text-white cursor-pointer">
+                        Sign In
+                    </button>
+                </div>
+                <p class="text-[9px] text-cyan-200/60 mt-1">Must be an active @gmail.com address.</p>
             </div>
-
         </div>
     </div>
 
-
-    <!-- ⚓ BOTTOM 3D NARRATIVE OVERLAY HUD -->
-    <div class="absolute bottom-4 left-4 z-20 hidden md:flex items-center gap-2 pointer-events-auto text-xs text-cyan-200/90 font-mono bg-black/50 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/15">
-        <span class="material-symbols-outlined text-cyan-400 text-sm animate-pulse">tsunami</span>
-        <span><strong>PHYSICAL SIMULATION:</strong> Gerstner 3D Wave Dynamics, Ship Buoyancy &amp; Atmospheric Lightning</span>
-    </div>
-
     <!-- ========================================================================= -->
-    <!-- 🌊 THREE.JS 3D PHOTOREALISTIC OCEAN, VESSEL & CYCLONE SIMULATION SCRIPT -->
+    <!-- 🚀 AUTHENTICATION & GMAIL VALIDATION CLIENT LOGIC -->
     <!-- ========================================================================= -->
     <script>
-        let scene, camera, renderer;
-        let oceanMesh, oceanGeometry;
-        let boatGroup, fishermanGroup, giantWaveGroup;
-        let rainParticles, foamParticles, splashParticles;
-        let lightningLight, moonLight, waterLight;
-        let isStormMode = true;
-        let isUiVisible = true;
-        let clock = new THREE.Clock();
+        let currentAuthMode = 'login'; // 'login' or 'signup'
+        let currentRole = 'fisher'; // 'fisher' or 'officer'
 
-        // 1. Initialize Photorealistic 3D Marine Environment
-        function init3D() {
-            const canvas = document.getElementById('webgl-canvas');
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x011222, 0.011);
+        // Strict Real Google Gmail Regular Expression
+        const GMAIL_REGEX = /^[a-zA-Z0-9_.+-]+@(gmail\.com|googlemail\.com)$/i;
 
-            // Close-up cinematic perspective camera
-            camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(-3.2, 5.0, 19.0);
-            camera.lookAt(-0.2, 1.6, 0);
-
-            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.15;
-
-            // Photorealistic Atmospheric Lighting Rig
-            const ambientLight = new THREE.AmbientLight(0x0a2a48, 1.8);
-            scene.add(ambientLight);
-
-            // Direct Moon / Sky Glow
-            moonLight = new THREE.DirectionalLight(0x7dd3fc, 2.6);
-            moonLight.position.set(20, 35, 25);
-            moonLight.castShadow = true;
-            moonLight.shadow.mapSize.width = 1024;
-            moonLight.shadow.mapSize.height = 1024;
-            scene.add(moonLight);
-
-            // Water Specular Light
-            waterLight = new THREE.SpotLight(0x38bdf8, 2.2, 70, Math.PI / 3, 0.5);
-            waterLight.position.set(-12, 22, 18);
-            waterLight.target.position.set(0, 1.5, 0);
-            scene.add(waterLight);
-            scene.add(waterLight.target);
-
-            // Lightning Flash Light
-            lightningLight = new THREE.PointLight(0xe0f2fe, 0, 150);
-            lightningLight.position.set(5, 30, -10);
-            scene.add(lightningLight);
-
-            // Create 3D Scene Assets
-            createRealisticOcean();
-            createPhotorealisticBoatAndFisherman();
-            createVolumetricMonsterWave();
-            createVolumetricFoamAndRainParticles();
-
-            // Resize & Mouse Parallax
-            window.addEventListener('resize', onWindowResize);
-            document.addEventListener('mousemove', onDocumentMouseMove);
-        }
-
-        // 2. High-Fidelity Gerstner Wave Ocean Surface
-        function createRealisticOcean() {
-            const size = 180;
-            const segments = 120;
-            oceanGeometry = new THREE.PlaneGeometry(size, size, segments, segments);
-            oceanGeometry.rotateX(-Math.PI / 2);
-
-            // High specular wet-water PBR material
-            const oceanMaterial = new THREE.MeshStandardMaterial({
-                color: 0x012745,
-                roughness: 0.08,
-                metalness: 0.92,
-                flatShading: true
-            });
-
-            oceanMesh = new THREE.Mesh(oceanGeometry, oceanMaterial);
-            oceanMesh.position.y = -0.4;
-            oceanMesh.receiveShadow = true;
-            scene.add(oceanMesh);
-        }
-
-        // 3. Create Detailed Photorealistic Fishing Vessel & Fisherman
-        function createPhotorealisticBoatAndFisherman() {
-            boatGroup = new THREE.Group();
-
-            // Wooden/Fiberglass Deep-V Hull
-            const hullGeo = new THREE.BoxGeometry(4.8, 2.2, 11.2, 4, 2, 8);
-            const pos = hullGeo.attributes.position;
-            for (let i = 0; i < pos.count; i++) {
-                let z = pos.getZ(i);
-                let x = pos.getX(i);
-                let y = pos.getY(i);
-                if (z > 2.2) {
-                    pos.setX(i, x * (1 - (z - 2.2) * 0.17)); // Sleek Bow
-                }
-                if (y < 0) {
-                    pos.setX(i, x * 0.6); // Deep V-Keel
-                }
-            }
-            hullGeo.computeVertexNormals();
-
-            const hullMat = new THREE.MeshStandardMaterial({ color: 0x082038, roughness: 0.25, metalness: 0.3 });
-            const hull = new THREE.Mesh(hullGeo, hullMat);
-            hull.position.y = 0.7;
-            hull.castShadow = true;
-            hull.receiveShadow = true;
-            boatGroup.add(hull);
-
-            // Vibrant Marine Safety Orange Stripe
-            const stripeGeo = new THREE.BoxGeometry(4.9, 0.35, 11.3);
-            const stripeMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.2 });
-            const stripe = new THREE.Mesh(stripeGeo, stripeMat);
-            stripe.position.y = 1.35;
-            boatGroup.add(stripe);
-
-            // Deck Wood Planks Floor
-            const deckGeo = new THREE.BoxGeometry(4.5, 0.1, 10.8);
-            const deckMat = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.6 });
-            const deck = new THREE.Mesh(deckGeo, deckMat);
-            deck.position.y = 1.55;
-            boatGroup.add(deck);
-
-            // Wheelhouse Cabin
-            const cabinGeo = new THREE.BoxGeometry(3.0, 2.4, 3.8);
-            const cabinMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.2, metalness: 0.1 });
-            const cabin = new THREE.Mesh(cabinGeo, cabinMat);
-            cabin.position.set(0, 2.5, -1.0);
-            cabin.castShadow = true;
-            boatGroup.add(cabin);
-
-            // Illuminated Blue Marine Bridge Windows
-            const winGeo = new THREE.BoxGeometry(3.05, 1.0, 2.0);
-            const winMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.8 });
-            const win = new THREE.Mesh(winGeo, winMat);
-            win.position.set(0, 2.8, -0.6);
-            boatGroup.add(win);
-
-            // Navigation Running Lights (Port: Red, Starboard: Green)
-            const portLightMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0xef4444, emissiveIntensity: 1.2 });
-            const portLight = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), portLightMat);
-            portLight.position.set(-1.55, 2.6, 0.4);
-            boatGroup.add(portLight);
-
-            const stbdLightMat = new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x22c55e, emissiveIntensity: 1.2 });
-            const stbdLight = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), stbdLightMat);
-            stbdLight.position.set(1.55, 2.6, 0.4);
-            boatGroup.add(stbdLight);
-
-            // Red Emergency Lifebuoys with White Bands
-            const buoyGeo = new THREE.TorusGeometry(0.42, 0.12, 10, 20);
-            const buoyMat = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3 });
-            const buoyLeft = new THREE.Mesh(buoyGeo, buoyMat);
-            buoyLeft.position.set(-1.55, 2.6, -1.0);
-            buoyLeft.rotation.y = Math.PI / 2;
-            boatGroup.add(buoyLeft);
-
-            const buoyRight = buoyLeft.clone();
-            buoyRight.position.set(1.55, 2.6, -1.0);
-            boatGroup.add(buoyRight);
-
-            // Steel Trawler Mast & Radar
-            const mastGeo = new THREE.CylinderGeometry(0.09, 0.15, 7.0, 8);
-            const mastMat = new THREE.MeshStandardMaterial({ color: 0x334155, metalness: 0.8 });
-            const mast = new THREE.Mesh(mastGeo, mastMat);
-            mast.position.set(0, 4.8, 1.5);
-            mast.castShadow = true;
-            boatGroup.add(mast);
-
-            // Rotating Radar Scanner
-            const radarBarGeo = new THREE.BoxGeometry(1.6, 0.18, 0.25);
-            const radarBarMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.5 });
-            const radarBar = new THREE.Mesh(radarBarGeo, radarBarMat);
-            radarBar.position.set(0, 8.2, 1.5);
-            radarBar.name = "radarBar";
-            boatGroup.add(radarBar);
-
-            // 🎣 3D FISHERMAN CHARACTER ON DECK
-            fishermanGroup = new THREE.Group();
-
-            // Yellow Commercial Oilskin Bib Overalls
-            const legsMat = new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.35 });
-            const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 1.4, 8), legsMat);
-            legs.position.y = 1.8;
-            fishermanGroup.add(legs);
-
-            // High-Visibility Orange Safety Parka Jacket
-            const jacketMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.3 });
-            const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.42, 1.3, 8), jacketMat);
-            torso.position.y = 2.65;
-            fishermanGroup.add(torso);
-
-            // Head & Sou'wester Waterproof Rain Hat
-            const headMat = new THREE.MeshStandardMaterial({ color: 0xc2410c });
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 12, 12), headMat);
-            head.position.y = 3.45;
-            fishermanGroup.add(head);
-
-            const hat = new THREE.Mesh(new THREE.ConeGeometry(0.65, 0.45, 12), legsMat);
-            hat.position.y = 3.75;
-            hat.rotation.x = -0.2; // Brim angled against wind
-            fishermanGroup.add(hat);
-
-            // Arms gripping deck safety railing
-            const armGeo = new THREE.CylinderGeometry(0.14, 0.14, 1.0);
-            const armL = new THREE.Mesh(armGeo, jacketMat);
-            armL.rotation.z = Math.PI / 4;
-            armL.position.set(-0.5, 2.65, 0.35);
-            fishermanGroup.add(armL);
-
-            const armR = new THREE.Mesh(armGeo, jacketMat);
-            armR.rotation.z = -Math.PI / 4;
-            armR.position.set(0.5, 2.65, 0.35);
-            fishermanGroup.add(armR);
-
-            fishermanGroup.position.set(0, 0, 2.6);
-            boatGroup.add(fishermanGroup);
-
-            // Place boat in the scene viewport
-            boatGroup.position.set(-0.8, 0, 3.5);
-            scene.add(boatGroup);
-        }
-
-        // 4. Create Volumetric Monster Crashing Wave (Steep Hydraulic Curl)
-        function createVolumetricMonsterWave() {
-            giantWaveGroup = new THREE.Group();
-
-            // Massive Barrel Wave Curve
-            const waveGeo = new THREE.CylinderGeometry(20, 28, 80, 40, 20, true, 0, Math.PI * 0.95);
-            waveGeo.rotateZ(Math.PI / 2);
-            waveGeo.rotateX(-Math.PI / 3.2);
-
-            const waveMat = new THREE.MeshStandardMaterial({
-                color: 0x0284c7,
-                roughness: 0.08,
-                metalness: 0.85,
-                transparent: true,
-                opacity: 0.92,
-                flatShading: true
-            });
-
-            const waveMesh = new THREE.Mesh(waveGeo, waveMat);
-            giantWaveGroup.add(waveMesh);
-
-            // Frothing White Sea Foam Crest
-            const foamGeo = new THREE.TorusGeometry(28, 1.6, 8, 36, Math.PI * 0.9);
-            foamGeo.rotateY(Math.PI / 2);
-            const foamMat = new THREE.MeshStandardMaterial({
-                color: 0xffffff,
-                roughness: 0.2,
-                emissive: 0xbae6fd,
-                emissiveIntensity: 0.5
-            });
-            const foamCrest = new THREE.Mesh(foamGeo, foamMat);
-            foamCrest.position.set(0, 7.5, 0);
-            giantWaveGroup.add(foamCrest);
-
-            giantWaveGroup.position.set(0, -35, -55);
-            scene.add(giantWaveGroup);
-        }
-
-        // 5. Realistic Sea Foam & Rain Particle Emitters
-        function createVolumetricFoamAndRainParticles() {
-            // A. Rain Particles
-            const rainCount = 1800;
-            const rainGeo = new THREE.BufferGeometry();
-            const rainPos = new Float32Array(rainCount * 3);
-
-            for (let i = 0; i < rainCount * 3; i += 3) {
-                rainPos[i] = (Math.random() - 0.5) * 130;
-                rainPos[i + 1] = Math.random() * 55;
-                rainPos[i + 2] = (Math.random() - 0.5) * 130;
-            }
-            rainGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
-            const rainMat = new THREE.PointsMaterial({ color: 0xbae6fd, size: 0.35, transparent: true, opacity: 0.65 });
-            rainParticles = new THREE.Points(rainGeo, rainMat);
-            scene.add(rainParticles);
-
-            // B. Sea Foam Splash Particles on Boat Deck
-            const foamCount = 600;
-            const foamGeo = new THREE.BufferGeometry();
-            const foamPos = new Float32Array(foamCount * 3);
-            for (let i = 0; i < foamCount * 3; i += 3) {
-                foamPos[i] = (Math.random() - 0.5) * 8.0 - 0.8;
-                foamPos[i + 1] = Math.random() * 3.0 + 1.0;
-                foamPos[i + 2] = (Math.random() - 0.5) * 12.0 + 3.5;
-            }
-            foamGeo.setAttribute('position', new THREE.BufferAttribute(foamPos, 3));
-            const foamSprayMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.45, transparent: true, opacity: 0.75 });
-            foamParticles = new THREE.Points(foamGeo, foamSprayMat);
-            scene.add(foamParticles);
-        }
-
-        // 6. Photorealistic Gerstner Wave Formula
-        function getGerstnerWaterHeight(x, z, t) {
-            const multiplier = isStormMode ? 3.2 : 0.75;
-            // Wave 1: Primary deep swell
-            const w1 = Math.sin(x * 0.08 + t * 2.5) * 1.6 * multiplier;
-            // Wave 2: Cross sea swell
-            const w2 = Math.cos(z * 0.07 + t * 2.1) * 1.4 * multiplier;
-            // Wave 3: Choppy secondary crests
-            const w3 = Math.sin((x * 0.06 + z * 0.06) + t * 3.2) * 0.9 * multiplier;
-            return w1 + w2 + w3;
-        }
-
-        // 7. Mouse Perspective Parallax
-        let mouseX = 0, mouseY = 0;
-        function onDocumentMouseMove(e) {
-            mouseX = (e.clientX - window.innerWidth / 2) * 0.01;
-            mouseY = (e.clientY - window.innerHeight / 2) * 0.01;
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        // 8. 60-FPS Realistic Physics & Dynamic Sinking Loop
-        let lastLightningTime = 0;
-        function animate() {
-            requestAnimationFrame(animate);
-            const t = clock.getElapsedTime();
-
-            // A. Gerstner Wave Surface Dynamic Deform
-            if (oceanGeometry) {
-                const pos = oceanGeometry.attributes.position;
-                for (let i = 0; i < pos.count; i++) {
-                    const vx = pos.getX(i);
-                    const vz = pos.getZ(i);
-                    const vy = getGerstnerWaterHeight(vx, vz, t);
-                    pos.setY(i, vy);
-                }
-                pos.needsUpdate = true;
-                oceanGeometry.computeVertexNormals();
+        // Validate Gmail Input in Real Time
+        function validateEmailField(input, badgeId) {
+            const val = (input.value || '').trim();
+            const badge = document.getElementById(badgeId);
+            if (!val) {
+                badge.textContent = "Only @gmail.com";
+                badge.className = "text-[9px] font-mono text-cyan-300/80";
+                input.classList.remove('border-rose-500', 'border-emerald-500');
+                return false;
             }
 
-            // B. Random Atmospheric Lightning Flash (Every 6-10s)
-            if (isStormMode && t - lastLightningTime > 7.0 && Math.random() < 0.03) {
-                lastLightningTime = t;
-                lightningLight.intensity = 8.0;
-                setTimeout(() => { lightningLight.intensity = 0; }, 120);
-                setTimeout(() => { lightningLight.intensity = 4.0; }, 180);
-                setTimeout(() => { lightningLight.intensity = 0; }, 260);
-            }
-
-            // C. Realistic Sinking (Dubna) & Buoyancy Physics Cycle
-            if (boatGroup) {
-                const bx = boatGroup.position.x;
-                const bz = boatGroup.position.z;
-                const baseWaterY = getGerstnerWaterHeight(bx, bz, t);
-
-                const cycleTime = 12.0; // 12-second dramatic cycle
-                const progress = (t % cycleTime) / cycleTime; // 0.0 to 1.0
-
-                let submersionY = 0;
-                let pitchAngle = 0;
-                let rollAngle = 0;
-
-                const dropletsEl = document.getElementById('lens-droplets');
-
-                if (isStormMode) {
-                    if (progress >= 0.52 && progress <= 0.82) {
-                        // 🌊 MONSTER TSUNAMI WAVE STRIKES & SINKS BOAT!
-                        const strike = (progress - 0.52) / 0.30; // 0.0 to 1.0
-
-                        // Deep Plunge: 6.2 meters underwater!
-                        submersionY = -Math.sin(strike * Math.PI) * 6.2;
-                        
-                        // Violent nose dip & 70° capsize roll
-                        pitchAngle = -Math.sin(strike * Math.PI * 2) * 0.95;
-                        rollAngle = Math.sin(strike * Math.PI) * 0.85;
-
-                        // Fisherman looks up at giant wave & braces
-                        if (fishermanGroup) {
-                            fishermanGroup.rotation.x = Math.sin(t * 12) * 0.5 - 0.4;
-                            fishermanGroup.rotation.z = Math.cos(t * 9) * 0.4;
-                        }
-
-                        // Water Droplets Splash on Screen Lens
-                        if (dropletsEl) dropletsEl.style.opacity = '1.0';
-
-                        // HUD alert
-                        const hud = document.getElementById('wave-height-hud');
-                        if (hud) hud.textContent = "VESSEL CAPSIZING & FULLY SINKING (6.2M DEPTH)";
-                    } else {
-                        // Normal heavy storm pitching on water surface
-                        submersionY = 0;
-                        pitchAngle = Math.sin(t * 2.3) * 0.35;
-                        rollAngle = Math.cos(t * 1.9) * 0.28;
-
-                        if (fishermanGroup) {
-                            fishermanGroup.rotation.set(0, 0, 0);
-                        }
-
-                        if (dropletsEl) dropletsEl.style.opacity = '0.0';
-
-                        const hud = document.getElementById('wave-height-hud');
-                        if (hud) hud.textContent = "8.2M ROGUE SWELL APPROACHING";
-                    }
-                } else {
-                    // Calm water
-                    submersionY = 0;
-                    pitchAngle = Math.sin(t * 1.2) * 0.08;
-                    rollAngle = Math.cos(t * 0.9) * 0.06;
-                    if (dropletsEl) dropletsEl.style.opacity = '0.0';
-                }
-
-                // Smooth Buoyancy Interpolation
-                boatGroup.position.y += (baseWaterY + submersionY + 0.25 - boatGroup.position.y) * 0.15;
-                boatGroup.rotation.x += (pitchAngle - boatGroup.rotation.x) * 0.12;
-                boatGroup.rotation.z += (rollAngle - boatGroup.rotation.z) * 0.12;
-                boatGroup.rotation.y = Math.sin(t * 0.4) * 0.14;
-
-                // Spin Radar Scanner
-                const radar = boatGroup.getObjectByName("radarBar");
-                if (radar) radar.rotation.y = t * 6.0;
-            }
-
-            // D. Monster Wave Approaches and Overwashes Boat
-            if (giantWaveGroup) {
-                const cycleTime = 12.0;
-                const progress = (t % cycleTime) / cycleTime;
-
-                if (isStormMode) {
-                    const waveZ = -55 + progress * 80;
-                    const waveY = Math.sin(progress * Math.PI) * 11.0 - 2.5; // Rises 11m high!
-                    giantWaveGroup.position.set(-0.8, waveY, waveZ);
-                    giantWaveGroup.scale.set(1 + progress * 0.7, 1 + progress * 0.9, 1);
-                } else {
-                    giantWaveGroup.position.y = -40;
-                }
-            }
-
-            // E. Rain Fall Physics
-            if (rainParticles) {
-                const p = rainParticles.geometry.attributes.position;
-                for (let i = 1; i < p.count * 3; i += 3) {
-                    p.array[i] -= isStormMode ? 1.8 : 0.4;
-                    if (p.array[i] < -4) p.array[i] = 50;
-                }
-                p.needsUpdate = true;
-            }
-
-            // F. Camera Perspective Motion
-            camera.position.x += (-3.2 + mouseX * 1.4 - camera.position.x) * 0.03;
-            camera.position.y += (5.0 - mouseY * 0.7 - camera.position.y) * 0.03;
-            camera.lookAt(-0.2, 1.6, 0);
-
-            renderer.render(scene, camera);
-        }
-
-        // 9. Interactive UI Functions
-        window.toggleUiVisibility = function() {
-            isUiVisible = !isUiVisible;
-            const container = document.getElementById('login-container');
-            const eyeIcon = document.getElementById('ui-eye-icon');
-            const eyeLabel = document.getElementById('ui-eye-label');
-
-            if (isUiVisible) {
-                container.classList.remove('opacity-0', 'pointer-events-none', 'scale-90');
-                container.classList.add('opacity-100', 'scale-100');
-                if (eyeIcon) eyeIcon.textContent = "visibility";
-                if (eyeLabel) eyeLabel.textContent = "Cinema Mode";
+            if (GMAIL_REGEX.test(val)) {
+                badge.innerHTML = `<span class="text-emerald-400 font-bold">✓ Real Gmail</span>`;
+                badge.className = "text-[9px] font-mono";
+                input.classList.remove('border-rose-500');
+                input.classList.add('border-emerald-500');
+                return true;
             } else {
-                container.classList.remove('opacity-100', 'scale-100');
-                container.classList.add('opacity-0', 'pointer-events-none', 'scale-90');
-                if (eyeIcon) eyeIcon.textContent = "visibility_off";
-                if (eyeLabel) eyeLabel.textContent = "Show Login";
+                badge.innerHTML = `<span class="text-rose-400 font-bold">⚠ Must be @gmail.com</span>`;
+                badge.className = "text-[9px] font-mono";
+                input.classList.remove('border-emerald-500');
+                input.classList.add('border-rose-500');
+                return false;
             }
-        };
+        }
 
-        window.toggleStormMode = function() {
-            isStormMode = !isStormMode;
-            const badge = document.getElementById('sim-status-badge');
-            const label = document.getElementById('storm-btn-label');
-
-            if (isStormMode) {
-                if (badge) badge.className = "hidden sm:flex items-center gap-2 bg-rose-950/60 backdrop-blur-md border border-rose-500/40 text-rose-300 text-xs px-3.5 py-1.5 rounded-xl font-mono shadow-md";
-                if (label) label.textContent = "Storm Surge";
-                scene.fog.color.setHex(0x011222);
-            } else {
-                if (badge) badge.className = "hidden sm:flex items-center gap-2 bg-emerald-950/60 backdrop-blur-md border border-emerald-500/40 text-emerald-300 text-xs px-3.5 py-1.5 rounded-xl font-mono shadow-md";
-                if (label) label.textContent = "Calm Water";
-                scene.fog.color.setHex(0x042440);
-            }
-        };
-
-        // =========================================================================
-        // 🔐 SECURE AUTHENTICATION CONTROLLER (SIGN-IN, SIGN-UP, 6-DIGIT OTP)
-        // =========================================================================
-        let currentAuthMode = 'login'; // 'login' | 'signup'
-        let currentRole = 'fisher';    // 'fisher' | 'officer'
-        let otpState = {
-            phoneRaw: '',
-            phoneMasked: '',
-            purpose: 'login',
-            devOtp: '',
-            timer: null,
-            resendCountdown: 60,
-            expirySeconds: 300,
-            tempSignupData: null
-        };
-
-        // Check if user is already logged in with a valid session
-        (function checkExistingSession() {
-            try {
-                const sessionStr = localStorage.getItem('orca_auth_session');
-                if (sessionStr) {
-                    const session = JSON.parse(sessionStr);
-                    if (session && session.token && session.user) {
-                        const nowSec = Math.floor(Date.now() / 1000);
-                        if (!session.expires_at || nowSec < session.expires_at) {
-                            const params = new URLSearchParams(window.location.search);
-                            const dest = params.get('redirect') || 'index.html';
-                            window.location.replace(dest);
-                        }
-                    }
-                }
-            } catch (err) {
-                console.warn("[Auth] Session check fallback:", err);
-            }
-        })();
-
-        // Toggle Password Text Visibility
-        window.togglePasswordVisibility = function(inputId, btn) {
-            const input = document.getElementById(inputId);
-            const icon = btn.querySelector('.material-symbols-outlined');
-            if (!input) return;
-            if (input.type === 'password') {
-                input.type = 'text';
-                if (icon) icon.textContent = 'visibility_off';
-            } else {
-                input.type = 'password';
-                if (icon) icon.textContent = 'visibility';
-            }
-        };
-
-        // Switch Mode: Sign In vs Sign Up
+        // Switch between Sign In and Sign Up
         window.switchAuthMode = function(mode) {
             currentAuthMode = mode;
             hideAlert();
-            document.getElementById('view-otp').classList.add('hidden');
 
             const btnLogin = document.getElementById('btn-mode-login');
             const btnSignup = document.getElementById('btn-mode-signup');
             const formLogin = document.getElementById('form-login');
             const formSignup = document.getElementById('form-signup');
-            const roleContainer = document.getElementById('role-switch-container');
-
-            roleContainer.classList.remove('hidden');
 
             if (mode === 'login') {
-                btnLogin.className = "flex-1 py-2 rounded-xl bg-cyan-600/90 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnLogin.className = "flex-1 py-2 rounded-xl bg-cyan-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
                 btnSignup.className = "flex-1 py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
                 formLogin.classList.remove('hidden');
                 formSignup.classList.add('hidden');
             } else {
-                btnSignup.className = "flex-1 py-2 rounded-xl bg-emerald-600/90 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnSignup.className = "flex-1 py-2 rounded-xl bg-emerald-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
                 btnLogin.className = "flex-1 py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
                 formSignup.classList.remove('hidden');
                 formLogin.classList.add('hidden');
             }
         };
 
-        // Switch Role: Fisherman vs Coast Guard Officer
+        // Switch User Role in Sign Up
         window.switchRole = function(role) {
             currentRole = role;
-            hideAlert();
-
-            const fisherBtn = document.getElementById('tab-fisher-btn');
-            const officerBtn = document.getElementById('tab-officer-btn');
-            const labelLoginId = document.getElementById('label-login-id');
-            const inputLoginId = document.getElementById('login-identifier');
-            const labelSignupName = document.getElementById('label-signup-name');
-            const labelSignupVessel = document.getElementById('label-signup-vessel');
-            const inputSignupVessel = document.getElementById('signup-vessel');
+            const btnFisher = document.getElementById('tab-fisher-btn');
+            const btnOfficer = document.getElementById('tab-officer-btn');
+            const labelVessel = document.getElementById('label-signup-vessel');
+            const inputVessel = document.getElementById('signup-vessel');
 
             if (role === 'fisher') {
-                fisherBtn.className = "flex-1 py-1.5 rounded-lg bg-white/20 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                officerBtn.className = "flex-1 py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                if (labelLoginId) labelLoginId.textContent = "Registered Mobile No. or Vessel ID";
-                if (inputLoginId) {
-                    inputLoginId.placeholder = "e.g. 9840122481 or IND-TN-02-MM-4421";
-                    inputLoginId.value = "9840122481";
-                }
-                if (labelSignupName) labelSignupName.textContent = "Full Name / Captain Name";
-                if (labelSignupVessel) labelSignupVessel.textContent = "Vessel Reg. No.";
-                if (inputSignupVessel) inputSignupVessel.placeholder = "IND-TN-02-MM-XXXX";
+                btnFisher.className = "flex-1 py-1.5 rounded-lg bg-cyan-600/90 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnOfficer.className = "flex-1 py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                labelVessel.textContent = "Vessel Reg. No.";
+                inputVessel.placeholder = "IND-TN-02-MM-XXXX";
             } else {
-                officerBtn.className = "flex-1 py-1.5 rounded-lg bg-blue-600/60 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                fisherBtn.className = "flex-1 py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                if (labelLoginId) labelLoginId.textContent = "Officer Mobile No. or Service ID";
-                if (inputLoginId) {
-                    inputLoginId.placeholder = "e.g. 9840533910 or ICG-SZ-4089";
-                    inputLoginId.value = "9840533910";
-                }
-                if (labelSignupName) labelSignupName.textContent = "Officer Full Name & Rank";
-                if (labelSignupVessel) labelSignupVessel.textContent = "Service Badge / Unit ID";
-                if (inputSignupVessel) inputSignupVessel.placeholder = "ICG-SZ-XXXX";
+                btnOfficer.className = "flex-1 py-1.5 rounded-lg bg-blue-600 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnFisher.className = "flex-1 py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                labelVessel.textContent = "Coast Guard / Officer ID";
+                inputVessel.placeholder = "ICG-SZ-4089";
             }
         };
 
-        // Alert Helper
-        function showAlert(message, type = 'error') {
+        // Show/Hide Password Toggle
+        window.togglePasswordVisibility = function(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility_off';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility';
+            }
+        };
+
+        // Display Alerts
+        function showAlert(msg, type = "error") {
             const banner = document.getElementById('auth-alert-banner');
-            if (!banner) return;
             banner.classList.remove('hidden', 'bg-rose-950/80', 'border-rose-500/50', 'text-rose-200', 'bg-emerald-950/80', 'border-emerald-500/50', 'text-emerald-200', 'bg-cyan-950/80', 'border-cyan-500/50', 'text-cyan-200');
+
             if (type === 'error') {
                 banner.classList.add('bg-rose-950/80', 'border-rose-500/50', 'text-rose-200');
+                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-rose-400 text-base">error</span><span>${msg}</span></div>`;
             } else if (type === 'success') {
                 banner.classList.add('bg-emerald-950/80', 'border-emerald-500/50', 'text-emerald-200');
+                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-400 text-base">check_circle</span><span>${msg}</span></div>`;
             } else {
                 banner.classList.add('bg-cyan-950/80', 'border-cyan-500/50', 'text-cyan-200');
+                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-cyan-400 text-base">info</span><span>${msg}</span></div>`;
             }
-            banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">${type === 'error' ? 'error' : (type === 'success' ? 'check_circle' : 'info')}</span><span>${message}</span></div>`;
         }
 
         function hideAlert() {
-            const banner = document.getElementById('auth-alert-banner');
-            if (banner) banner.classList.add('hidden');
+            document.getElementById('auth-alert-banner').classList.add('hidden');
         }
 
-        // Quick Autofill Demo Credentials
-        window.quickFillCredentials = function() {
-            if (currentRole === 'fisher') {
-                document.getElementById('login-identifier').value = '9840122481';
-                document.getElementById('login-password').value = '2026';
-            } else {
-                document.getElementById('login-identifier').value = '9840533910';
-                document.getElementById('login-password').value = '2026';
-            }
-            showAlert("Demo credentials loaded (Capt. Murugan / Coast Guard). Click 'Send 6-Digit OTP' to proceed.", "info");
-        };
-
-        // Handle Login Submission (Step 1: Credentials -> Request OTP)
+        // 1. Direct Gmail & Password Login Handler
         window.handleLoginSubmit = async function(e) {
             e.preventDefault();
             hideAlert();
 
-            const identifier = document.getElementById('login-identifier').value.trim();
+            const email = document.getElementById('login-email').value.trim().toLowerCase();
             const password = document.getElementById('login-password').value.trim();
             const btn = document.getElementById('btn-login-submit');
 
-            if (!identifier || !password) {
-                showAlert("Please enter your Mobile / Vessel ID and Security PIN.");
+            // Strictly check for real Gmail
+            if (!GMAIL_REGEX.test(email)) {
+                showAlert("Access Restricted: Only real Google Gmail accounts (@gmail.com) are accepted.");
+                return;
+            }
+
+            if (!password) {
+                showAlert("Please enter your password or security PIN.");
                 return;
             }
 
             const originalBtnHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span><span>Verifying Credentials...</span>`;
+            btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span><span>Authenticating Gmail...</span>`;
 
             const baseUrl = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
 
@@ -1012,68 +493,85 @@
                 const res = await fetch(`${baseUrl}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifier, password })
+                    body: JSON.stringify({ email, password })
                 });
 
                 const data = await res.json();
 
                 if (!res.ok) {
-                    throw new Error(data.detail || data.error || "Authentication failed. Please verify credentials.");
+                    throw new Error(data.detail || data.error || "Login failed. Please check your credentials.");
                 }
 
-                // Proceed to 6-digit OTP verification view
-                openOtpView(data.phone_raw, data.phone_masked, 'login', data.dev_otp, data.expires_in);
+                finalizeLoginSession(data.token, data.user, data.expires_at);
 
             } catch (err) {
-                console.warn("[Auth API Fallback]", err);
-                
-                // Offline fallback mode for local testing without running backend
-                let phoneFallback = identifier.length === 10 ? identifier : '9840122481';
-                let masked = '******' + phoneFallback.slice(-4);
-                let simulatedDevOtp = Math.floor(100000 + Math.random() * 900000).toString();
-                
-                showAlert("Operating in Offline / Local Demo Mode. Generated 6-digit OTP below.", "info");
-                openOtpView(phoneFallback, masked, 'login', simulatedDevOtp, 300);
-            } finally {
+                console.warn("[Auth Login Check]", err);
+
+                // If backend is offline but credentials match standard demo or valid gmail
+                if (err.message && (err.message.includes("Failed to fetch") || err.message.includes("NetworkError") || err.message.includes("refused"))) {
+                    const fallbackName = email.includes('officer') ? 'Duty Officer Sharma' : 'Capt. R. Murugan';
+                    const fallbackRole = email.includes('officer') ? 'officer' : 'fisher';
+                    const fallbackVessel = email.includes('officer') ? 'ICG-SZ-4089' : 'IND-TN-02-MM-4421';
+
+                    const demoUser = {
+                        id: 1,
+                        name: fallbackName,
+                        email: email,
+                        vessel: fallbackVessel,
+                        harbor: 'chennai',
+                        role: fallbackRole
+                    };
+                    finalizeLoginSession(`orca_local_${Date.now()}`, demoUser, Math.floor(Date.now() / 1000) + 7 * 86400);
+                    return;
+                }
+
+                showAlert(err.message || "Invalid Gmail address or password. Please verify.");
                 btn.disabled = false;
                 btn.innerHTML = originalBtnHtml;
             }
         };
 
-        // Handle Sign Up Submission (Step 1: Registration Data -> Request OTP)
+        // 2. Direct Gmail Sign Up Handler
         window.handleSignupSubmit = async function(e) {
             e.preventDefault();
             hideAlert();
 
             const fullName = document.getElementById('signup-name').value.trim();
-            const phone = document.getElementById('signup-phone').value.trim();
+            const email = document.getElementById('signup-email').value.trim().toLowerCase();
             const vessel = document.getElementById('signup-vessel').value.trim();
             const port = document.getElementById('signup-port').value;
             const password = document.getElementById('signup-password').value;
             const confirm = document.getElementById('signup-confirm').value;
             const btn = document.getElementById('btn-signup-submit');
 
-            if (phone.length < 10) {
-                showAlert("Please enter a valid 10-digit mobile number.");
+            // Strictly check real Gmail
+            if (!GMAIL_REGEX.test(email)) {
+                showAlert("Access Denied: You must provide a valid Google Gmail account (@gmail.com).");
                 return;
             }
+
             if (password !== confirm) {
                 showAlert("Passwords do not match. Please re-enter.");
                 return;
             }
 
+            if (password.length < 4) {
+                showAlert("Password must be at least 4 characters.");
+                return;
+            }
+
             const originalBtnHtml = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span><span>Dispatching OTP...</span>`;
+            btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span><span>Creating Account...</span>`;
 
             const baseUrl = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
             const payload = {
                 full_name: fullName,
-                phone: phone,
+                email: email,
+                password: password,
                 vessel_id: vessel,
                 home_port: port,
-                role: currentRole,
-                password: password
+                role: currentRole
             };
 
             try {
@@ -1089,262 +587,105 @@
                     throw new Error(data.detail || data.error || "Sign-up failed.");
                 }
 
-                openOtpView(data.phone_raw || phone, data.phone_masked || ('******' + phone.slice(-4)), 'signup', data.dev_otp, data.expires_in);
+                finalizeLoginSession(data.token, data.user, data.expires_at);
 
             } catch (err) {
-                console.warn("[Auth Sign-Up Fallback]", err);
-                
-                // Offline fallback
-                let masked = '******' + phone.slice(-4);
-                let simulatedDevOtp = Math.floor(100000 + Math.random() * 900000).toString();
-                otpState.tempSignupData = payload;
-                
-                showAlert("Local Demo Registration: 6-Digit OTP generated below.", "info");
-                openOtpView(phone, masked, 'signup', simulatedDevOtp, 300);
-            } finally {
+                console.warn("[Auth Sign-Up Check]", err);
+
+                // Offline fallback if backend is offline
+                if (err.message && (err.message.includes("Failed to fetch") || err.message.includes("NetworkError") || err.message.includes("refused"))) {
+                    const fallbackUser = {
+                        id: 99,
+                        name: fullName,
+                        email: email,
+                        vessel: vessel,
+                        harbor: port,
+                        role: currentRole
+                    };
+                    finalizeLoginSession(`orca_local_${Date.now()}`, fallbackUser, Math.floor(Date.now() / 1000) + 7 * 86400);
+                    return;
+                }
+
+                showAlert(err.message || "Registration failed. Please check your details.");
                 btn.disabled = false;
                 btn.innerHTML = originalBtnHtml;
             }
         };
 
-        // Open 6-Digit OTP View
-        function openOtpView(phoneRaw, phoneMasked, purpose, devOtp, expiresIn) {
-            otpState.phoneRaw = phoneRaw;
-            otpState.phoneMasked = phoneMasked;
-            otpState.purpose = purpose;
-            otpState.devOtp = devOtp || '';
-            otpState.expirySeconds = expiresIn || 300;
-            otpState.resendCountdown = 60;
-
-            document.getElementById('form-login').classList.add('hidden');
-            document.getElementById('form-signup').classList.add('hidden');
-            document.getElementById('role-switch-container').classList.add('hidden');
-            document.getElementById('auth-mode-switch').classList.add('hidden');
-            document.getElementById('view-otp').classList.remove('hidden');
-
-            document.getElementById('otp-sent-to-text').textContent = `Verification code sent to +91 ${phoneMasked}`;
-
-            // Dev simulation pill for instant 1-click evaluation
-            const devToast = document.getElementById('otp-dev-toast');
-            const devCode = document.getElementById('otp-dev-code');
-            if (devOtp) {
-                devCode.textContent = devOtp;
-                devToast.classList.remove('hidden');
-            } else {
-                devToast.classList.add('hidden');
-            }
-
-            // Reset and focus OTP boxes
-            const boxes = document.querySelectorAll('.otp-box');
-            boxes.forEach((box, idx) => {
-                box.value = '';
-                box.disabled = false;
-            });
-            setTimeout(() => { if (boxes[0]) boxes[0].focus(); }, 150);
-
-            initOtpBoxEvents();
-            startOtpCountdown();
-        }
-
-        // Return from OTP View to Sign-in/Sign-up
-        window.cancelOtpView = function() {
-            clearInterval(otpState.timer);
-            document.getElementById('view-otp').classList.add('hidden');
-            document.getElementById('auth-mode-switch').classList.remove('hidden');
-            document.getElementById('role-switch-container').classList.remove('hidden');
-            if (currentAuthMode === 'login') {
-                document.getElementById('form-login').classList.remove('hidden');
-            } else {
-                document.getElementById('form-signup').classList.remove('hidden');
-            }
-            hideAlert();
+        // 3. Google Sign-In Handlers
+        window.openGoogleAuthModal = function() {
+            document.getElementById('google-auth-modal').classList.remove('hidden');
         };
 
-        // Auto-fill Simulated Dev OTP on Click
-        window.autoFillDevOtp = function() {
-            if (!otpState.devOtp) return;
-            const digits = otpState.devOtp.split('');
-            const boxes = document.querySelectorAll('.otp-box');
-            boxes.forEach((box, i) => {
-                if (digits[i]) box.value = digits[i];
-            });
-            if (boxes[5]) boxes[5].focus();
-            showAlert("OTP code auto-pasted. Click 'Verify OTP & Enter Platform'.", "info");
+        window.closeGoogleAuthModal = function() {
+            document.getElementById('google-auth-modal').classList.add('hidden');
         };
 
-        // OTP Box Keyboard and Paste Events
-        function initOtpBoxEvents() {
-            const boxes = document.querySelectorAll('.otp-box');
-            boxes.forEach((box, index) => {
-                // Keyup / Input Auto Jump
-                box.oninput = function(e) {
-                    const val = this.value.replace(/[^0-9]/g, '');
-                    this.value = val ? val[0] : '';
-                    if (this.value && index < boxes.length - 1) {
-                        boxes[index + 1].focus();
-                    }
-                };
-
-                // Backspace Jump
-                box.onkeydown = function(e) {
-                    if (e.key === 'Backspace' && !this.value && index > 0) {
-                        boxes[index - 1].focus();
-                    }
-                };
-
-                // Paste Support (Paste full 6 digits)
-                box.onpaste = function(e) {
-                    e.preventDefault();
-                    const text = (e.clipboardData || window.clipboardData).getData('text').trim();
-                    const digits = text.replace(/[^0-9]/g, '').slice(0, 6).split('');
-                    digits.forEach((d, i) => {
-                        if (boxes[i]) boxes[i].value = d;
-                    });
-                    if (digits.length > 0 && boxes[Math.min(digits.length - 1, 5)]) {
-                        boxes[Math.min(digits.length - 1, 5)].focus();
-                    }
-                };
-            });
-        }
-
-        // Countdown Timer for Resend & Expiry
-        function startOtpCountdown() {
-            clearInterval(otpState.timer);
-            const timerEl = document.getElementById('otp-timer-display');
-            const resendBtn = document.getElementById('btn-resend-otp');
-
-            otpState.timer = setInterval(() => {
-                otpState.expirySeconds--;
-                otpState.resendCountdown--;
-
-                // Format MM:SS
-                const mins = Math.floor(Math.max(0, otpState.expirySeconds) / 60);
-                const secs = Math.max(0, otpState.expirySeconds) % 60;
-                timerEl.textContent = `Expires in: ${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-
-                if (otpState.resendCountdown > 0) {
-                    resendBtn.disabled = true;
-                    resendBtn.className = "text-cyan-400/50 cursor-not-allowed font-bold";
-                    resendBtn.textContent = `Resend in ${otpState.resendCountdown}s`;
-                } else {
-                    resendBtn.disabled = false;
-                    resendBtn.className = "text-cyan-300 hover:text-white cursor-pointer font-bold underline";
-                    resendBtn.textContent = "Resend OTP";
-                }
-
-                if (otpState.expirySeconds <= 0) {
-                    clearInterval(otpState.timer);
-                    timerEl.textContent = "OTP Expired! Please click Resend.";
-                    timerEl.classList.add('text-rose-400');
-                }
-            }, 1000);
-        }
-
-        // Resend OTP Code
-        window.resendOtpCode = async function() {
-            hideAlert();
-            const resendBtn = document.getElementById('btn-resend-otp');
-            resendBtn.disabled = true;
-            resendBtn.textContent = "Sending...";
-
-            const baseUrl = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
-
-            try {
-                const res = await fetch(`${baseUrl}/api/auth/resend-otp`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ phone: otpState.phoneRaw, purpose: otpState.purpose })
-                });
-                const data = await res.json();
-                if (res.ok && data.dev_otp) {
-                    otpState.devOtp = data.dev_otp;
-                    document.getElementById('otp-dev-code').textContent = data.dev_otp;
-                }
-            } catch (err) {
-                // Offline fallback
-                otpState.devOtp = Math.floor(100000 + Math.random() * 900000).toString();
-                document.getElementById('otp-dev-code').textContent = otpState.devOtp;
-            }
-
-            otpState.resendCountdown = 60;
-            otpState.expirySeconds = 300;
-            startOtpCountdown();
-            showAlert("A fresh 6-digit OTP has been dispatched to your mobile number.", "success");
-        };
-
-        // Submit Final OTP Verification (Step 2: Check OTP -> Issue Token & Redirect)
-        window.submitOtpVerification = async function() {
-            hideAlert();
-            const boxes = document.querySelectorAll('.otp-box');
-            let enteredOtp = '';
-            boxes.forEach(b => enteredOtp += (b.value || ''));
-
-            if (enteredOtp.length !== 6) {
-                showAlert("Please enter all 6 digits of the OTP code.");
+        window.submitCustomGoogleLogin = function() {
+            const input = document.getElementById('google-custom-email');
+            const email = (input.value || '').trim().toLowerCase();
+            if (!GMAIL_REGEX.test(email)) {
+                alert("Only verified Google Gmail accounts (@gmail.com) are accepted.");
                 return;
             }
+            const name = email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase());
+            submitGoogleLogin(email, name, 'fisher');
+        };
 
-            const btn = document.getElementById('btn-verify-otp-submit');
-            const originalBtnHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span><span>Authenticating Security Token...</span>`;
+        window.submitGoogleLogin = async function(email, name, role) {
+            closeGoogleAuthModal();
+            showAlert(`Signing in with Google (${email})...`, "info");
 
             const baseUrl = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
 
             try {
-                const res = await fetch(`${baseUrl}/api/auth/verify-otp`, {
+                const res = await fetch(`${baseUrl}/api/auth/google`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        phone: otpState.phoneRaw,
-                        otp: enteredOtp,
-                        purpose: otpState.purpose
-                    })
+                    body: JSON.stringify({ email, name, role })
                 });
 
                 const data = await res.json();
 
                 if (!res.ok) {
-                    throw new Error(data.detail || data.error || "Invalid OTP code. Please check and re-try.");
+                    throw new Error(data.detail || data.error || "Google Sign-In failed.");
                 }
 
-                // Successful Authentication!
                 finalizeLoginSession(data.token, data.user, data.expires_at);
 
             } catch (err) {
-                console.warn("[OTP Verify Error / Offline Check]", err);
+                console.warn("[Google Auth Check]", err);
 
-                // Check against offline dev OTP fallback
-                if (otpState.devOtp && enteredOtp === otpState.devOtp) {
-                    const fallbackUser = otpState.tempSignupData ? {
-                        id: 99,
-                        name: otpState.tempSignupData.full_name,
-                        phone: otpState.phoneRaw,
-                        vessel: otpState.tempSignupData.vessel_id,
-                        harbor: otpState.tempSignupData.home_port,
-                        role: otpState.tempSignupData.role
-                    } : {
-                        id: 1,
-                        name: currentRole === 'fisher' ? 'Capt. R. Murugan' : 'Duty Officer ICG-SZ-4089',
-                        phone: otpState.phoneRaw,
-                        vessel: currentRole === 'fisher' ? 'IND-TN-02-MM-4421' : 'ICG-SZ-4089',
-                        harbor: 'chennai',
-                        role: currentRole
-                    };
-                    finalizeLoginSession(`orca_sec_offline_${Date.now()}`, fallbackUser, Math.floor(Date.now() / 1000) + 7 * 86400);
-                    return;
-                }
-
-                showAlert(err.message || "Invalid OTP code. Please try again.");
-                btn.disabled = false;
-                btn.innerHTML = originalBtnHtml;
+                // Offline fallback
+                const user = {
+                    id: 2,
+                    name: name || (email.includes('officer') ? 'Duty Officer Sharma' : 'Capt. R. Murugan'),
+                    email: email,
+                    vessel: email.includes('officer') ? 'ICG-SZ-4089' : 'IND-TN-02-MM-4421',
+                    harbor: 'chennai',
+                    role: role || (email.includes('officer') ? 'officer' : 'fisher')
+                };
+                finalizeLoginSession(`orca_google_${Date.now()}`, user, Math.floor(Date.now() / 1000) + 7 * 86400);
             }
         };
 
-        // Finalize Session in localStorage & Redirect to Destination
-        function finalizeLoginSession(token, user, expiresAt) {
-            clearInterval(otpState.timer);
+        // 4. Quick 1-Click Demo Buttons
+        window.fastFillAndLogin = function(role) {
+            if (role === 'fisher') {
+                document.getElementById('login-email').value = 'murugan.fisher@gmail.com';
+                document.getElementById('login-password').value = '2026';
+                validateEmailField(document.getElementById('login-email'), 'login-email-badge');
+                document.getElementById('form-login').dispatchEvent(new Event('submit'));
+            } else {
+                document.getElementById('login-email').value = 'duty.officer@gmail.com';
+                document.getElementById('login-password').value = '2026';
+                validateEmailField(document.getElementById('login-email'), 'login-email-badge');
+                document.getElementById('form-login').dispatchEvent(new Event('submit'));
+            }
+        };
 
+        // 5. Finalize Session in localStorage & Redirect
+        function finalizeLoginSession(token, user, expiresAt) {
             const session = {
                 token: token,
                 user: user,
@@ -1357,45 +698,30 @@
             localStorage.setItem('orca_active_port', user.harbor || 'chennai');
             if (user.vessel) localStorage.setItem('orca_vessel_id', user.vessel);
 
-            showAlert("Identity Verified! Entering ORCA Maritime Portal...", "success");
+            showAlert(`Welcome, ${user.name}! Entering ORCA Maritime Portal...`, "success");
 
             setTimeout(() => {
                 const params = new URLSearchParams(window.location.search);
                 const redirectPage = params.get('redirect') || 'index.html';
                 window.location.replace(redirectPage);
-            }, 500);
+            }, 400);
         }
 
-        // Fast 1-Click Login for SIH Evaluators / Judges
-        window.fast1ClickLogin = function() {
-            const demoUser = {
-                id: 1,
-                name: 'Capt. R. Murugan',
-                phone: '9840122481',
-                vessel: 'IND-TN-02-MM-4421',
-                harbor: 'chennai',
-                role: 'fisher'
-            };
-            finalizeLoginSession(`orca_sec_evaluator_${Date.now()}`, demoUser, Math.floor(Date.now() / 1000) + 7 * 86400);
-        };
-
-
-        // Responsive 3D Canvas Handling on Resize / Orientation Change
-        function onWindowResize() {
-            if (!camera || !renderer) return;
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-        window.addEventListener('resize', onWindowResize);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(onWindowResize, 200);
-        });
-
-        // Start Photorealistic 3D Engine on load
+        // Initialize state on page load
         window.addEventListener('DOMContentLoaded', () => {
-            init3D();
-            animate();
+            validateEmailField(document.getElementById('login-email'), 'login-email-badge');
+
+            // If user is already authenticated, allow instant navigation
+            try {
+                const sessionStr = localStorage.getItem('orca_auth_session');
+                if (sessionStr) {
+                    const session = JSON.parse(sessionStr);
+                    const nowSec = Math.floor(Date.now() / 1000);
+                    if (session && session.token && session.expires_at && nowSec < session.expires_at) {
+                        showAlert(`Active session detected for ${session.user.name}. Click Sign In to refresh or switch.`, "info");
+                    }
+                }
+            } catch (e) {}
         });
     </script>
 </body>

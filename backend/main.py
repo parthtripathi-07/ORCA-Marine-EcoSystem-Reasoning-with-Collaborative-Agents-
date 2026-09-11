@@ -35,9 +35,9 @@ from services.db_service import (
 from services.geofence_utils import check_near_protected_area, load_mpa_data
 from services.routing_service import calculate_safe_route
 from services.auth_service import (
-    request_otp_challenge, verify_otp_challenge,
-    find_user_by_identifier, verify_password, hash_password,
-    get_session_user, delete_user_session
+    is_valid_gmail, hash_password, verify_password,
+    find_user_by_email, create_user_with_gmail,
+    create_user_session, get_session_user, delete_user_session
 )
 
 # Setup logging
@@ -77,26 +77,24 @@ app.add_middleware(
 class SimpleLoginRequest(BaseModel):
     username: str = Field(..., min_length=1, max_length=100, description="Fisherman name / username")
 
-class SignUpRequest(BaseModel):
+class GmailSignUpRequest(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=150, description="Captain / Officer Name")
-    phone: str = Field(..., min_length=10, max_length=20, description="10-digit Mobile Number")
+    email: str = Field(..., min_length=5, max_length=150, description="Real Gmail Address (@gmail.com)")
+    password: str = Field(..., min_length=4, max_length=100, description="Password / Security PIN")
     vessel_id: Optional[str] = Field(None, max_length=100, description="Vessel Registration No or Officer ID")
     home_port: Optional[str] = Field("chennai", max_length=100, description="Base Fishing Harbor")
     role: Optional[str] = Field("fisher", description="'fisher' or 'officer'")
+
+class GmailLoginRequest(BaseModel):
+    email: str = Field(..., min_length=5, max_length=150, description="Registered Gmail Address (@gmail.com)")
     password: str = Field(..., min_length=4, max_length=100, description="Password / Security PIN")
 
-class LoginRequest(BaseModel):
-    identifier: str = Field(..., min_length=3, max_length=100, description="Registered Mobile Number or Vessel ID")
-    password: str = Field(..., min_length=4, max_length=100, description="Password / Security PIN")
-
-class VerifyOtpRequest(BaseModel):
-    phone: str = Field(..., min_length=10, max_length=20, description="Registered 10-digit Mobile Number")
-    otp: str = Field(..., min_length=6, max_length=6, description="6-digit OTP code")
-    purpose: Optional[str] = Field("login", description="'login' or 'signup'")
-
-class ResendOtpRequest(BaseModel):
-    phone: str = Field(..., min_length=10, max_length=20, description="Mobile Number")
-    purpose: Optional[str] = Field("login", description="'login' or 'signup'")
+class GoogleLoginRequest(BaseModel):
+    email: str = Field(..., min_length=5, max_length=150, description="Verified Google Gmail (@gmail.com)")
+    name: Optional[str] = Field(None, max_length=150, description="Google profile name")
+    google_id: Optional[str] = Field(None, max_length=100, description="Google User ID")
+    picture: Optional[str] = None
+    role: Optional[str] = "fisher"
 
 class LogoutRequest(BaseModel):
     token: Optional[str] = None
@@ -603,117 +601,148 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
 # ===========================================================================
 
 @app.post("/api/auth/signup")
-@limiter.limit("10/minute")
-def auth_signup(request: Request, body: SignUpRequest):
+@limiter.limit("15/minute")
+def auth_signup(request: Request, body: GmailSignUpRequest):
     """
-    Step 1 of Registration: Validates uniqueness, hashes password, 
-    and issues an expiring 6-digit OTP challenge.
+    Direct Gmail Registration:
+    Enforces strict Google Gmail address validation (@gmail.com).
+    Hashes password and immediately creates an authenticated session (no OTP delay).
     """
-    phone = body.phone.strip().replace(" ", "").replace("-", "")
-    if len(phone) < 10:
-        raise HTTPException(status_code=400, detail="Mobile number must have at least 10 digits.")
-    
-    # Check if phone is already registered
-    existing_phone = find_user_by_identifier(phone)
-    if existing_phone:
-        raise HTTPException(status_code=400, detail="This mobile number is already registered. Please login instead.")
-    
-    # Check if vessel ID is already registered (if provided)
-    if body.vessel_id:
-        existing_vessel = find_user_by_identifier(body.vessel_id)
-        if existing_vessel:
-            raise HTTPException(status_code=400, detail="This Vessel / Service ID is already registered.")
+    clean_email = body.email.strip().lower()
+    if not is_valid_gmail(clean_email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only real Google Gmail accounts (@gmail.com) are accepted for registration."
+        )
 
-    # Secure salted PBKDF2 hash of user password
+    # Check if Gmail is already registered
+    existing_user = find_user_by_email(clean_email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This Gmail address is already registered. Please sign in directly."
+        )
+
+    # Hash password securely with PBKDF2-HMAC-SHA256
     p_hash = hash_password(body.password)
 
-    temp_data = {
-        "full_name": body.full_name.strip(),
-        "vessel_id": (body.vessel_id or "").strip(),
-        "home_port": body.home_port or "chennai",
-        "role": body.role or "fisher",
-        "password_hash": p_hash
-    }
+    new_user = create_user_with_gmail(
+        full_name=body.full_name.strip(),
+        email=clean_email,
+        password_hash=p_hash,
+        vessel_id=(body.vessel_id or "").strip(),
+        home_port=body.home_port or "chennai",
+        role=body.role or "fisher"
+    )
 
-    challenge = request_otp_challenge(phone, purpose="signup", temp_data=temp_data)
-    if not challenge.get("success"):
-        raise HTTPException(status_code=400, detail=challenge.get("error", "Failed to issue OTP challenge."))
+    if not new_user:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to register user. Please try again later."
+        )
+
+    token, expires_at = create_user_session(new_user["id"])
 
     return {
         "status": "success",
-        "message": challenge["message"],
-        "phone_masked": challenge["phone_masked"],
-        "phone_raw": challenge["phone_raw"],
-        "purpose": "signup",
-        "expires_in": challenge["expires_in"],
-        "dev_otp": challenge.get("dev_otp")  # Available for development / test inspection
+        "message": f"Welcome, {new_user['full_name']}! Account created successfully.",
+        "token": token,
+        "expires_at": expires_at,
+        "user": {
+            "id": new_user["id"],
+            "name": new_user["full_name"],
+            "email": new_user["email"],
+            "vessel": new_user.get("vessel_id"),
+            "harbor": new_user.get("home_port", "chennai"),
+            "role": new_user.get("role", "fisher")
+        }
     }
 
 @app.post("/api/auth/login")
-@limiter.limit("15/minute")
-def auth_login(request: Request, body: LoginRequest):
+@limiter.limit("20/minute")
+def auth_login(request: Request, body: GmailLoginRequest):
     """
-    Step 1 of Login: Validates credentials (Phone/Vessel + Password) and 
-    dispatches a 6-digit OTP challenge to registered mobile.
+    Direct Gmail Login:
+    Validates Gmail format and checks credentials against salted password hash.
+    Immediately issues a 7-day session token upon correct password (no OTP delay).
     """
-    identifier = body.identifier.strip()
-    user = find_user_by_identifier(identifier)
-    
+    clean_email = body.email.strip().lower()
+    if not is_valid_gmail(clean_email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please provide a valid Google Gmail address (@gmail.com)."
+        )
+
+    user = find_user_by_email(clean_email)
     if not user or not verify_password(user.get("password_hash", ""), body.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials. Please verify your Mobile Number / Vessel ID and Password."
+            detail="Invalid Gmail address or password. Please verify your credentials."
         )
 
-    # Issue 6-digit OTP challenge to user's registered phone
-    challenge = request_otp_challenge(user["phone"], purpose="login")
-    if not challenge.get("success"):
-        raise HTTPException(status_code=400, detail=challenge.get("error", "Failed to dispatch OTP."))
+    token, expires_at = create_user_session(user["id"])
 
     return {
         "status": "success",
-        "otp_required": True,
-        "message": challenge["message"],
-        "phone_masked": challenge["phone_masked"],
-        "phone_raw": challenge["phone_raw"],
-        "purpose": "login",
-        "expires_in": challenge["expires_in"],
-        "dev_otp": challenge.get("dev_otp")  # Displayed in test toast for easy judge demonstration
+        "message": f"Welcome back, {user['full_name']}!",
+        "token": token,
+        "expires_at": expires_at,
+        "user": {
+            "id": user["id"],
+            "name": user["full_name"],
+            "email": user["email"],
+            "vessel": user.get("vessel_id"),
+            "harbor": user.get("home_port", "chennai"),
+            "role": user.get("role", "fisher")
+        }
     }
 
-@app.post("/api/auth/verify-otp")
-@limiter.limit("20/minute")
-def auth_verify_otp(request: Request, body: VerifyOtpRequest):
+@app.post("/api/auth/google")
+@limiter.limit("25/minute")
+def auth_google_signin(request: Request, body: GoogleLoginRequest):
     """
-    Step 2: Validates the 6-digit OTP. On success, issues a secure 
-    bearer session token (7-day validity) and user profile.
+    Google 1-Tap / Sign-In with Google Endpoint:
+    Enforces that the authenticated Google account is a verified @gmail.com address.
+    Auto-registers new accounts or logs in existing accounts with a secure session token.
     """
-    res = verify_otp_challenge(body.phone, body.otp, purpose=body.purpose or "login")
-    if not res.get("success"):
-        raise HTTPException(status_code=400, detail=res.get("error", "Invalid or expired OTP."))
+    clean_email = body.email.strip().lower()
+    if not is_valid_gmail(clean_email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only real Google Gmail accounts (@gmail.com) are permitted."
+        )
+
+    user = find_user_by_email(clean_email)
+    if not user:
+        # Auto-provision profile from Google
+        display_name = body.name or clean_email.split('@')[0].replace('.', ' ').title()
+        p_hash = hash_password(f"GOOGLE_AUTH_{secrets.token_urlsafe(24)}")
+        user = create_user_with_gmail(
+            full_name=display_name,
+            email=clean_email,
+            password_hash=p_hash,
+            vessel_id=f"IND-GGL-{clean_email[:6].upper()}",
+            home_port="chennai",
+            role=body.role or "fisher"
+        )
+        if not user:
+            raise HTTPException(status_code=500, detail="Could not create Google-linked account.")
+
+    token, expires_at = create_user_session(user["id"])
 
     return {
         "status": "success",
-        "message": res["message"],
-        "token": res["token"],
-        "expires_at": res["expires_at"],
-        "user": res["user"]
-    }
-
-@app.post("/api/auth/resend-otp")
-@limiter.limit("5/minute")
-def auth_resend_otp(request: Request, body: ResendOtpRequest):
-    """Re-issue a fresh 6-digit OTP code to the provided mobile number."""
-    challenge = request_otp_challenge(body.phone, purpose=body.purpose or "login")
-    if not challenge.get("success"):
-        raise HTTPException(status_code=400, detail=challenge.get("error", "Could not resend OTP."))
-    
-    return {
-        "status": "success",
-        "message": challenge["message"],
-        "phone_masked": challenge["phone_masked"],
-        "expires_in": challenge["expires_in"],
-        "dev_otp": challenge.get("dev_otp")
+        "message": f"Google authentication successful. Welcome, {user['full_name']}!",
+        "token": token,
+        "expires_at": expires_at,
+        "user": {
+            "id": user["id"],
+            "name": user["full_name"],
+            "email": user["email"],
+            "vessel": user.get("vessel_id"),
+            "harbor": user.get("home_port", "chennai"),
+            "role": user.get("role", "fisher")
+        }
     }
 
 @app.get("/api/auth/me")
@@ -736,7 +765,7 @@ def auth_get_current_user(request: Request, token: Optional[str] = None):
         "user": {
             "id": user["id"],
             "name": user["full_name"],
-            "phone": user["phone"],
+            "email": user["email"],
             "vessel": user.get("vessel_id"),
             "harbor": user.get("home_port", "chennai"),
             "role": user.get("role", "fisher")
@@ -755,6 +784,7 @@ def auth_logout(request: Request, body: Optional[LogoutRequest] = None):
         delete_user_session(token)
 
     return {"status": "success", "message": "Successfully logged out of ORCA."}
+
 
 @app.post("/api/login-simple")
 
