@@ -413,8 +413,8 @@
 
         mount.innerHTML = `
             <!-- Mobile Quick Sections Floating Action Row (< 768px) -->
-            <div class="md:hidden fixed bottom-14 left-0 right-0 z-40 px-3 py-1 bg-slate-900/90 backdrop-blur-md border-t border-white/10 flex items-center justify-between text-[11px] text-white">
-                <div class="flex items-center gap-3 overflow-x-auto no-scrollbar py-0.5">
+            <div class="md:hidden fixed bottom-[calc(3.4rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-40 px-3 py-1 bg-slate-900/90 backdrop-blur-md border-t border-white/10 flex items-center justify-between text-[11px] text-white">
+                <div class="flex items-center gap-3 overflow-x-auto no-scrollbar py-0.5 w-full">
                     <a href="catch_log.html" class="flex items-center gap-1 text-cyan-300 font-bold whitespace-nowrap hover:text-white">
                         <span class="material-symbols-outlined text-xs">menu_book</span>
                         <span>Catch Diary</span>
@@ -442,8 +442,8 @@
                 </div>
             </div>
 
-            <!-- Sticky 5-Tab Bottom Bar -->
-            <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl px-2 py-1.5 flex items-center justify-around">
+            <!-- Sticky 5-Tab Bottom Bar (Safe Area Padding for iPhone Home Indicator & Android Gestures) -->
+            <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl px-2 pt-1 pb-[max(0.375rem,env(safe-area-inset-bottom))] flex items-center justify-around">
                 ${tabsHtml}
             </nav>
         `;

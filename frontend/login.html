@@ -2,10 +2,18 @@
 <html class="dark" lang="en">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <!-- Responsive Viewport with Notch / Dynamic Island Safe-Area Cover for all mobile devices -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover"/>
+    <meta name="theme-color" content="#001020"/>
+    <meta name="mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+    <meta name="format-detection" content="telephone=no"/>
+    
     <title>ORCA — Maritime Portal Login | ISRO MOSDAC</title>
     <link rel="icon" type="image/jpeg" href="assets/orca_logo.jpg">
     <link rel="apple-touch-icon" href="assets/orca_logo.jpg">
+    <link rel="manifest" href="manifest.json">
     
     <!-- Tailwind CSS with custom theme configuration -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -23,6 +31,13 @@
         tailwind.config = {
             darkMode: "class",
             theme: {
+                screens: {
+                    'xs': '375px',
+                    'sm': '640px',
+                    'md': '768px',
+                    'lg': '1024px',
+                    'xl': '1280px'
+                },
                 extend: {
                     colors: {
                         primary: "#00264b",
@@ -40,76 +55,103 @@
         }
     </script>
     <style>
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+        }
+
         body, html {
             margin: 0;
             padding: 0;
             min-height: 100%;
             background-color: #001020;
             font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* Sleek High-Performance Frosted Card */
+        /* Sleek High-Performance Frosted Card for all screen sizes */
         .glass-auth-panel {
-            background: rgba(0, 26, 52, 0.88);
+            background: rgba(0, 26, 52, 0.92);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(56, 189, 248, 0.22);
             box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85), 0 0 35px -5px rgba(2, 132, 199, 0.15);
         }
+
+        /* 📱 CRITICAL MOBILE FIX: Prevent iOS Safari auto-zoom on input focus */
+        @media screen and (max-width: 640px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Safe area aware paddings */
+        .safe-top { padding-top: max(12px, var(--sat)); }
+        .safe-bottom { padding-bottom: max(16px, var(--sab)); }
+        .safe-left { padding-left: max(12px, var(--sal)); }
+        .safe-right { padding-right: max(12px, var(--sar)); }
+
+        /* Smooth momentum scrolling */
+        .smooth-scroll {
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
 
-<body class="text-white min-h-screen flex flex-col justify-between relative selection:bg-cyan-500 selection:text-white overflow-x-hidden">
+<body class="text-white min-h-[100dvh] flex flex-col justify-between relative selection:bg-cyan-500 selection:text-white overflow-x-hidden antialiased safe-left safe-right">
 
     <!-- 🌌 CLEAN & FAST STATIC MARITIME BACKGROUND (ZERO GPU LAG, INSTANT LOAD) -->
     <div class="fixed inset-0 bg-[#001020] bg-[radial-gradient(ellipse_85%_85%_at_50%_-15%,rgba(2,132,199,0.22),rgba(255,255,255,0))] pointer-events-none"></div>
-    <div class="fixed inset-0 bg-[linear-gradient(to_right,#0028551a_1px,transparent_1px),linear-gradient(to_bottom,#0028551a_1px,transparent_1px)] bg-[size:36px_36px] pointer-events-none"></div>
+    <div class="fixed inset-0 bg-[linear-gradient(to_right,#0028551a_1px,transparent_1px),linear-gradient(to_bottom,#0028551a_1px,transparent_1px)] bg-[size:32px_32px] sm:bg-[size:36px_36px] pointer-events-none"></div>
     <div class="fixed bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#000814] to-transparent pointer-events-none"></div>
 
-    <!-- 🛰️ TOP UTILITY BANNER -->
-    <header class="relative z-20 w-full px-4 sm:px-8 py-3.5 flex justify-between items-center border-b border-white/10 bg-[#001428]/80 backdrop-blur-md">
-        <div class="flex items-center gap-3">
-            <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-9 h-9 rounded-xl object-cover ring-2 ring-cyan-400/60 shadow-md"/>
-            <div class="flex flex-col">
-                <div class="flex items-center gap-2">
-                    <span class="text-xs sm:text-sm font-black tracking-wider text-white uppercase">ORCA MARITIME</span>
-                    <span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 px-2 py-0.5 rounded-full font-mono font-bold">ISRO MOSDAC</span>
+    <!-- 🛰️ TOP UTILITY BANNER (Responsive for small phones to wide displays) -->
+    <header class="relative z-20 w-full px-3.5 sm:px-8 py-2.5 sm:py-3.5 flex justify-between items-center border-b border-white/10 bg-[#001428]/85 backdrop-blur-md safe-top">
+        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover ring-2 ring-cyan-400/60 shadow-md shrink-0"/>
+            <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <span class="text-xs sm:text-sm font-black tracking-wider text-white uppercase truncate">ORCA MARITIME</span>
+                    <span class="text-[8px] sm:text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 px-1.5 sm:px-2 py-0.5 rounded-full font-mono font-bold shrink-0">ISRO</span>
                 </div>
-                <span class="text-[10px] text-cyan-200/80 hidden sm:inline">Indian Space Research Organisation · Decision Support System</span>
+                <span class="text-[9px] sm:text-[10px] text-cyan-200/80 hidden xs:inline truncate">Indian Space Research Organisation · MOSDAC</span>
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
-            <div class="flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[11px] px-3 py-1 rounded-full font-mono font-medium">
+        <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full font-mono font-medium">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>256-BIT SSL SECURE</span>
+                <span class="hidden xs:inline">256-BIT </span><span>SSL</span>
             </div>
         </div>
     </header>
 
-    <!-- 🔐 CENTERED AUTH CONTAINER -->
-    <main class="relative z-20 w-full flex-1 flex items-center justify-center p-3 sm:p-6 my-auto">
-        <div class="w-full max-w-md">
+    <!-- 🔐 CENTERED AUTH CONTAINER (Touch-friendly & Mobile-keyboard optimized) -->
+    <main class="relative z-20 w-full flex-1 flex items-center justify-center px-3.5 py-4 sm:py-8 sm:px-6 my-auto smooth-scroll">
+        <div class="w-full max-w-md mx-auto">
             
-            <div class="glass-auth-panel rounded-3xl p-5 sm:p-8 flex flex-col gap-4 relative">
+            <div class="glass-auth-panel rounded-2xl sm:rounded-3xl p-4 sm:p-7 flex flex-col gap-3.5 sm:gap-4 relative">
                 
                 <!-- Card Header -->
-                <div class="flex flex-col items-center text-center gap-2">
-                    <div class="flex items-center justify-center w-14 h-14 rounded-2xl bg-[#00264b] ring-2 ring-cyan-400/50 shadow-lg shadow-cyan-500/20">
-                        <img src="assets/orca_logo.jpg" alt="ORCA Emblem" class="w-12 h-12 rounded-xl object-cover"/>
+                <div class="flex flex-col items-center text-center gap-1.5 sm:gap-2">
+                    <div class="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#00264b] ring-2 ring-cyan-400/50 shadow-lg shadow-cyan-500/20">
+                        <img src="assets/orca_logo.jpg" alt="ORCA Emblem" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover"/>
                     </div>
                     <div>
-                        <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">ORCA Maritime Access</h1>
-                        <p class="text-xs text-cyan-200/80 mt-0.5">Sign in with verified Google Gmail &amp; Password</p>
+                        <h1 class="text-lg sm:text-2xl font-black text-white tracking-tight leading-tight">ORCA Maritime Access</h1>
+                        <p class="text-[11px] sm:text-xs text-cyan-200/80 mt-0.5">Sign in with verified Google Gmail &amp; Password</p>
                     </div>
                 </div>
 
-                <!-- 🌟 GOOGLE 1-CLICK AUTHENTICATION BUTTON -->
-                <div class="mt-1">
-                    <button type="button" onclick="openGoogleAuthModal()" class="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-3 transition-all shadow-md hover:shadow-lg cursor-pointer border border-slate-200">
+                <!-- 🌟 GOOGLE 1-CLICK AUTHENTICATION BUTTON (Touch Target 48px) -->
+                <div class="mt-0.5">
+                    <button type="button" onclick="openGoogleAuthModal()" class="w-full min-h-[48px] py-2.5 px-4 bg-white hover:bg-slate-100 active:scale-[0.99] text-slate-800 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2.5 sm:gap-3 transition-all shadow-md hover:shadow-lg cursor-pointer border border-slate-200">
                         <!-- Official Google Multi-color G -->
-                        <svg class="w-4 h-4" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" viewBox="0 0 24 24">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
@@ -120,64 +162,89 @@
                 </div>
 
                 <!-- Divider: Or Continue with Gmail & Password -->
-                <div class="relative flex py-1 items-center">
+                <div class="relative flex py-0.5 items-center">
                     <div class="flex-grow border-t border-white/15"></div>
-                    <span class="flex-shrink mx-3 text-[10px] font-mono uppercase tracking-wider text-cyan-200/60">Or with Gmail &amp; Password</span>
+                    <span class="flex-shrink mx-2.5 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-cyan-200/60">Or with Gmail &amp; Password</span>
                     <div class="flex-grow border-t border-white/15"></div>
                 </div>
 
-                <!-- Auth Mode Switcher (Log In vs Sign Up) -->
+                <!-- Auth Mode Switcher (Log In vs Sign Up - Touch Target 44px) -->
                 <div id="auth-mode-switch" class="flex p-1 bg-[#001428]/90 rounded-2xl border border-white/15 text-xs font-bold">
-                    <button id="btn-mode-login" type="button" onclick="switchAuthMode('login')" class="flex-1 py-2 rounded-xl bg-cyan-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                    <button id="btn-mode-login" type="button" onclick="switchAuthMode('login')" class="flex-1 min-h-[42px] py-2 rounded-xl bg-cyan-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer">
                         <span class="material-symbols-outlined text-sm">login</span>
                         <span>Sign In (लॉगिन)</span>
                     </button>
-                    <button id="btn-mode-signup" type="button" onclick="switchAuthMode('signup')" class="flex-1 py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                    <button id="btn-mode-signup" type="button" onclick="switchAuthMode('signup')" class="flex-1 min-h-[42px] py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
                         <span class="material-symbols-outlined text-sm">person_add</span>
                         <span>Sign Up (पंजीकरण)</span>
                     </button>
                 </div>
 
                 <!-- Status / Error Alert Banner -->
-                <div id="auth-alert-banner" class="hidden p-3 rounded-xl text-xs font-medium border relative transition-all"></div>
+                <div id="auth-alert-banner" class="hidden p-2.5 sm:p-3 rounded-xl text-xs font-medium border relative transition-all"></div>
 
                 <!-- ============================================== -->
                 <!-- 1. SIGN IN FORM -->
                 <!-- ============================================== -->
-                <form id="form-login" onsubmit="handleLoginSubmit(event)" class="flex flex-col gap-3.5">
+                <form id="form-login" onsubmit="handleLoginSubmit(event)" class="flex flex-col gap-3 sm:gap-3.5">
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="block text-[11px] font-bold text-cyan-200 uppercase tracking-wider">Registered Gmail Address</label>
+                            <label class="block text-[10px] sm:text-[11px] font-bold text-cyan-200 uppercase tracking-wider">Registered Gmail Address</label>
                             <span id="login-email-badge" class="text-[9px] font-mono text-cyan-300/80">Only @gmail.com</span>
                         </div>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-cyan-400 text-sm">mail</span>
-                            <input type="email" id="login-email" required value="murugan.fisher@gmail.com" oninput="validateEmailField(this, 'login-email-badge')" class="w-full pl-9 pr-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none font-medium tracking-wide transition-all" placeholder="your.name@gmail.com"/>
+                            <span class="material-symbols-outlined absolute left-3 top-3 text-cyan-400 text-sm pointer-events-none">mail</span>
+                            <input 
+                                type="email" 
+                                id="login-email" 
+                                required 
+                                inputmode="email"
+                                autocomplete="email"
+                                autocapitalize="none"
+                                spellcheck="false"
+                                value="murugan.fisher@gmail.com" 
+                                oninput="validateEmailField(this, 'login-email-badge')" 
+                                class="w-full min-h-[44px] pl-9 pr-3 py-2.5 sm:py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none font-medium tracking-wide transition-all" 
+                                placeholder="your.name@gmail.com"
+                            />
                         </div>
                     </div>
 
                     <div>
                         <div class="flex justify-between items-center mb-1">
-                            <label class="block text-[11px] font-bold text-cyan-200 uppercase tracking-wider">Password / Security PIN</label>
-                            <span class="text-[10px] text-cyan-300/80 font-mono">Demo: 2026</span>
+                            <label class="block text-[10px] sm:text-[11px] font-bold text-cyan-200 uppercase tracking-wider">Password / Security PIN</label>
+                            <span class="text-[9px] sm:text-[10px] text-cyan-300/80 font-mono">Demo: 2026</span>
                         </div>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-cyan-400 text-sm">lock</span>
-                            <input type="password" id="login-password" required value="2026" class="w-full pl-9 pr-9 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none font-mono font-bold tracking-widest" placeholder="Enter Password / PIN"/>
-                            <button type="button" onclick="togglePasswordVisibility('login-password', this)" class="absolute right-2.5 top-2.5 text-cyan-400/70 hover:text-white cursor-pointer">
+                            <span class="material-symbols-outlined absolute left-3 top-3 text-cyan-400 text-sm pointer-events-none">lock</span>
+                            <input 
+                                type="password" 
+                                id="login-password" 
+                                required 
+                                autocomplete="current-password"
+                                value="2026" 
+                                class="w-full min-h-[44px] pl-9 pr-11 py-2.5 sm:py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white focus:border-cyan-400 outline-none font-mono font-bold tracking-widest" 
+                                placeholder="Enter Password / PIN"
+                            />
+                            <button 
+                                type="button" 
+                                onclick="togglePasswordVisibility('login-password', this)" 
+                                class="absolute right-1 top-1 w-10 h-10 flex items-center justify-center text-cyan-400/70 hover:text-white cursor-pointer"
+                                aria-label="Toggle Password Visibility"
+                            >
                                 <span class="material-symbols-outlined text-sm">visibility</span>
                             </button>
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between text-[11px] text-cyan-200/80">
-                        <span class="text-[10px] text-emerald-300 font-mono flex items-center gap-1">
+                    <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-cyan-200/80">
+                        <span class="text-[9px] sm:text-[10px] text-emerald-300 font-mono flex items-center gap-1">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Direct Login (No OTP Delay)
                         </span>
                     </div>
 
-                    <button type="submit" id="btn-login-submit" class="w-full mt-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-cyan-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">login</span>
+                    <button type="submit" id="btn-login-submit" class="w-full min-h-[46px] mt-0.5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 hover:from-cyan-500 hover:to-blue-500 active:scale-[0.99] text-white font-bold text-xs sm:text-sm shadow-lg shadow-cyan-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm sm:text-base">login</span>
                         <span>Sign In to ORCA</span>
                     </button>
                 </form>
@@ -185,16 +252,16 @@
                 <!-- ============================================== -->
                 <!-- 2. SIGN UP / REGISTRATION FORM -->
                 <!-- ============================================== -->
-                <form id="form-signup" onsubmit="handleSignupSubmit(event)" class="flex flex-col gap-3 hidden">
-                    <!-- Role Switcher (Fisherman vs Coast Guard) -->
+                <form id="form-signup" onsubmit="handleSignupSubmit(event)" class="flex flex-col gap-2.5 sm:gap-3 hidden">
+                    <!-- Role Switcher (Fisherman vs Coast Guard - Min 42px touch height) -->
                     <div>
                         <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Select User Role</label>
                         <div class="flex p-1 bg-black/40 rounded-xl border border-white/10 text-xs font-semibold">
-                            <button id="tab-fisher-btn" type="button" onclick="switchRole('fisher')" class="flex-1 py-1.5 rounded-lg bg-cyan-600/90 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                            <button id="tab-fisher-btn" type="button" onclick="switchRole('fisher')" class="flex-1 min-h-[40px] py-1.5 rounded-lg bg-cyan-600/90 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
                                 <span class="material-symbols-outlined text-sm">sailing</span>
                                 <span>Fisherman (मछुआरा)</span>
                             </button>
-                            <button id="tab-officer-btn" type="button" onclick="switchRole('officer')" class="flex-1 py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                            <button id="tab-officer-btn" type="button" onclick="switchRole('officer')" class="flex-1 min-h-[40px] py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
                                 <span class="material-symbols-outlined text-sm">local_police</span>
                                 <span>Coast Guard (तटरक्षक)</span>
                             </button>
@@ -204,8 +271,15 @@
                     <div>
                         <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1" id="label-signup-name">Full Name / Captain Name</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-cyan-400 text-sm">person</span>
-                            <input type="text" id="signup-name" required placeholder="e.g. Capt. S. Ramanathan" class="w-full pl-9 pr-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none"/>
+                            <span class="material-symbols-outlined absolute left-3 top-3 text-cyan-400 text-sm pointer-events-none">person</span>
+                            <input 
+                                type="text" 
+                                id="signup-name" 
+                                required 
+                                autocomplete="name"
+                                placeholder="e.g. Capt. S. Ramanathan" 
+                                class="w-full min-h-[44px] pl-9 pr-3 py-2.5 sm:py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white focus:border-cyan-400 outline-none font-medium"
+                            />
                         </div>
                     </div>
 
@@ -215,23 +289,42 @@
                             <span id="signup-email-badge" class="text-[9px] font-mono text-cyan-300/80">Only @gmail.com</span>
                         </div>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3 top-2.5 text-cyan-400 text-sm">mail</span>
-                            <input type="email" id="signup-email" required placeholder="your.name@gmail.com" oninput="validateEmailField(this, 'signup-email-badge')" class="w-full pl-9 pr-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none font-medium"/>
+                            <span class="material-symbols-outlined absolute left-3 top-3 text-cyan-400 text-sm pointer-events-none">mail</span>
+                            <input 
+                                type="email" 
+                                id="signup-email" 
+                                required 
+                                inputmode="email"
+                                autocomplete="email"
+                                autocapitalize="none"
+                                spellcheck="false"
+                                placeholder="your.name@gmail.com" 
+                                oninput="validateEmailField(this, 'signup-email-badge')" 
+                                class="w-full min-h-[44px] pl-9 pr-3 py-2.5 sm:py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white focus:border-cyan-400 outline-none font-medium"
+                            />
                         </div>
                         <p class="text-[9px] text-cyan-200/60 mt-1">Non-Gmail accounts (Yahoo, Outlook, etc.) are blocked for security.</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
+                    <!-- Responsive Single / Dual Column for Vessel & Port on Mobile -->
+                    <div class="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-2.5">
                         <div>
                             <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1" id="label-signup-vessel">Vessel Reg. No.</label>
                             <div class="relative">
-                                <span class="material-symbols-outlined absolute left-2.5 top-2.5 text-cyan-400 text-xs">directions_boat</span>
-                                <input type="text" id="signup-vessel" required placeholder="IND-TN-02-MM-XXXX" class="w-full pl-8 pr-2 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono uppercase focus:border-cyan-400 outline-none"/>
+                                <span class="material-symbols-outlined absolute left-2.5 top-3 text-cyan-400 text-xs pointer-events-none">directions_boat</span>
+                                <input 
+                                    type="text" 
+                                    id="signup-vessel" 
+                                    required 
+                                    autocapitalize="characters"
+                                    placeholder="IND-TN-02-MM-XXXX" 
+                                    class="w-full min-h-[44px] pl-8 pr-2 py-2.5 sm:py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white font-mono uppercase focus:border-cyan-400 outline-none"
+                                />
                             </div>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Base Port</label>
-                            <select id="signup-port" class="w-full px-2 py-2 bg-[#001428] border border-white/20 rounded-xl text-xs text-cyan-100 outline-none focus:border-cyan-400">
+                            <select id="signup-port" class="w-full min-h-[44px] px-2.5 py-2.5 sm:py-2 bg-[#001428] border border-white/20 rounded-xl text-base sm:text-xs text-cyan-100 outline-none focus:border-cyan-400">
                                 <option value="chennai">Chennai (Kasimedu)</option>
                                 <option value="rameswaram">Rameswaram (Mandapam)</option>
                                 <option value="tuticorin">Tuticorin (Thoothukudi)</option>
@@ -248,55 +341,72 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
+                    <!-- Responsive Single / Dual Column for Password & Confirm on Mobile -->
+                    <div class="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-2.5">
                         <div>
                             <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Password</label>
-                            <input type="password" id="signup-password" required minlength="4" placeholder="Min 4 chars" class="w-full px-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono focus:border-cyan-400 outline-none"/>
+                            <input 
+                                type="password" 
+                                id="signup-password" 
+                                required 
+                                minlength="4" 
+                                autocomplete="new-password"
+                                placeholder="Min 4 chars" 
+                                class="w-full min-h-[44px] px-3 py-2.5 sm:py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white font-mono focus:border-cyan-400 outline-none"
+                            />
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Confirm Password</label>
-                            <input type="password" id="signup-confirm" required minlength="4" placeholder="Re-enter" class="w-full px-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-white font-mono focus:border-cyan-400 outline-none"/>
+                            <input 
+                                type="password" 
+                                id="signup-confirm" 
+                                required 
+                                minlength="4" 
+                                autocomplete="new-password"
+                                placeholder="Re-enter" 
+                                class="w-full min-h-[44px] px-3 py-2.5 sm:py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white font-mono focus:border-cyan-400 outline-none"
+                            />
                         </div>
                     </div>
 
-                    <button type="submit" id="btn-signup-submit" class="w-full mt-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">person_add</span>
+                    <button type="submit" id="btn-signup-submit" class="w-full min-h-[46px] mt-0.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 active:scale-[0.99] text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-sm sm:text-base">person_add</span>
                         <span>Create Account &amp; Sign In</span>
                     </button>
                 </form>
 
-                <!-- Fast Evaluator 1-Click Demo Buttons -->
-                <div class="border-t border-white/10 pt-3 flex flex-col gap-2">
-                    <span class="text-[10px] uppercase tracking-wider text-cyan-200/60 font-mono text-center">Fast 1-Click Evaluator Accounts</span>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="fastFillAndLogin('fisher')" class="px-2.5 py-1.5 bg-[#001428] hover:bg-cyan-950/60 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-[11px] text-cyan-200 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer text-left">
-                            <span class="material-symbols-outlined text-xs text-amber-300">sailing</span>
-                            <span class="truncate">Capt. Murugan (Fisherman)</span>
+                <!-- Fast Evaluator 1-Click Demo Buttons (Touch-friendly & Stacked on small screens) -->
+                <div class="border-t border-white/10 pt-2.5 sm:pt-3 flex flex-col gap-1.5 sm:gap-2">
+                    <span class="text-[9px] sm:text-[10px] uppercase tracking-wider text-cyan-200/60 font-mono text-center">Fast 1-Click Evaluator Accounts</span>
+                    <div class="grid grid-cols-1 xs:grid-cols-2 gap-2">
+                        <button type="button" onclick="fastFillAndLogin('fisher')" class="min-h-[44px] px-3 py-2 bg-[#001428] hover:bg-cyan-950/60 active:bg-cyan-900/80 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-xs text-cyan-200 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer text-left">
+                            <span class="material-symbols-outlined text-sm text-amber-300 shrink-0">sailing</span>
+                            <span class="truncate font-medium">Capt. Murugan (Fisherman)</span>
                         </button>
-                        <button type="button" onclick="fastFillAndLogin('officer')" class="px-2.5 py-1.5 bg-[#001428] hover:bg-cyan-950/60 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-[11px] text-cyan-200 hover:text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer text-left">
-                            <span class="material-symbols-outlined text-xs text-cyan-300">local_police</span>
-                            <span class="truncate">Duty Officer (Coast Guard)</span>
+                        <button type="button" onclick="fastFillAndLogin('officer')" class="min-h-[44px] px-3 py-2 bg-[#001428] hover:bg-cyan-950/60 active:bg-cyan-900/80 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-xs text-cyan-200 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer text-left">
+                            <span class="material-symbols-outlined text-sm text-cyan-300 shrink-0">local_police</span>
+                            <span class="truncate font-medium">Duty Officer (Coast Guard)</span>
                         </button>
                     </div>
                 </div>
 
             </div>
             
-            <p class="text-center text-[10px] text-cyan-200/50 mt-4 font-mono">
+            <p class="text-center text-[10px] text-cyan-200/50 mt-3 sm:mt-4 font-mono">
                 ORCA v2.4 · Integrated Marine Identity Framework · ISRO SIH #26176
             </p>
         </div>
     </main>
 
-    <!-- 🌐 MODAL: GOOGLE SIGN-IN POPUP -->
-    <div id="google-auth-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="bg-[#001c38] border border-cyan-500/40 rounded-3xl p-6 w-full max-w-sm shadow-2xl text-white flex flex-col gap-4 relative">
-            <button type="button" onclick="closeGoogleAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white cursor-pointer">
-                <span class="material-symbols-outlined text-sm">close</span>
+    <!-- 🌐 MODAL: GOOGLE SIGN-IN POPUP (Scrollable on small mobile & landscape) -->
+    <div id="google-auth-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden safe-top safe-bottom">
+        <div class="bg-[#001c38] border border-cyan-500/40 rounded-3xl p-5 sm:p-6 w-full max-w-sm max-h-[88dvh] overflow-y-auto shadow-2xl text-white flex flex-col gap-3.5 sm:gap-4 relative smooth-scroll">
+            <button type="button" onclick="closeGoogleAuthModal()" class="absolute top-3.5 right-3.5 w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer" aria-label="Close Modal">
+                <span class="material-symbols-outlined text-lg">close</span>
             </button>
             
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md">
+            <div class="flex items-center gap-3 pr-8">
+                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md shrink-0">
                     <svg class="w-5 h-5" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                         <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -305,33 +415,33 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-bold text-white">Sign in with Google</h3>
-                    <p class="text-[10px] text-slate-300">Choose an account for ORCA Maritime</p>
+                    <h3 class="text-sm font-bold text-white leading-tight">Sign in with Google</h3>
+                    <p class="text-[10px] text-slate-300">Choose verified account for ORCA</p>
                 </div>
             </div>
 
-            <!-- Quick Account Options -->
+            <!-- Quick Account Options (Min 48px touch targets) -->
             <div class="flex flex-col gap-2">
-                <button type="button" onclick="submitGoogleLogin('murugan.fisher@gmail.com', 'Capt. R. Murugan', 'fisher')" class="w-full p-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-between text-left transition-all cursor-pointer">
+                <button type="button" onclick="submitGoogleLogin('murugan.fisher@gmail.com', 'Capt. R. Murugan', 'fisher')" class="w-full min-h-[48px] p-2.5 rounded-xl bg-white/5 hover:bg-white/15 active:bg-white/20 border border-white/10 flex items-center justify-between text-left transition-all cursor-pointer">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-cyan-600 text-white font-bold flex items-center justify-center text-xs">M</div>
-                        <div>
-                            <div class="text-xs font-bold text-white">Capt. R. Murugan</div>
-                            <div class="text-[10px] text-cyan-200/80 font-mono">murugan.fisher@gmail.com</div>
+                        <div class="w-8 h-8 rounded-full bg-cyan-600 text-white font-bold flex items-center justify-center text-xs shrink-0">M</div>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-white truncate">Capt. R. Murugan</div>
+                            <div class="text-[10px] text-cyan-200/80 font-mono truncate">murugan.fisher@gmail.com</div>
                         </div>
                     </div>
-                    <span class="material-symbols-outlined text-xs text-cyan-400">chevron_right</span>
+                    <span class="material-symbols-outlined text-sm text-cyan-400 shrink-0">chevron_right</span>
                 </button>
 
-                <button type="button" onclick="submitGoogleLogin('duty.officer@gmail.com', 'Duty Officer Sharma', 'officer')" class="w-full p-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-between text-left transition-all cursor-pointer">
+                <button type="button" onclick="submitGoogleLogin('duty.officer@gmail.com', 'Duty Officer Sharma', 'officer')" class="w-full min-h-[48px] p-2.5 rounded-xl bg-white/5 hover:bg-white/15 active:bg-white/20 border border-white/10 flex items-center justify-between text-left transition-all cursor-pointer">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">D</div>
-                        <div>
-                            <div class="text-xs font-bold text-white">Duty Officer Sharma</div>
-                            <div class="text-[10px] text-cyan-200/80 font-mono">duty.officer@gmail.com</div>
+                        <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shrink-0">D</div>
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold text-white truncate">Duty Officer Sharma</div>
+                            <div class="text-[10px] text-cyan-200/80 font-mono truncate">duty.officer@gmail.com</div>
                         </div>
                     </div>
-                    <span class="material-symbols-outlined text-xs text-cyan-400">chevron_right</span>
+                    <span class="material-symbols-outlined text-sm text-cyan-400 shrink-0">chevron_right</span>
                 </button>
             </div>
 
@@ -339,8 +449,15 @@
             <div class="border-t border-white/10 pt-3">
                 <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Or use another Google Gmail account:</label>
                 <div class="flex gap-2">
-                    <input type="email" id="google-custom-email" placeholder="example@gmail.com" class="flex-1 px-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white focus:border-cyan-400 outline-none"/>
-                    <button type="button" onclick="submitCustomGoogleLogin()" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-xs font-bold text-white cursor-pointer">
+                    <input 
+                        type="email" 
+                        id="google-custom-email" 
+                        inputmode="email"
+                        autocomplete="email"
+                        placeholder="example@gmail.com" 
+                        class="flex-1 min-h-[44px] px-3 py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white focus:border-cyan-400 outline-none"
+                    />
+                    <button type="button" onclick="submitCustomGoogleLogin()" class="min-h-[44px] px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-xs font-bold text-white cursor-pointer shrink-0">
                         Sign In
                     </button>
                 </div>
@@ -396,13 +513,13 @@
             const formSignup = document.getElementById('form-signup');
 
             if (mode === 'login') {
-                btnLogin.className = "flex-1 py-2 rounded-xl bg-cyan-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                btnSignup.className = "flex-1 py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnLogin.className = "flex-1 min-h-[42px] py-2 rounded-xl bg-cyan-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnSignup.className = "flex-1 min-h-[42px] py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
                 formLogin.classList.remove('hidden');
                 formSignup.classList.add('hidden');
             } else {
-                btnSignup.className = "flex-1 py-2 rounded-xl bg-emerald-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                btnLogin.className = "flex-1 py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnSignup.className = "flex-1 min-h-[42px] py-2 rounded-xl bg-emerald-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnLogin.className = "flex-1 min-h-[42px] py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
                 formSignup.classList.remove('hidden');
                 formLogin.classList.add('hidden');
             }
@@ -417,13 +534,13 @@
             const inputVessel = document.getElementById('signup-vessel');
 
             if (role === 'fisher') {
-                btnFisher.className = "flex-1 py-1.5 rounded-lg bg-cyan-600/90 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                btnOfficer.className = "flex-1 py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnFisher.className = "flex-1 min-h-[40px] py-1.5 rounded-lg bg-cyan-600/90 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnOfficer.className = "flex-1 min-h-[40px] py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
                 labelVessel.textContent = "Vessel Reg. No.";
                 inputVessel.placeholder = "IND-TN-02-MM-XXXX";
             } else {
-                btnOfficer.className = "flex-1 py-1.5 rounded-lg bg-blue-600 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                btnFisher.className = "flex-1 py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnOfficer.className = "flex-1 min-h-[40px] py-1.5 rounded-lg bg-blue-600 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnFisher.className = "flex-1 min-h-[40px] py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
                 labelVessel.textContent = "Coast Guard / Officer ID";
                 inputVessel.placeholder = "ICG-SZ-4089";
             }
@@ -449,13 +566,13 @@
 
             if (type === 'error') {
                 banner.classList.add('bg-rose-950/80', 'border-rose-500/50', 'text-rose-200');
-                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-rose-400 text-base">error</span><span>${msg}</span></div>`;
+                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-rose-400 text-base shrink-0">error</span><span>${msg}</span></div>`;
             } else if (type === 'success') {
                 banner.classList.add('bg-emerald-950/80', 'border-emerald-500/50', 'text-emerald-200');
-                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-400 text-base">check_circle</span><span>${msg}</span></div>`;
+                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-400 text-base shrink-0">check_circle</span><span>${msg}</span></div>`;
             } else {
                 banner.classList.add('bg-cyan-950/80', 'border-cyan-500/50', 'text-cyan-200');
-                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-cyan-400 text-base">info</span><span>${msg}</span></div>`;
+                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-cyan-400 text-base shrink-0">info</span><span>${msg}</span></div>`;
             }
         }
 
@@ -704,14 +821,30 @@
                 const params = new URLSearchParams(window.location.search);
                 const redirectPage = params.get('redirect') || 'index.html';
                 window.location.replace(redirectPage);
-            }, 400);
+            }, 350);
         }
 
-        // Initialize state on page load
+        // Auto-scroll input into center of viewport when mobile keyboard pops up
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('focus', () => {
+                setTimeout(() => {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 280);
+            });
+        });
+
+        // Initialize state on page load & Register PWA Service Worker
         window.addEventListener('DOMContentLoaded', () => {
             validateEmailField(document.getElementById('login-email'), 'login-email-badge');
 
-            // If user is already authenticated, allow instant navigation
+            // PWA service worker registration on mobile
+            if ('serviceWorker' in navigator && window.location.protocol !== 'file:') {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('[ORCA Mobile PWA] Service worker active'))
+                    .catch(e => {});
+            }
+
+            // Check if active session already exists
             try {
                 const sessionStr = localStorage.getItem('orca_auth_session');
                 if (sessionStr) {
