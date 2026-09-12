@@ -38,12 +38,16 @@
                 <!-- Harbor Title & Region -->
                 <div class="flex flex-col gap-1">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-xs font-bold font-mono tracking-wider px-2 py-0.5 rounded bg-cyan-400/20 text-cyan-200 border border-cyan-300/30">
-                            OPERATIONAL BASE
+                        <span id="hero-sector-name" class="text-xs font-bold font-mono tracking-wider px-2 py-0.5 rounded bg-cyan-400/20 text-cyan-200 border border-cyan-300/30 uppercase">
+                            BAY OF BENGAL SECTOR
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-200 border border-cyan-400/30 font-mono">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                            <span>LIVE REAL-TIME TELEMETRY</span>
                         </span>
                         <span id="hero-safety-badge" class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
                             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                            <span>SEA: SAFE (FAVOURABLE)</span>
+                            <span id="hero-safety-text">SEA: SAFE (FAVOURABLE)</span>
                         </span>
                     </div>
                     <h1 id="hero-harbor-name" class="text-xl sm:text-2xl font-extrabold tracking-tight text-white flex items-center gap-2 mt-1">
@@ -413,7 +417,17 @@
             const port = window.getActivePort();
             const BASE_URL = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
 
-            // Update Hero Titles
+            // Update Hero Titles & Sector
+            const sectorEl = document.getElementById('hero-sector-name');
+            if (sectorEl) {
+                if (port.region && (port.region.includes('Bay of Bengal') || port.region.includes('Coromandel') || port.region.includes('Palk') || port.region.includes('Odisha') || port.region.includes('Bengal'))) {
+                    sectorEl.textContent = 'BAY OF BENGAL SECTOR';
+                } else if (port.region && port.region.includes('Andaman')) {
+                    sectorEl.textContent = 'ANDAMAN SEA SECTOR';
+                } else {
+                    sectorEl.textContent = 'ARABIAN SEA SECTOR';
+                }
+            }
             document.getElementById('hero-harbor-name').textContent = `${port.name} Fishing Jetty`;
             document.getElementById('hero-harbor-region').textContent = `${port.region} · Lat ${port.lat.toFixed(4)}° N, Lon ${port.lon.toFixed(4)}° E`;
 

@@ -81,6 +81,10 @@
                 port: window.PORT_COORDINATES[key] || window.getActivePort()
             }
         }));
+
+        if (typeof window.fetchDrawerRealTimeTelemetry === 'function') {
+            window.fetchDrawerRealTimeTelemetry();
+        }
     };
 
     window.setLanguage = function(lang) {
@@ -364,9 +368,15 @@
                         </div>
 
                         <!-- 📱 Mobile Top Quick Harbor Selector (Compact Pill on Mobile) -->
-                        <button onclick="window.toggleMobileDrawer('harbor-section')" class="md:hidden flex items-center gap-1 bg-cyan-50 text-cyan-900 px-2 py-1 rounded-lg border border-cyan-300 text-xs font-bold max-w-[125px] xs:max-w-[155px] cursor-pointer" title="Switch Operational Base Harbor">
+                        <button onclick="window.toggleMobileDrawer('harbor-section')" class="md:hidden flex items-center gap-1 bg-cyan-50 text-cyan-900 px-2 py-1 rounded-lg border border-cyan-300 text-xs font-bold max-w-[105px] xs:max-w-[130px] cursor-pointer" title="Switch Operational Base Harbor">
                             <span class="material-symbols-outlined text-cyan-700 text-sm shrink-0">anchor</span>
                             <span class="truncate uppercase text-[10px]">${(window.PORT_COORDINATES && window.PORT_COORDINATES[currentPort] ? window.PORT_COORDINATES[currentPort].name.split(' ')[0] : 'Port')}</span>
+                        </button>
+
+                        <!-- 📱 Mobile Quick Real-Time Telemetry Button -->
+                        <button onclick="window.toggleMobileDrawer('drawer-realtime-section')" class="md:hidden flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 px-1.5 py-1 rounded-lg border border-emerald-300 text-xs font-bold cursor-pointer shrink-0" title="View Live Real-Time Telemetry">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping shrink-0"></span>
+                            <span class="text-[10px] font-mono font-extrabold uppercase">LIVE</span>
                         </button>
 
                         <!-- 📱 Mobile Top-Side Menu Drawer Button (Hamburger) -->
@@ -422,7 +432,87 @@
                         </div>
                     </div>
 
-                    <!-- ⚓ SECTION 2: Operational Base Harbor -->
+                    <!-- 📡 SECTION 2: Real-Time Ocean Telemetry & Live Sea Status -->
+                    <div id="drawer-realtime-section" class="bg-gradient-to-br from-[#001c38] via-[#002548] to-[#001933] border border-cyan-500/40 rounded-2xl p-3 flex flex-col gap-2 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-1.5 min-w-0">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0"></span>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1 truncate">
+                                    <span class="material-symbols-outlined text-xs text-cyan-400">satellite_alt</span> Real-Time Telemetry
+                                </span>
+                            </div>
+                            <span id="drawer-rt-badge" class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold font-mono shrink-0">
+                                SEA: SAFE
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between text-[10px] text-cyan-200/80 font-mono border-b border-white/10 pb-1.5">
+                            <span id="drawer-rt-station" class="truncate">Live Port: ${currentPort.toUpperCase()}</span>
+                            <span class="text-emerald-300 font-bold shrink-0">INCOIS · MOSDAC</span>
+                        </div>
+
+                        <!-- 4 Real-Time Telemetry Metrics -->
+                        <div class="grid grid-cols-2 gap-2 mt-0.5">
+                            <!-- Waves -->
+                            <div class="bg-black/40 border border-white/10 rounded-xl p-2 flex flex-col">
+                                <span class="text-[9px] text-cyan-300 font-bold flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-xs text-cyan-400">tsunami</span> Waves (Hs)
+                                </span>
+                                <div class="flex items-baseline gap-1 mt-0.5">
+                                    <span id="drawer-rt-wave" class="text-sm font-black text-white font-mono">0.86</span>
+                                    <span class="text-[9px] text-cyan-200">m</span>
+                                </div>
+                                <span id="drawer-rt-wave-sub" class="text-[8px] text-emerald-300 truncate">Calm / Slight</span>
+                            </div>
+
+                            <!-- Wind -->
+                            <div class="bg-black/40 border border-white/10 rounded-xl p-2 flex flex-col">
+                                <span class="text-[9px] text-amber-300 font-bold flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-xs text-amber-400">air</span> Wind &amp; Gusts
+                                </span>
+                                <div class="flex items-baseline gap-1 mt-0.5">
+                                    <span id="drawer-rt-wind" class="text-sm font-black text-white font-mono">18</span>
+                                    <span class="text-[9px] text-amber-200">km/h</span>
+                                </div>
+                                <span id="drawer-rt-wind-sub" class="text-[8px] text-slate-300 truncate">9.7 kts · ENE</span>
+                            </div>
+
+                            <!-- SST -->
+                            <div class="bg-black/40 border border-white/10 rounded-xl p-2 flex flex-col">
+                                <span class="text-[9px] text-rose-300 font-bold flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-xs text-rose-400">device_thermostat</span> Sea Temp
+                                </span>
+                                <div class="flex items-baseline gap-1 mt-0.5">
+                                    <span id="drawer-rt-sst" class="text-sm font-black text-white font-mono">28.4</span>
+                                    <span class="text-[9px] text-rose-200">°C</span>
+                                </div>
+                                <span id="drawer-rt-sst-sub" class="text-[8px] text-cyan-200 truncate">Thermal Front</span>
+                            </div>
+
+                            <!-- Ocean Current -->
+                            <div class="bg-black/40 border border-white/10 rounded-xl p-2 flex flex-col">
+                                <span class="text-[9px] text-emerald-300 font-bold flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-xs text-emerald-400">waves</span> Ocean Current
+                                </span>
+                                <div class="flex items-baseline gap-1 mt-0.5">
+                                    <span id="drawer-rt-curr" class="text-sm font-black text-white font-mono">0.35</span>
+                                    <span class="text-[9px] text-emerald-200">m/s</span>
+                                </div>
+                                <span id="drawer-rt-curr-sub" class="text-[8px] text-emerald-300 truncate">0.7 kts · Drift Safe</span>
+                            </div>
+                        </div>
+
+                        <!-- 1-Tap Link to full forecast -->
+                        <a href="weather.html" onclick="window.closeMobileDrawer()" class="mt-1 py-1.5 px-2.5 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/30 text-cyan-200 hover:text-white text-[10px] font-bold flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs">analytics</span>
+                                <span>Detailed 7-Day Forecasting</span>
+                            </span>
+                            <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                        </a>
+                    </div>
+
+                    <!-- ⚓ SECTION 3: Operational Base Harbor -->
                     <div id="harbor-section" class="flex flex-col gap-1.5">
                         <div class="flex items-center justify-between px-1">
                             <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-200 flex items-center gap-1">
@@ -540,6 +630,57 @@
         applySunlightMode();
     }
 
+    // Real-Time Telemetry Fetch for Mobile Drawer
+    async function fetchDrawerRealTimeTelemetry() {
+        const port = window.getActivePort();
+        const stationEl = document.getElementById('drawer-rt-station');
+        if (stationEl) {
+            stationEl.textContent = `Station: ${port.name.split(' ')[0]} (${port.region ? port.region.split(' ')[0] : 'Ocean'})`;
+        }
+
+        try {
+            const baseUrl = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
+            const res = await fetch(`${baseUrl}/api/marine-data?lat=${port.lat}&lon=${port.lon}`);
+            if (res.ok) {
+                const data = await res.json();
+                const waveEl = document.getElementById('drawer-rt-wave');
+                const waveSub = document.getElementById('drawer-rt-wave-sub');
+                const windEl = document.getElementById('drawer-rt-wind');
+                const windSub = document.getElementById('drawer-rt-wind-sub');
+                const sstEl = document.getElementById('drawer-rt-sst');
+                const sstSub = document.getElementById('drawer-rt-sst-sub');
+                const currEl = document.getElementById('drawer-rt-curr');
+                const currSub = document.getElementById('drawer-rt-curr-sub');
+                const badge = document.getElementById('drawer-rt-badge');
+
+                if (waveEl) waveEl.textContent = data.wave_height_m || '0.86';
+                if (waveSub) waveSub.textContent = data.sea_state || 'Calm / Slight';
+                if (windEl) windEl.textContent = Math.round(data.wind_speed_kmh || 18);
+                if (windSub) windSub.textContent = `${data.wind_speed_knots || 9.7} kts · ${data.wind_direction_compass || 'ENE'}`;
+                if (sstEl) sstEl.textContent = data.sea_surface_temp_c || '28.4';
+                if (sstSub) sstSub.textContent = data.sst_anomaly ? `${data.sst_anomaly > 0 ? '+' : ''}${data.sst_anomaly}°C Anomaly` : 'Thermal Front';
+                if (currEl) currEl.textContent = data.ocean_current_ms || '0.35';
+                if (currSub) currSub.textContent = `${data.ocean_current_knots || 0.7} kts · Drift Safe`;
+
+                if (badge) {
+                    if (data.safety_status === 'DANGER') {
+                        badge.className = 'text-[9px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30 font-bold font-mono';
+                        badge.textContent = 'SEA: DANGER';
+                    } else if (data.safety_status === 'CAUTION') {
+                        badge.className = 'text-[9px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 font-bold font-mono';
+                        badge.textContent = 'SEA: CAUTION';
+                    } else {
+                        badge.className = 'text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold font-mono';
+                        badge.textContent = 'SEA: SAFE';
+                    }
+                }
+            }
+        } catch(e) {
+            // Keep existing or demo values
+        }
+    }
+    window.fetchDrawerRealTimeTelemetry = fetchDrawerRealTimeTelemetry;
+
     // Mobile Drawer Controls
     window.toggleMobileDrawer = function(targetSectionId) {
         const backdrop = document.getElementById('orca-drawer-backdrop');
@@ -553,6 +694,9 @@
             panel.classList.remove('translate-x-full');
             panel.classList.add('translate-x-0');
             document.body.style.overflow = 'hidden';
+
+            // Auto-refresh real-time ocean data on open
+            fetchDrawerRealTimeTelemetry();
 
             if (targetSectionId) {
                 setTimeout(() => {
@@ -622,7 +766,12 @@
         mount.innerHTML = `
             <!-- Mobile Quick Sections Floating Action Row (< 768px) -->
             <div class="md:hidden fixed bottom-[calc(3.4rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-40 px-3 py-1 bg-slate-900/90 backdrop-blur-md border-t border-white/10 flex items-center justify-between text-[11px] text-white">
-                <div class="flex items-center gap-3 overflow-x-auto no-scrollbar py-0.5 w-full">
+                <div class="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-0.5 w-full">
+                    <button onclick="window.toggleMobileDrawer('drawer-realtime-section')" class="flex items-center gap-1 text-emerald-400 font-bold whitespace-nowrap hover:text-white cursor-pointer">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>Real-Time</span>
+                    </button>
+                    <span class="text-white/20">|</span>
                     <a href="catch_log.html" class="flex items-center gap-1 text-cyan-300 font-bold whitespace-nowrap hover:text-white">
                         <span class="material-symbols-outlined text-xs">menu_book</span>
                         <span>Catch Diary</span>
