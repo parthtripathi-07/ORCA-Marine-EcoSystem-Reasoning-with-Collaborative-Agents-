@@ -254,16 +254,32 @@
         }).join('');
 
         const moreDropdownHtml = `
-            <div class="relative group">
-                <button class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-[#00264b] hover:bg-slate-100 transition-all cursor-pointer">
+            <div class="relative" id="orca-more-menu-container">
+                <button 
+                    id="orca-more-menu-btn" 
+                    type="button"
+                    onclick="window.toggleMoreDropdown(event)" 
+                    onmouseenter="window.openMoreDropdown()"
+                    class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-[#00264b] hover:bg-slate-100 transition-all cursor-pointer select-none"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                >
                     <span class="material-symbols-outlined text-sm">more_horiz</span>
                     <span>More</span>
-                    <span class="material-symbols-outlined text-xs">expand_more</span>
+                    <span class="material-symbols-outlined text-xs transition-transform duration-200" id="orca-more-menu-chevron">expand_more</span>
                 </button>
-                <div class="absolute right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-1 hidden group-hover:block z-50">
+                <div 
+                    id="orca-more-dropdown-panel" 
+                    onmouseleave="window.closeMoreDropdown()"
+                    class="absolute right-0 top-full mt-1.5 w-64 bg-white rounded-2xl shadow-2xl border border-slate-200/90 py-1.5 hidden z-50 transition-all"
+                >
+                    <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1 flex items-center justify-between">
+                        <span>Fisheries &amp; Maritime Tools</span>
+                        <span class="text-[9px] text-cyan-600 font-mono font-bold">4 Sections</span>
+                    </div>
                     ${moreNavItems.map(m => `
-                        <a href="${m.href}" class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">
-                            <span class="material-symbols-outlined text-sm text-cyan-700">${m.icon}</span>
+                        <a href="${m.href}" class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors ${currentPage === m.href ? 'bg-cyan-50 text-cyan-800 font-bold border-l-2 border-cyan-600' : ''}">
+                            <span class="material-symbols-outlined text-base text-cyan-700">${m.icon}</span>
                             <span>${m.label}</span>
                         </a>
                     `).join('')}
@@ -273,20 +289,26 @@
 
         mount.innerHTML = `
             <!-- 🇮🇳 Top Government of India & ISRO Utility Bar (Zero Mobile Overflow) -->
-            <div class="bg-[#00172e] text-slate-300 text-[10px] sm:text-[11px] px-2.5 sm:px-6 py-1 border-b border-white/10 flex items-center justify-between gap-1.5 w-full overflow-hidden">
+            <div class="bg-[#00172e] text-slate-300 text-[10px] sm:text-[11px] px-2.5 sm:px-6 py-1 border-b border-white/10 flex items-center justify-between gap-1.5 w-full">
                 <div class="flex items-center gap-1.5 min-w-0">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
-                    <span class="font-semibold text-white tracking-wide truncate max-w-[155px] xs:max-w-[210px] sm:max-w-none">
+                    <span class="font-semibold text-white tracking-wide truncate max-w-[130px] xs:max-w-[190px] sm:max-w-none">
                         <span class="hidden sm:inline">Department of Space · </span>ISRO MOSDAC
                     </span>
                     <span class="hidden md:inline text-white/30">|</span>
                     <span class="hidden md:inline text-cyan-300/90 font-mono">SIH #26176</span>
-                    <span class="hidden xl:inline-flex items-center gap-1 text-[10px] font-mono text-emerald-300 ml-2">
+                    <span class="hidden xl:inline-flex items-center gap-1 text-[10px] font-mono text-emerald-300 ml-1">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                         NavIC: 7 L5/S Locked
                     </span>
                 </div>
                 <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <!-- 🕒 Real-Time Digital Clock in Top Corner (Live Indian Standard Time) -->
+                    <div id="orca-top-clock" class="flex items-center gap-1 font-mono text-[9px] sm:text-[10px] bg-cyan-950/80 border border-cyan-500/30 text-cyan-200 px-2 py-0.5 rounded font-bold tracking-wider shrink-0" title="Live Indian Standard Time (IST)">
+                        <span class="material-symbols-outlined text-[12px] text-cyan-400 shrink-0">schedule</span>
+                        <span id="orca-live-clock">--:--:-- IST</span>
+                    </div>
+
                     <!-- High-Sunlight Contrast Mode Button -->
                     <button
                         id="btn-sunlight-toggle"
@@ -312,8 +334,8 @@
                 </div>
             </div>
 
-            <!-- ⚓ Main Header Navbar (Ultra-Compact on Mobile with Top-Side Menu Drawer) -->
-            <header class="bg-white border-b border-slate-200 px-2.5 sm:px-6 py-2 shadow-xs sticky top-0 z-40 w-full overflow-hidden">
+            <!-- ⚓ Main Header Navbar (Clean Dropdowns without Overflow Clipping) -->
+            <header class="bg-white border-b border-slate-200 px-2.5 sm:px-6 py-2 shadow-xs sticky top-0 z-40 w-full">
                 <div class="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-3 w-full min-w-0">
                     
                     <!-- Left: Brand Logo & Title -->
@@ -401,7 +423,11 @@
                         <img src="assets/orca_logo.jpg" alt="ORCA" class="w-7 h-7 rounded-lg object-cover ring-1 ring-cyan-400/50 shrink-0"/>
                         <div class="flex flex-col min-w-0">
                             <span class="text-xs font-black tracking-wider text-white uppercase truncate">ORCA PORTAL MENU</span>
-                            <span class="text-[9px] text-cyan-300 font-mono">ISRO SIH #26176</span>
+                            <div class="flex items-center gap-1.5 text-[9px] text-cyan-300 font-mono">
+                                <span>ISRO #26176</span>
+                                <span>·</span>
+                                <span id="drawer-live-clock" class="text-emerald-300 font-bold">--:--:-- IST</span>
+                            </div>
                         </div>
                     </div>
                     <button onclick="window.closeMobileDrawer()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer shrink-0" aria-label="Close Menu">
@@ -721,6 +747,95 @@
         document.body.style.overflow = '';
     };
 
+    // Laptop / Desktop "More" Dropdown Menu Controls
+    window.toggleMoreDropdown = function(e) {
+        if (e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+        const panel = document.getElementById('orca-more-dropdown-panel');
+        const chevron = document.getElementById('orca-more-menu-chevron');
+        const btn = document.getElementById('orca-more-menu-btn');
+        if (!panel) return;
+        const isHidden = panel.classList.contains('hidden');
+        if (isHidden) {
+            panel.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+            if (btn) btn.setAttribute('aria-expanded', 'true');
+        } else {
+            panel.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        }
+    };
+
+    window.openMoreDropdown = function() {
+        const panel = document.getElementById('orca-more-dropdown-panel');
+        const chevron = document.getElementById('orca-more-menu-chevron');
+        const btn = document.getElementById('orca-more-menu-btn');
+        if (!panel) return;
+        panel.classList.remove('hidden');
+        if (chevron) chevron.classList.add('rotate-180');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+    };
+
+    window.closeMoreDropdown = function() {
+        const panel = document.getElementById('orca-more-dropdown-panel');
+        const chevron = document.getElementById('orca-more-menu-chevron');
+        const btn = document.getElementById('orca-more-menu-btn');
+        if (!panel) return;
+        panel.classList.add('hidden');
+        if (chevron) chevron.classList.remove('rotate-180');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+    };
+
+    // Close "More" dropdown when clicking anywhere outside
+    document.addEventListener('click', function(e) {
+        const container = document.getElementById('orca-more-menu-container');
+        if (container && !container.contains(e.target)) {
+            window.closeMoreDropdown();
+        }
+    });
+
+    // 🕒 Real-Time Clock Engine (Every Second Live IST Update)
+    function updateLiveClock() {
+        const clockEl = document.getElementById('orca-live-clock');
+        const drawerClock = document.getElementById('drawer-live-clock');
+        const now = new Date();
+
+        try {
+            // IST Time: HH:MM:SS
+            const timeStr = now.toLocaleTimeString('en-GB', {
+                timeZone: 'Asia/Kolkata',
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            // IST Date: DD Mon
+            const dateStr = now.toLocaleDateString('en-GB', {
+                timeZone: 'Asia/Kolkata',
+                day: '2-digit',
+                month: 'short'
+            });
+
+            if (clockEl) {
+                clockEl.innerHTML = `<span class="hidden sm:inline">${dateStr} · </span>${timeStr} <span class="text-cyan-400 font-extrabold">IST</span>`;
+            }
+            if (drawerClock) {
+                drawerClock.textContent = `${dateStr} · ${timeStr} IST`;
+            }
+        } catch (e) {
+            const fallback = now.toTimeString().split(' ')[0] + ' IST';
+            if (clockEl) clockEl.textContent = fallback;
+            if (drawerClock) drawerClock.textContent = fallback;
+        }
+    }
+
+    // Start ticking immediately and keep running indefinitely
+    setInterval(updateLiveClock, 1000);
+
     // 4. Render Mobile & Tablet Sticky 5-Tab Bottom Navigation Bar (< 768px)
     function renderMobileBottomNav() {
         const mount = document.getElementById('orca-bottom-nav-mount');
@@ -823,6 +938,8 @@
         renderTopNav();
         renderMobileBottomNav();
         registerServiceWorker();
+        updateLiveClock();
+        fetchDrawerRealTimeTelemetry();
     });
 
 })();

@@ -111,6 +111,12 @@
         </div>
 
         <div class="flex items-center gap-1.5 shrink-0">
+            <!-- 🕒 Live Real-Time Clock in Top Corner (Indian Standard Time) -->
+            <div class="flex items-center gap-1 font-mono text-[9px] sm:text-[10px] bg-cyan-950/80 border border-cyan-500/30 text-cyan-200 px-2 py-0.5 rounded font-bold tracking-wider shrink-0" title="Live Indian Standard Time (IST)">
+                <span class="material-symbols-outlined text-[12px] text-cyan-400 shrink-0">schedule</span>
+                <span id="login-live-clock">--:--:-- IST</span>
+            </div>
+
             <div class="flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full font-mono font-medium">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
                 <span class="hidden sm:inline">256-BIT </span><span>SSL</span>
@@ -132,7 +138,11 @@
                 <img src="assets/orca_logo.jpg" alt="ORCA" class="w-7 h-7 rounded-lg object-cover ring-1 ring-cyan-400/50 shrink-0"/>
                 <div class="flex flex-col min-w-0">
                     <span class="text-xs font-black tracking-wider text-white uppercase truncate">ORCA ACCESS INFO</span>
-                    <span class="text-[9px] text-cyan-300 font-mono">ISRO MOSDAC #26176</span>
+                    <div class="flex items-center gap-1.5 text-[9px] text-cyan-300 font-mono">
+                        <span>ISRO #26176</span>
+                        <span>·</span>
+                        <span id="login-drawer-clock" class="text-emerald-300 font-bold">--:--:-- IST</span>
+                    </div>
                 </div>
             </div>
             <button onclick="closeLoginInfoDrawer()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer shrink-0" aria-label="Close Info">
@@ -952,8 +962,42 @@
             document.body.style.overflow = '';
         };
 
+        // 🕒 Real-Time Clock Engine for Login (Indian Standard Time)
+        function updateLoginClock() {
+            const clockEl = document.getElementById('login-live-clock');
+            const drawerClock = document.getElementById('login-drawer-clock');
+            const now = new Date();
+            try {
+                const timeStr = now.toLocaleTimeString('en-GB', {
+                    timeZone: 'Asia/Kolkata',
+                    hour12: false,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+                const dateStr = now.toLocaleDateString('en-GB', {
+                    timeZone: 'Asia/Kolkata',
+                    day: '2-digit',
+                    month: 'short'
+                });
+                if (clockEl) {
+                    clockEl.innerHTML = `<span class="hidden sm:inline">${dateStr} · </span>${timeStr} <span class="text-cyan-400 font-extrabold">IST</span>`;
+                }
+                if (drawerClock) {
+                    drawerClock.textContent = `${dateStr} · ${timeStr} IST`;
+                }
+            } catch (e) {
+                const fallback = now.toTimeString().split(' ')[0] + ' IST';
+                if (clockEl) clockEl.textContent = fallback;
+                if (drawerClock) drawerClock.textContent = fallback;
+            }
+        }
+        setInterval(updateLoginClock, 1000);
+        updateLoginClock();
+
         // Initialize state on page load & Register PWA Service Worker
         window.addEventListener('DOMContentLoaded', () => {
+            updateLoginClock();
             validateEmailField(document.getElementById('login-email'), 'login-email-badge');
 
             // PWA service worker registration on mobile
