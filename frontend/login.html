@@ -31,13 +31,6 @@
         tailwind.config = {
             darkMode: "class",
             theme: {
-                screens: {
-                    'xs': '375px',
-                    'sm': '640px',
-                    'md': '768px',
-                    'lg': '1024px',
-                    'xl': '1280px'
-                },
                 extend: {
                     colors: {
                         primary: "#00264b",
@@ -55,27 +48,27 @@
         }
     </script>
     <style>
-        :root {
-            --sat: env(safe-area-inset-top, 0px);
-            --sab: env(safe-area-inset-bottom, 0px);
-            --sal: env(safe-area-inset-left, 0px);
-            --sar: env(safe-area-inset-right, 0px);
+        *, *:before, *:after {
+            box-sizing: border-box !important;
         }
 
-        body, html {
+        html, body {
             margin: 0;
             padding: 0;
-            min-height: 100%;
+            width: 100% !important;
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
             background-color: #001020;
             font-family: 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
+            position: relative;
         }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
         /* Sleek High-Performance Frosted Card for all screen sizes */
         .glass-auth-panel {
-            background: rgba(0, 26, 52, 0.92);
+            background: rgba(0, 26, 52, 0.94);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(56, 189, 248, 0.22);
@@ -89,12 +82,6 @@
             }
         }
 
-        /* Safe area aware paddings */
-        .safe-top { padding-top: max(12px, var(--sat)); }
-        .safe-bottom { padding-bottom: max(16px, var(--sab)); }
-        .safe-left { padding-left: max(12px, var(--sal)); }
-        .safe-right { padding-right: max(12px, var(--sar)); }
-
         /* Smooth momentum scrolling */
         .smooth-scroll {
             -webkit-overflow-scrolling: touch;
@@ -102,53 +89,54 @@
     </style>
 </head>
 
-<body class="text-white min-h-[100dvh] flex flex-col justify-between relative selection:bg-cyan-500 selection:text-white overflow-x-hidden antialiased safe-left safe-right">
+<body class="text-white min-h-[100dvh] flex flex-col justify-between relative selection:bg-cyan-500 selection:text-white antialiased w-full">
 
     <!-- 🌌 CLEAN & FAST STATIC MARITIME BACKGROUND (ZERO GPU LAG, INSTANT LOAD) -->
     <div class="fixed inset-0 bg-[#001020] bg-[radial-gradient(ellipse_85%_85%_at_50%_-15%,rgba(2,132,199,0.22),rgba(255,255,255,0))] pointer-events-none"></div>
     <div class="fixed inset-0 bg-[linear-gradient(to_right,#0028551a_1px,transparent_1px),linear-gradient(to_bottom,#0028551a_1px,transparent_1px)] bg-[size:32px_32px] sm:bg-[size:36px_36px] pointer-events-none"></div>
-    <div class="fixed bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-[#000814] to-transparent pointer-events-none"></div>
+    <div class="fixed bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-[#000814] to-transparent pointer-events-none"></div>
 
-    <!-- 🛰️ TOP UTILITY BANNER (Responsive for small phones to wide displays) -->
-    <header class="relative z-20 w-full px-3.5 sm:px-8 py-2.5 sm:py-3.5 flex justify-between items-center border-b border-white/10 bg-[#001428]/85 backdrop-blur-md safe-top">
-        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover ring-2 ring-cyan-400/60 shadow-md shrink-0"/>
+    <!-- 🛰️ TOP UTILITY BANNER (Ultra-Compact on Mobile, Zero Overflow) -->
+    <header class="relative z-20 w-full px-3 sm:px-6 py-2.5 sm:py-3.5 flex justify-between items-center border-b border-white/10 bg-[#001428]/90 backdrop-blur-md">
+        <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+            <img src="assets/orca_logo.jpg" alt="ORCA Logo" class="w-8 h-8 rounded-xl object-cover ring-2 ring-cyan-400/60 shadow-md shrink-0"/>
             <div class="flex flex-col min-w-0">
-                <div class="flex items-center gap-1.5 sm:gap-2">
+                <div class="flex items-center gap-1.5">
                     <span class="text-xs sm:text-sm font-black tracking-wider text-white uppercase truncate">ORCA MARITIME</span>
-                    <span class="text-[8px] sm:text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 px-1.5 sm:px-2 py-0.5 rounded-full font-mono font-bold shrink-0">ISRO</span>
+                    <span class="text-[8px] sm:text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 px-1.5 py-0.5 rounded-full font-mono font-bold shrink-0">ISRO</span>
                 </div>
-                <span class="text-[9px] sm:text-[10px] text-cyan-200/80 hidden xs:inline truncate">Indian Space Research Organisation · MOSDAC</span>
+                <!-- Only visible on tablet/desktop to protect mobile width -->
+                <span class="text-[10px] text-cyan-200/80 hidden md:inline truncate">Indian Space Research Organisation · MOSDAC</span>
             </div>
         </div>
 
-        <div class="flex items-center gap-2 shrink-0">
+        <div class="flex items-center gap-1.5 shrink-0">
             <div class="flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[10px] sm:text-[11px] px-2.5 py-1 rounded-full font-mono font-medium">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="hidden xs:inline">256-BIT </span><span>SSL</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                <span class="hidden sm:inline">256-BIT </span><span>SSL</span>
             </div>
         </div>
     </header>
 
-    <!-- 🔐 CENTERED AUTH CONTAINER (Touch-friendly & Mobile-keyboard optimized) -->
-    <main class="relative z-20 w-full flex-1 flex items-center justify-center px-3.5 py-4 sm:py-8 sm:px-6 my-auto smooth-scroll">
-        <div class="w-full max-w-md mx-auto">
+    <!-- 🔐 CENTERED AUTH CONTAINER (Touch-friendly & Strictly Centered Without Overflow) -->
+    <main class="relative z-20 w-full flex-1 flex flex-col items-center justify-center px-3 py-4 sm:py-8 sm:px-6 my-auto smooth-scroll">
+        <div class="w-full max-w-[440px] mx-auto">
             
-            <div class="glass-auth-panel rounded-2xl sm:rounded-3xl p-4 sm:p-7 flex flex-col gap-3.5 sm:gap-4 relative">
+            <div class="glass-auth-panel rounded-2xl sm:rounded-3xl p-4 sm:p-7 flex flex-col gap-3.5 sm:gap-4 relative w-full overflow-hidden">
                 
                 <!-- Card Header -->
                 <div class="flex flex-col items-center text-center gap-1.5 sm:gap-2">
-                    <div class="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#00264b] ring-2 ring-cyan-400/50 shadow-lg shadow-cyan-500/20">
+                    <div class="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#00264b] ring-2 ring-cyan-400/50 shadow-lg shadow-cyan-500/20 shrink-0">
                         <img src="assets/orca_logo.jpg" alt="ORCA Emblem" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover"/>
                     </div>
-                    <div>
+                    <div class="w-full px-2">
                         <h1 class="text-lg sm:text-2xl font-black text-white tracking-tight leading-tight">ORCA Maritime Access</h1>
                         <p class="text-[11px] sm:text-xs text-cyan-200/80 mt-0.5">Sign in with verified Google Gmail &amp; Password</p>
                     </div>
                 </div>
 
                 <!-- 🌟 GOOGLE 1-CLICK AUTHENTICATION BUTTON (Touch Target 48px) -->
-                <div class="mt-0.5">
+                <div class="mt-0.5 w-full">
                     <button type="button" onclick="openGoogleAuthModal()" class="w-full min-h-[48px] py-2.5 px-4 bg-white hover:bg-slate-100 active:scale-[0.99] text-slate-800 font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2.5 sm:gap-3 transition-all shadow-md hover:shadow-lg cursor-pointer border border-slate-200">
                         <!-- Official Google Multi-color G -->
                         <svg class="w-4 h-4 sm:w-5 sm:h-5 shrink-0" viewBox="0 0 24 24">
@@ -162,37 +150,37 @@
                 </div>
 
                 <!-- Divider: Or Continue with Gmail & Password -->
-                <div class="relative flex py-0.5 items-center">
+                <div class="relative flex py-0.5 items-center w-full">
                     <div class="flex-grow border-t border-white/15"></div>
                     <span class="flex-shrink mx-2.5 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-cyan-200/60">Or with Gmail &amp; Password</span>
                     <div class="flex-grow border-t border-white/15"></div>
                 </div>
 
-                <!-- Auth Mode Switcher (Log In vs Sign Up - Touch Target 44px) -->
-                <div id="auth-mode-switch" class="flex p-1 bg-[#001428]/90 rounded-2xl border border-white/15 text-xs font-bold">
-                    <button id="btn-mode-login" type="button" onclick="switchAuthMode('login')" class="flex-1 min-h-[42px] py-2 rounded-xl bg-cyan-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">login</span>
-                        <span>Sign In (लॉगिन)</span>
+                <!-- Auth Mode Switcher (Log In vs Sign Up) -->
+                <div id="auth-mode-switch" class="flex p-1 bg-[#001428]/90 rounded-2xl border border-white/15 text-xs font-bold w-full">
+                    <button id="btn-mode-login" type="button" onclick="switchAuthMode('login')" class="flex-1 min-h-[42px] py-2 rounded-xl bg-cyan-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0">
+                        <span class="material-symbols-outlined text-sm shrink-0">login</span>
+                        <span class="truncate">Sign In (लॉगिन)</span>
                     </button>
-                    <button id="btn-mode-signup" type="button" onclick="switchAuthMode('signup')" class="flex-1 min-h-[42px] py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                        <span class="material-symbols-outlined text-sm">person_add</span>
-                        <span>Sign Up (पंजीकरण)</span>
+                    <button id="btn-mode-signup" type="button" onclick="switchAuthMode('signup')" class="flex-1 min-h-[42px] py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0">
+                        <span class="material-symbols-outlined text-sm shrink-0">person_add</span>
+                        <span class="truncate">Sign Up (पंजीकरण)</span>
                     </button>
                 </div>
 
                 <!-- Status / Error Alert Banner -->
-                <div id="auth-alert-banner" class="hidden p-2.5 sm:p-3 rounded-xl text-xs font-medium border relative transition-all"></div>
+                <div id="auth-alert-banner" class="hidden p-2.5 sm:p-3 rounded-xl text-xs font-medium border relative transition-all w-full"></div>
 
                 <!-- ============================================== -->
                 <!-- 1. SIGN IN FORM -->
                 <!-- ============================================== -->
-                <form id="form-login" onsubmit="handleLoginSubmit(event)" class="flex flex-col gap-3 sm:gap-3.5">
-                    <div>
+                <form id="form-login" onsubmit="handleLoginSubmit(event)" class="flex flex-col gap-3 sm:gap-3.5 w-full">
+                    <div class="w-full">
                         <div class="flex justify-between items-center mb-1">
                             <label class="block text-[10px] sm:text-[11px] font-bold text-cyan-200 uppercase tracking-wider">Registered Gmail Address</label>
                             <span id="login-email-badge" class="text-[9px] font-mono text-cyan-300/80">Only @gmail.com</span>
                         </div>
-                        <div class="relative">
+                        <div class="relative w-full">
                             <span class="material-symbols-outlined absolute left-3 top-3 text-cyan-400 text-sm pointer-events-none">mail</span>
                             <input 
                                 type="email" 
@@ -210,12 +198,12 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full">
                         <div class="flex justify-between items-center mb-1">
                             <label class="block text-[10px] sm:text-[11px] font-bold text-cyan-200 uppercase tracking-wider">Password / Security PIN</label>
                             <span class="text-[9px] sm:text-[10px] text-cyan-300/80 font-mono">Demo: 2026</span>
                         </div>
-                        <div class="relative">
+                        <div class="relative w-full">
                             <span class="material-symbols-outlined absolute left-3 top-3 text-cyan-400 text-sm pointer-events-none">lock</span>
                             <input 
                                 type="password" 
@@ -239,7 +227,7 @@
 
                     <div class="flex items-center justify-between text-[10px] sm:text-[11px] text-cyan-200/80">
                         <span class="text-[9px] sm:text-[10px] text-emerald-300 font-mono flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Direct Login (No OTP Delay)
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></span> Direct Login (No OTP Delay)
                         </span>
                     </div>
 
@@ -252,25 +240,25 @@
                 <!-- ============================================== -->
                 <!-- 2. SIGN UP / REGISTRATION FORM -->
                 <!-- ============================================== -->
-                <form id="form-signup" onsubmit="handleSignupSubmit(event)" class="flex flex-col gap-2.5 sm:gap-3 hidden">
-                    <!-- Role Switcher (Fisherman vs Coast Guard - Min 42px touch height) -->
-                    <div>
+                <form id="form-signup" onsubmit="handleSignupSubmit(event)" class="flex flex-col gap-2.5 sm:gap-3 hidden w-full">
+                    <!-- Role Switcher -->
+                    <div class="w-full">
                         <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Select User Role</label>
-                        <div class="flex p-1 bg-black/40 rounded-xl border border-white/10 text-xs font-semibold">
-                            <button id="tab-fisher-btn" type="button" onclick="switchRole('fisher')" class="flex-1 min-h-[40px] py-1.5 rounded-lg bg-cyan-600/90 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                                <span class="material-symbols-outlined text-sm">sailing</span>
-                                <span>Fisherman (मछुआरा)</span>
+                        <div class="flex p-1 bg-black/40 rounded-xl border border-white/10 text-xs font-semibold w-full">
+                            <button id="tab-fisher-btn" type="button" onclick="switchRole('fisher')" class="flex-1 min-h-[40px] py-1.5 rounded-lg bg-cyan-600/90 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0">
+                                <span class="material-symbols-outlined text-sm shrink-0">sailing</span>
+                                <span class="truncate">Fisherman (मछुआरा)</span>
                             </button>
-                            <button id="tab-officer-btn" type="button" onclick="switchRole('officer')" class="flex-1 min-h-[40px] py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer">
-                                <span class="material-symbols-outlined text-sm">local_police</span>
-                                <span>Coast Guard (तटरक्षक)</span>
+                            <button id="tab-officer-btn" type="button" onclick="switchRole('officer')" class="flex-1 min-h-[40px] py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0">
+                                <span class="material-symbols-outlined text-sm shrink-0">local_police</span>
+                                <span class="truncate">Coast Guard (तटरक्षक)</span>
                             </button>
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full">
                         <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1" id="label-signup-name">Full Name / Captain Name</label>
-                        <div class="relative">
+                        <div class="relative w-full">
                             <span class="material-symbols-outlined absolute left-3 top-3 text-cyan-400 text-sm pointer-events-none">person</span>
                             <input 
                                 type="text" 
@@ -283,12 +271,12 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full">
                         <div class="flex justify-between items-center mb-1">
                             <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider">Real Google Gmail Address</label>
                             <span id="signup-email-badge" class="text-[9px] font-mono text-cyan-300/80">Only @gmail.com</span>
                         </div>
-                        <div class="relative">
+                        <div class="relative w-full">
                             <span class="material-symbols-outlined absolute left-3 top-3 text-cyan-400 text-sm pointer-events-none">mail</span>
                             <input 
                                 type="email" 
@@ -306,11 +294,11 @@
                         <p class="text-[9px] text-cyan-200/60 mt-1">Non-Gmail accounts (Yahoo, Outlook, etc.) are blocked for security.</p>
                     </div>
 
-                    <!-- Responsive Single / Dual Column for Vessel & Port on Mobile -->
-                    <div class="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-2.5">
-                        <div>
+                    <!-- Single column on mobile, 2-column on desktop to prevent grid blowout -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+                        <div class="w-full min-w-0">
                             <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1" id="label-signup-vessel">Vessel Reg. No.</label>
-                            <div class="relative">
+                            <div class="relative w-full">
                                 <span class="material-symbols-outlined absolute left-2.5 top-3 text-cyan-400 text-xs pointer-events-none">directions_boat</span>
                                 <input 
                                     type="text" 
@@ -322,9 +310,9 @@
                                 />
                             </div>
                         </div>
-                        <div>
+                        <div class="w-full min-w-0">
                             <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Base Port</label>
-                            <select id="signup-port" class="w-full min-h-[44px] px-2.5 py-2.5 sm:py-2 bg-[#001428] border border-white/20 rounded-xl text-base sm:text-xs text-cyan-100 outline-none focus:border-cyan-400">
+                            <select id="signup-port" class="w-full max-w-full truncate min-h-[44px] px-2.5 py-2.5 sm:py-2 bg-[#001428] border border-white/20 rounded-xl text-base sm:text-xs text-cyan-100 outline-none focus:border-cyan-400">
                                 <option value="chennai">Chennai (Kasimedu)</option>
                                 <option value="rameswaram">Rameswaram (Mandapam)</option>
                                 <option value="tuticorin">Tuticorin (Thoothukudi)</option>
@@ -341,9 +329,9 @@
                         </div>
                     </div>
 
-                    <!-- Responsive Single / Dual Column for Password & Confirm on Mobile -->
-                    <div class="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-2.5">
-                        <div>
+                    <!-- Single column on mobile, 2-column on desktop -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+                        <div class="w-full min-w-0">
                             <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Password</label>
                             <input 
                                 type="password" 
@@ -355,7 +343,7 @@
                                 class="w-full min-h-[44px] px-3 py-2.5 sm:py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white font-mono focus:border-cyan-400 outline-none"
                             />
                         </div>
-                        <div>
+                        <div class="w-full min-w-0">
                             <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Confirm Password</label>
                             <input 
                                 type="password" 
@@ -375,15 +363,15 @@
                     </button>
                 </form>
 
-                <!-- Fast Evaluator 1-Click Demo Buttons (Touch-friendly & Stacked on small screens) -->
-                <div class="border-t border-white/10 pt-2.5 sm:pt-3 flex flex-col gap-1.5 sm:gap-2">
+                <!-- Fast Evaluator 1-Click Demo Buttons -->
+                <div class="border-t border-white/10 pt-2.5 sm:pt-3 flex flex-col gap-1.5 sm:gap-2 w-full">
                     <span class="text-[9px] sm:text-[10px] uppercase tracking-wider text-cyan-200/60 font-mono text-center">Fast 1-Click Evaluator Accounts</span>
-                    <div class="grid grid-cols-1 xs:grid-cols-2 gap-2">
-                        <button type="button" onclick="fastFillAndLogin('fisher')" class="min-h-[44px] px-3 py-2 bg-[#001428] hover:bg-cyan-950/60 active:bg-cyan-900/80 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-xs text-cyan-200 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer text-left">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                        <button type="button" onclick="fastFillAndLogin('fisher')" class="w-full min-h-[44px] px-3 py-2 bg-[#001428] hover:bg-cyan-950/60 active:bg-cyan-900/80 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-xs text-cyan-200 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer min-w-0">
                             <span class="material-symbols-outlined text-sm text-amber-300 shrink-0">sailing</span>
                             <span class="truncate font-medium">Capt. Murugan (Fisherman)</span>
                         </button>
-                        <button type="button" onclick="fastFillAndLogin('officer')" class="min-h-[44px] px-3 py-2 bg-[#001428] hover:bg-cyan-950/60 active:bg-cyan-900/80 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-xs text-cyan-200 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer text-left">
+                        <button type="button" onclick="fastFillAndLogin('officer')" class="w-full min-h-[44px] px-3 py-2 bg-[#001428] hover:bg-cyan-950/60 active:bg-cyan-900/80 border border-cyan-500/30 hover:border-cyan-400 rounded-xl text-xs text-cyan-200 hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer min-w-0">
                             <span class="material-symbols-outlined text-sm text-cyan-300 shrink-0">local_police</span>
                             <span class="truncate font-medium">Duty Officer (Coast Guard)</span>
                         </button>
@@ -398,14 +386,14 @@
         </div>
     </main>
 
-    <!-- 🌐 MODAL: GOOGLE SIGN-IN POPUP (Scrollable on small mobile & landscape) -->
-    <div id="google-auth-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden safe-top safe-bottom">
+    <!-- 🌐 MODAL: GOOGLE SIGN-IN POPUP (Zero Horizontal Overflow on Mobile) -->
+    <div id="google-auth-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden">
         <div class="bg-[#001c38] border border-cyan-500/40 rounded-3xl p-5 sm:p-6 w-full max-w-sm max-h-[88dvh] overflow-y-auto shadow-2xl text-white flex flex-col gap-3.5 sm:gap-4 relative smooth-scroll">
             <button type="button" onclick="closeGoogleAuthModal()" class="absolute top-3.5 right-3.5 w-9 h-9 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer" aria-label="Close Modal">
                 <span class="material-symbols-outlined text-lg">close</span>
             </button>
             
-            <div class="flex items-center gap-3 pr-8">
+            <div class="flex items-center gap-3 pr-8 min-w-0">
                 <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-md shrink-0">
                     <svg class="w-5 h-5" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -414,48 +402,48 @@
                         <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
                     </svg>
                 </div>
-                <div>
+                <div class="min-w-0">
                     <h3 class="text-sm font-bold text-white leading-tight">Sign in with Google</h3>
-                    <p class="text-[10px] text-slate-300">Choose verified account for ORCA</p>
+                    <p class="text-[10px] text-slate-300 truncate">Choose verified account for ORCA</p>
                 </div>
             </div>
 
             <!-- Quick Account Options (Min 48px touch targets) -->
-            <div class="flex flex-col gap-2">
-                <button type="button" onclick="submitGoogleLogin('murugan.fisher@gmail.com', 'Capt. R. Murugan', 'fisher')" class="w-full min-h-[48px] p-2.5 rounded-xl bg-white/5 hover:bg-white/15 active:bg-white/20 border border-white/10 flex items-center justify-between text-left transition-all cursor-pointer">
-                    <div class="flex items-center gap-2.5">
+            <div class="flex flex-col gap-2 w-full">
+                <button type="button" onclick="submitGoogleLogin('murugan.fisher@gmail.com', 'Capt. R. Murugan', 'fisher')" class="w-full min-h-[48px] p-2.5 rounded-xl bg-white/5 hover:bg-white/15 active:bg-white/20 border border-white/10 flex items-center justify-between text-left transition-all cursor-pointer min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0">
                         <div class="w-8 h-8 rounded-full bg-cyan-600 text-white font-bold flex items-center justify-center text-xs shrink-0">M</div>
                         <div class="min-w-0">
                             <div class="text-xs font-bold text-white truncate">Capt. R. Murugan</div>
                             <div class="text-[10px] text-cyan-200/80 font-mono truncate">murugan.fisher@gmail.com</div>
                         </div>
                     </div>
-                    <span class="material-symbols-outlined text-sm text-cyan-400 shrink-0">chevron_right</span>
+                    <span class="material-symbols-outlined text-sm text-cyan-400 shrink-0 ml-2">chevron_right</span>
                 </button>
 
-                <button type="button" onclick="submitGoogleLogin('duty.officer@gmail.com', 'Duty Officer Sharma', 'officer')" class="w-full min-h-[48px] p-2.5 rounded-xl bg-white/5 hover:bg-white/15 active:bg-white/20 border border-white/10 flex items-center justify-between text-left transition-all cursor-pointer">
-                    <div class="flex items-center gap-2.5">
+                <button type="button" onclick="submitGoogleLogin('duty.officer@gmail.com', 'Duty Officer Sharma', 'officer')" class="w-full min-h-[48px] p-2.5 rounded-xl bg-white/5 hover:bg-white/15 active:bg-white/20 border border-white/10 flex items-center justify-between text-left transition-all cursor-pointer min-w-0">
+                    <div class="flex items-center gap-2.5 min-w-0">
                         <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shrink-0">D</div>
                         <div class="min-w-0">
                             <div class="text-xs font-bold text-white truncate">Duty Officer Sharma</div>
                             <div class="text-[10px] text-cyan-200/80 font-mono truncate">duty.officer@gmail.com</div>
                         </div>
                     </div>
-                    <span class="material-symbols-outlined text-sm text-cyan-400 shrink-0">chevron_right</span>
+                    <span class="material-symbols-outlined text-sm text-cyan-400 shrink-0 ml-2">chevron_right</span>
                 </button>
             </div>
 
             <!-- Custom Real Gmail input -->
-            <div class="border-t border-white/10 pt-3">
+            <div class="border-t border-white/10 pt-3 w-full">
                 <label class="block text-[10px] font-bold text-cyan-200 uppercase tracking-wider mb-1">Or use another Google Gmail account:</label>
-                <div class="flex gap-2">
+                <div class="flex gap-2 w-full">
                     <input 
                         type="email" 
                         id="google-custom-email" 
                         inputmode="email"
                         autocomplete="email"
                         placeholder="example@gmail.com" 
-                        class="flex-1 min-h-[44px] px-3 py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white focus:border-cyan-400 outline-none"
+                        class="flex-1 min-w-0 min-h-[44px] px-3 py-2 bg-black/40 border border-white/20 rounded-xl text-base sm:text-xs text-white focus:border-cyan-400 outline-none"
                     />
                     <button type="button" onclick="submitCustomGoogleLogin()" class="min-h-[44px] px-3.5 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-xl text-xs font-bold text-white cursor-pointer shrink-0">
                         Sign In
@@ -513,13 +501,13 @@
             const formSignup = document.getElementById('form-signup');
 
             if (mode === 'login') {
-                btnLogin.className = "flex-1 min-h-[42px] py-2 rounded-xl bg-cyan-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                btnSignup.className = "flex-1 min-h-[42px] py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnLogin.className = "flex-1 min-h-[42px] py-2 rounded-xl bg-cyan-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0";
+                btnSignup.className = "flex-1 min-h-[42px] py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0";
                 formLogin.classList.remove('hidden');
                 formSignup.classList.add('hidden');
             } else {
-                btnSignup.className = "flex-1 min-h-[42px] py-2 rounded-xl bg-emerald-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                btnLogin.className = "flex-1 min-h-[42px] py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnSignup.className = "flex-1 min-h-[42px] py-2 rounded-xl bg-emerald-600 text-white shadow-md flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0";
+                btnLogin.className = "flex-1 min-h-[42px] py-2 rounded-xl text-cyan-200/70 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0";
                 formSignup.classList.remove('hidden');
                 formLogin.classList.add('hidden');
             }
@@ -534,13 +522,13 @@
             const inputVessel = document.getElementById('signup-vessel');
 
             if (role === 'fisher') {
-                btnFisher.className = "flex-1 min-h-[40px] py-1.5 rounded-lg bg-cyan-600/90 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                btnOfficer.className = "flex-1 min-h-[40px] py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnFisher.className = "flex-1 min-h-[40px] py-1.5 rounded-lg bg-cyan-600/90 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0";
+                btnOfficer.className = "flex-1 min-h-[40px] py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0";
                 labelVessel.textContent = "Vessel Reg. No.";
                 inputVessel.placeholder = "IND-TN-02-MM-XXXX";
             } else {
-                btnOfficer.className = "flex-1 min-h-[40px] py-1.5 rounded-lg bg-blue-600 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer";
-                btnFisher.className = "flex-1 min-h-[40px] py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer";
+                btnOfficer.className = "flex-1 min-h-[40px] py-1.5 rounded-lg bg-blue-600 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0";
+                btnFisher.className = "flex-1 min-h-[40px] py-1.5 rounded-lg text-cyan-200/60 hover:text-white flex items-center justify-center gap-1.5 transition-all cursor-pointer min-w-0";
                 labelVessel.textContent = "Coast Guard / Officer ID";
                 inputVessel.placeholder = "ICG-SZ-4089";
             }
@@ -566,13 +554,13 @@
 
             if (type === 'error') {
                 banner.classList.add('bg-rose-950/80', 'border-rose-500/50', 'text-rose-200');
-                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-rose-400 text-base shrink-0">error</span><span>${msg}</span></div>`;
+                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-rose-400 text-base shrink-0">error</span><span class="truncate">${msg}</span></div>`;
             } else if (type === 'success') {
                 banner.classList.add('bg-emerald-950/80', 'border-emerald-500/50', 'text-emerald-200');
-                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-400 text-base shrink-0">check_circle</span><span>${msg}</span></div>`;
+                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-400 text-base shrink-0">check_circle</span><span class="truncate">${msg}</span></div>`;
             } else {
                 banner.classList.add('bg-cyan-950/80', 'border-cyan-500/50', 'text-cyan-200');
-                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-cyan-400 text-base shrink-0">info</span><span>${msg}</span></div>`;
+                banner.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-cyan-400 text-base shrink-0">info</span><span class="truncate">${msg}</span></div>`;
             }
         }
 

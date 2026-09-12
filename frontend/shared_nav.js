@@ -166,6 +166,32 @@
         document.head.appendChild(style);
     }
 
+    // 1.5. Inject Global Mobile-Friendly Viewport & Overflow-X Prevention CSS
+    (function injectGlobalMobileStyles() {
+        if (document.getElementById('orca-mobile-viewport-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'orca-mobile-viewport-styles';
+        style.textContent = `
+            *, *:before, *:after {
+                box-sizing: border-box !important;
+            }
+            html, body {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+                width: 100% !important;
+                position: relative;
+                margin: 0;
+                padding: 0;
+            }
+            @media screen and (max-width: 640px) {
+                input, select, textarea {
+                    font-size: 16px !important;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    })();
+
     // 2. Identify Current Page
     function getCurrentPageName() {
         const path = window.location.pathname;
@@ -198,102 +224,78 @@
             { href: 'catch_log.html', label: 'Catch Diary & Diesel', icon: 'menu_book' },
             { href: 'market.html', label: 'Daily Fish Mandi Rates', icon: 'storefront' },
             { href: 'regulations.html', label: 'Marine Protected Laws', icon: 'gavel' },
-            { href: 'command_center.html', label: 'Command Console', icon: 'monitoring' }
+            { href: 'command_center.html', label: 'Coast Guard Command Console', icon: 'monitoring' }
         ];
 
-        const isMoreActive = moreNavItems.some(item => currentPage === item.href);
-
         const navPillsHtml = mainNavItems.map(item => {
-            const isActive = (currentPage === item.href) || 
-                             (currentPage === '' && item.href === 'index.html') ||
-                             (currentPage === '/' && item.href === 'index.html');
-            
+            const isActive = (currentPage === item.href);
             if (item.isDanger) {
                 return `
                     <a href="${item.href}" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs ${
-                        isActive 
-                            ? 'bg-rose-600 text-white shadow-rose-600/30' 
-                            : 'bg-rose-50 text-rose-700 hover:bg-rose-600 hover:text-white border border-rose-200'
+                        isActive ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
                     }">
-                        <span class="material-symbols-outlined text-sm ${isActive ? '' : 'text-rose-600'}">emergency</span>
-                        <span>SOS</span>
+                        <span class="material-symbols-outlined text-sm">emergency</span>
+                        <span>${item.label}</span>
                     </a>
                 `;
             }
-
             return `
-                <a href="${item.href}" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    isActive
-                        ? 'bg-[#00264b] text-white shadow-sm'
-                        : 'text-slate-600 hover:text-[#00264b] hover:bg-slate-100'
+                <a href="${item.href}" class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    isActive ? 'bg-[#00264b] text-white shadow-xs' : 'text-slate-600 hover:text-[#00264b] hover:bg-slate-100'
                 }">
-                    <span class="material-symbols-outlined text-sm ${isActive ? 'text-cyan-300' : 'text-slate-500'}">${item.icon}</span>
+                    <span class="material-symbols-outlined text-sm">${item.icon}</span>
                     <span>${item.label}</span>
                 </a>
             `;
         }).join('');
 
-        // Dropdown for Additional Sections
         const moreDropdownHtml = `
             <div class="relative group">
-                <button type="button" class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    isMoreActive 
-                        ? 'bg-[#00264b] text-white shadow-sm' 
-                        : 'text-slate-600 hover:text-[#00264b] hover:bg-slate-100'
-                }">
-                    <span class="material-symbols-outlined text-sm ${isMoreActive ? 'text-cyan-300' : 'text-slate-500'}">more_vert</span>
-                    <span>More Sections</span>
+                <button class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-[#00264b] hover:bg-slate-100 transition-all cursor-pointer">
+                    <span class="material-symbols-outlined text-sm">more_horiz</span>
+                    <span>More</span>
                     <span class="material-symbols-outlined text-xs">expand_more</span>
                 </button>
-                <div class="hidden group-hover:block absolute right-0 top-full pt-1 w-56 z-50 animate-in fade-in duration-100">
-                    <div class="bg-white border border-slate-200 rounded-xl shadow-xl p-1.5 flex flex-col gap-0.5">
-                        ${moreNavItems.map(item => {
-                            const isItemActive = currentPage === item.href;
-                            return `
-                                <a href="${item.href}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-colors ${
-                                    isItemActive 
-                                        ? 'bg-cyan-50 text-cyan-800' 
-                                        : 'text-slate-700 hover:bg-slate-100 hover:text-[#00264b]'
-                                }">
-                                    <span class="material-symbols-outlined text-base text-cyan-600">${item.icon}</span>
-                                    <span>${item.label}</span>
-                                </a>
-                            `;
-                        }).join('')}
-                    </div>
+                <div class="absolute right-0 mt-1 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-1 hidden group-hover:block z-50">
+                    ${moreNavItems.map(m => `
+                        <a href="${m.href}" class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">
+                            <span class="material-symbols-outlined text-sm text-cyan-700">${m.icon}</span>
+                            <span>${m.label}</span>
+                        </a>
+                    `).join('')}
                 </div>
             </div>
         `;
 
         mount.innerHTML = `
-            <!-- 🇮🇳 Top Government of India & ISRO Utility Bar -->
-            <div class="bg-[#00172e] text-slate-300 text-[11px] px-3 sm:px-6 py-1 border-b border-white/10 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-1.5 font-semibold text-white tracking-wide">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        Department of Space · Indian Space Research Organisation (ISRO)
+            <!-- 🇮🇳 Top Government of India & ISRO Utility Bar (Zero Mobile Overflow) -->
+            <div class="bg-[#00172e] text-slate-300 text-[10px] sm:text-[11px] px-2.5 sm:px-6 py-1 border-b border-white/10 flex items-center justify-between gap-1.5 w-full overflow-hidden">
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                    <span class="font-semibold text-white tracking-wide truncate max-w-[155px] xs:max-w-[210px] sm:max-w-none">
+                        <span class="hidden sm:inline">Department of Space · </span>ISRO MOSDAC
                     </span>
                     <span class="hidden md:inline text-white/30">|</span>
-                    <span class="hidden md:inline text-cyan-300/90 font-mono">Smart India Hackathon #26176</span>
+                    <span class="hidden md:inline text-cyan-300/90 font-mono">SIH #26176</span>
                     <span class="hidden xl:inline-flex items-center gap-1 text-[10px] font-mono text-emerald-300 ml-2">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                         NavIC: 7 L5/S Locked
                     </span>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     <!-- High-Sunlight Contrast Mode Button -->
                     <button
                         id="btn-sunlight-toggle"
                         onclick="window.toggleSunlightMode()"
                         title="Toggle High-Sunlight Outdoor Contrast Mode"
-                        class="flex items-center gap-1 font-mono text-[10px] bg-white/10 hover:bg-white/20 text-yellow-300 px-2 py-0.5 rounded cursor-pointer"
+                        class="flex items-center gap-1 font-mono text-[9px] sm:text-[10px] bg-white/10 hover:bg-white/20 text-yellow-300 px-2 py-0.5 rounded cursor-pointer shrink-0"
                     >
                         <span class="material-symbols-outlined text-xs">wb_sunny</span>
-                        <span>SUNLIGHT</span>
+                        <span class="hidden xs:inline">SUNLIGHT</span>
                     </button>
 
                     <!-- Language Switcher -->
-                    <div class="flex items-center gap-1 font-mono text-[10px] bg-white/10 px-2 py-0.5 rounded">
+                    <div class="flex items-center gap-1 font-mono text-[9px] sm:text-[10px] bg-white/10 px-1.5 sm:px-2 py-0.5 rounded shrink-0">
                         <span class="text-slate-300">LANG:</span>
                         <select onchange="window.setLanguage(this.value)" class="bg-transparent text-white font-bold outline-none cursor-pointer">
                             <option value="en" ${currentLanguage === 'en' ? 'selected' : ''} class="text-black">English</option>
@@ -306,58 +308,58 @@
                 </div>
             </div>
 
-            <!-- ⚓ Main Desktop & Laptop Header Navbar -->
-            <header class="bg-white border-b border-slate-200 px-3 sm:px-6 py-2.5 shadow-xs sticky top-0 z-40">
-                <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <!-- ⚓ Main Header Navbar (Ultra-Compact on Mobile, Never Shifts Right) -->
+            <header class="bg-white border-b border-slate-200 px-2.5 sm:px-6 py-2 shadow-xs sticky top-0 z-40 w-full overflow-hidden">
+                <div class="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-3 w-full min-w-0">
                     
                     <!-- Left: Brand Logo & Title -->
-                    <div class="flex items-center gap-3">
-                        <a href="index.html" class="flex items-center gap-2.5 group">
-                            <img src="assets/orca_logo.jpg" alt="ORCA" class="w-9 h-9 rounded-xl object-cover shadow-sm border border-slate-200 group-hover:scale-105 transition-transform"/>
-                            <div class="flex flex-col">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-base font-extrabold tracking-tight text-[#00264b]">ORCA</span>
-                                    <span class="text-[9px] bg-cyan-50 text-cyan-700 border border-cyan-300 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">ISRO AI · Live</span>
+                    <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 min-w-0">
+                        <a href="index.html" class="flex items-center gap-2 group">
+                            <img src="assets/orca_logo.jpg" alt="ORCA" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover shadow-sm border border-slate-200 group-hover:scale-105 transition-transform shrink-0"/>
+                            <div class="flex flex-col min-w-0">
+                                <div class="flex items-center gap-1">
+                                    <span class="text-sm sm:text-base font-extrabold tracking-tight text-[#00264b]">ORCA</span>
+                                    <span class="text-[8px] sm:text-[9px] bg-cyan-50 text-cyan-700 border border-cyan-300 px-1.5 py-0.2 rounded-full font-bold uppercase shrink-0">ISRO AI</span>
                                 </div>
-                                <span class="hidden sm:inline text-[10px] text-slate-500 font-medium -mt-0.5">Marine Decision Support System</span>
+                                <span class="hidden md:inline text-[10px] text-slate-500 font-medium -mt-0.5 truncate">Marine Decision Support System</span>
                             </div>
                         </a>
                     </div>
 
                     <!-- Center / Right: Harbor Selector & Nav Pills -->
-                    <div class="flex items-center gap-2.5">
+                    <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink-0">
                         
-                        <!-- Base Fishing Harbor Dropdown -->
-                        <div class="flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-cyan-500 transition-colors">
-                            <span class="material-symbols-outlined text-cyan-700 text-base">anchor</span>
-                            <div class="flex flex-col">
-                                <span class="text-[8px] text-slate-400 uppercase font-bold tracking-wider leading-none">Base Harbor</span>
-                                <select onchange="window.switchPort(this.value)" class="orca-port-select bg-transparent text-xs font-bold text-[#00264b] border-none p-0 outline-none cursor-pointer">
+                        <!-- Base Fishing Harbor Dropdown (Truncated for small phones) -->
+                        <div class="flex items-center gap-1 sm:gap-2 bg-slate-50 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg border border-slate-200 hover:border-cyan-500 transition-colors max-w-[120px] xs:max-w-[155px] sm:max-w-none">
+                            <span class="material-symbols-outlined text-cyan-700 text-sm sm:text-base shrink-0">anchor</span>
+                            <div class="flex flex-col min-w-0">
+                                <span class="hidden sm:inline text-[8px] text-slate-400 uppercase font-bold tracking-wider leading-none">Base Harbor</span>
+                                <select onchange="window.switchPort(this.value)" class="orca-port-select bg-transparent text-[11px] sm:text-xs font-bold text-[#00264b] border-none p-0 outline-none cursor-pointer truncate max-w-full">
                                     ${portOptions}
                                 </select>
                             </div>
                         </div>
 
                         <!-- Desktop Nav Pills (hidden on mobile, visible on desktop/laptop) -->
-                        <nav class="hidden md:flex items-center gap-1 bg-slate-50/80 p-1 rounded-xl border border-slate-200">
+                        <nav class="hidden md:flex items-center gap-1 bg-slate-50/80 p-1 rounded-xl border border-slate-200 shrink-0">
                             ${navPillsHtml}
                             ${moreDropdownHtml}
                         </nav>
 
-                        <!-- Authenticated User Profile & Logout -->
-                        <div class="flex items-center gap-1.5">
-                            <div class="flex items-center gap-1.5 bg-slate-100 text-[#00264b] text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200">
-                                <span class="w-5 h-5 rounded-full ${currentRole === 'officer' ? 'bg-blue-700' : 'bg-[#00264b]'} text-white flex items-center justify-center text-[10px]">
+                        <!-- Authenticated User Profile Avatar & Logout -->
+                        <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                            <div class="flex items-center gap-1 sm:gap-1.5 bg-slate-100 text-[#00264b] text-xs font-bold p-1 sm:px-2.5 sm:py-1.5 rounded-lg border border-slate-200">
+                                <span class="w-6 h-6 rounded-full ${currentRole === 'officer' ? 'bg-blue-700' : 'bg-[#00264b]'} text-white flex items-center justify-center text-[10px] shrink-0">
                                     <span class="material-symbols-outlined text-xs">${currentRole === 'officer' ? 'local_police' : 'sailing'}</span>
                                 </span>
-                                <div class="flex flex-col text-left">
-                                    <span class="orca-username-badge font-bold leading-tight max-w-[100px] truncate">${currentUsername}</span>
+                                <div class="hidden sm:flex flex-col text-left min-w-0">
+                                    <span class="orca-username-badge font-bold leading-tight max-w-[90px] truncate">${currentUsername}</span>
                                     <span class="text-[8px] text-cyan-800 font-mono leading-none">${currentVessel || (currentRole === 'officer' ? 'Coast Guard' : 'Fisherman')}</span>
                                 </div>
                             </div>
-                            <button onclick="window.orcaLogout()" title="Secure Logout" class="flex items-center gap-1 bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 text-xs font-bold px-2 py-1.5 rounded-lg border border-rose-200 transition-colors cursor-pointer">
-                                <span class="material-symbols-outlined text-xs">logout</span>
-                                <span class="hidden xl:inline text-[10px]">Logout</span>
+                            <button onclick="window.orcaLogout()" title="Secure Logout" class="flex items-center justify-center bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold w-7 h-7 sm:w-auto sm:h-auto sm:px-2 sm:py-1.5 rounded-lg border border-rose-200 transition-colors cursor-pointer shrink-0">
+                                <span class="material-symbols-outlined text-xs sm:text-sm">logout</span>
+                                <span class="hidden xl:inline text-[10px] ml-1">Logout</span>
                             </button>
                         </div>
 
