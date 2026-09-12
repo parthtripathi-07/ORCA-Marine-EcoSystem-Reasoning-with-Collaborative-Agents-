@@ -308,7 +308,7 @@
                 </div>
             </div>
 
-            <!-- ⚓ Main Header Navbar (Ultra-Compact on Mobile, Never Shifts Right) -->
+            <!-- ⚓ Main Header Navbar (Ultra-Compact on Mobile with Top-Side Menu Drawer) -->
             <header class="bg-white border-b border-slate-200 px-2.5 sm:px-6 py-2 shadow-xs sticky top-0 z-40 w-full overflow-hidden">
                 <div class="max-w-7xl mx-auto flex items-center justify-between gap-1.5 sm:gap-3 w-full min-w-0">
                     
@@ -326,15 +326,15 @@
                         </a>
                     </div>
 
-                    <!-- Center / Right: Harbor Selector & Nav Pills -->
+                    <!-- Center / Right: Desktop Navbar & Mobile Quick Actions -->
                     <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink-0">
                         
-                        <!-- Base Fishing Harbor Dropdown (Truncated for small phones) -->
-                        <div class="flex items-center gap-1 sm:gap-2 bg-slate-50 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg border border-slate-200 hover:border-cyan-500 transition-colors max-w-[120px] xs:max-w-[155px] sm:max-w-none">
-                            <span class="material-symbols-outlined text-cyan-700 text-sm sm:text-base shrink-0">anchor</span>
+                        <!-- Desktop: Base Fishing Harbor Dropdown -->
+                        <div class="hidden md:flex items-center gap-2 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 hover:border-cyan-500 transition-colors">
+                            <span class="material-symbols-outlined text-cyan-700 text-base shrink-0">anchor</span>
                             <div class="flex flex-col min-w-0">
-                                <span class="hidden sm:inline text-[8px] text-slate-400 uppercase font-bold tracking-wider leading-none">Base Harbor</span>
-                                <select onchange="window.switchPort(this.value)" class="orca-port-select bg-transparent text-[11px] sm:text-xs font-bold text-[#00264b] border-none p-0 outline-none cursor-pointer truncate max-w-full">
+                                <span class="text-[8px] text-slate-400 uppercase font-bold tracking-wider leading-none">Base Harbor</span>
+                                <select onchange="window.switchPort(this.value)" class="orca-port-select bg-transparent text-xs font-bold text-[#00264b] border-none p-0 outline-none cursor-pointer truncate max-w-full">
                                     ${portOptions}
                                 </select>
                             </div>
@@ -346,30 +346,236 @@
                             ${moreDropdownHtml}
                         </nav>
 
-                        <!-- Authenticated User Profile Avatar & Logout -->
-                        <div class="flex items-center gap-1 sm:gap-1.5 shrink-0">
-                            <div class="flex items-center gap-1 sm:gap-1.5 bg-slate-100 text-[#00264b] text-xs font-bold p-1 sm:px-2.5 sm:py-1.5 rounded-lg border border-slate-200">
-                                <span class="w-6 h-6 rounded-full ${currentRole === 'officer' ? 'bg-blue-700' : 'bg-[#00264b]'} text-white flex items-center justify-center text-[10px] shrink-0">
+                        <!-- Desktop: User Profile & Logout -->
+                        <div class="hidden md:flex items-center gap-1.5 shrink-0">
+                            <div class="flex items-center gap-1.5 bg-slate-100 text-[#00264b] text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200">
+                                <span class="w-5 h-5 rounded-full ${currentRole === 'officer' ? 'bg-blue-700' : 'bg-[#00264b]'} text-white flex items-center justify-center text-[10px] shrink-0">
                                     <span class="material-symbols-outlined text-xs">${currentRole === 'officer' ? 'local_police' : 'sailing'}</span>
                                 </span>
-                                <div class="hidden sm:flex flex-col text-left min-w-0">
+                                <div class="flex flex-col text-left min-w-0">
                                     <span class="orca-username-badge font-bold leading-tight max-w-[90px] truncate">${currentUsername}</span>
                                     <span class="text-[8px] text-cyan-800 font-mono leading-none">${currentVessel || (currentRole === 'officer' ? 'Coast Guard' : 'Fisherman')}</span>
                                 </div>
                             </div>
-                            <button onclick="window.orcaLogout()" title="Secure Logout" class="flex items-center justify-center bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold w-7 h-7 sm:w-auto sm:h-auto sm:px-2 sm:py-1.5 rounded-lg border border-rose-200 transition-colors cursor-pointer shrink-0">
-                                <span class="material-symbols-outlined text-xs sm:text-sm">logout</span>
-                                <span class="hidden xl:inline text-[10px] ml-1">Logout</span>
+                            <button onclick="window.orcaLogout()" title="Secure Logout" class="flex items-center gap-1 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold px-2 py-1.5 rounded-lg border border-rose-200 transition-colors cursor-pointer shrink-0">
+                                <span class="material-symbols-outlined text-xs">logout</span>
+                                <span class="hidden xl:inline text-[10px]">Logout</span>
                             </button>
                         </div>
+
+                        <!-- 📱 Mobile Top Quick Harbor Selector (Compact Pill on Mobile) -->
+                        <button onclick="window.toggleMobileDrawer('harbor-section')" class="md:hidden flex items-center gap-1 bg-cyan-50 text-cyan-900 px-2 py-1 rounded-lg border border-cyan-300 text-xs font-bold max-w-[125px] xs:max-w-[155px] cursor-pointer" title="Switch Operational Base Harbor">
+                            <span class="material-symbols-outlined text-cyan-700 text-sm shrink-0">anchor</span>
+                            <span class="truncate uppercase text-[10px]">${(window.PORT_COORDINATES && window.PORT_COORDINATES[currentPort] ? window.PORT_COORDINATES[currentPort].name.split(' ')[0] : 'Port')}</span>
+                        </button>
+
+                        <!-- 📱 Mobile Top-Side Menu Drawer Button (Hamburger) -->
+                        <button onclick="window.toggleMobileDrawer()" class="md:hidden w-8 h-8 rounded-lg bg-[#00264b] hover:bg-[#003870] active:scale-95 text-white flex items-center justify-center shadow-xs cursor-pointer shrink-0" aria-label="Open Mobile Menu Sections">
+                            <span class="material-symbols-outlined text-lg">menu</span>
+                        </button>
 
                     </div>
                 </div>
             </header>
+
+            <!-- ========================================================================= -->
+            <!-- 📱 SLIDING OFF-CANVAS MOBILE DRAWER WITH ORGANIZED SECTIONS -->
+            <!-- ========================================================================= -->
+            <div id="orca-drawer-backdrop" onclick="window.closeMobileDrawer()" class="fixed inset-0 bg-black/65 backdrop-blur-xs z-50 transition-opacity duration-300 opacity-0 pointer-events-none"></div>
+
+            <aside id="orca-drawer-panel" class="fixed top-0 right-0 bottom-0 w-[84%] max-w-[340px] bg-[#001428] text-white z-50 shadow-2xl flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-white/10 overflow-hidden">
+                
+                <!-- Drawer Top Header -->
+                <div class="px-4 py-3 bg-[#001f3f] border-b border-white/10 flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <img src="assets/orca_logo.jpg" alt="ORCA" class="w-7 h-7 rounded-lg object-cover ring-1 ring-cyan-400/50 shrink-0"/>
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-xs font-black tracking-wider text-white uppercase truncate">ORCA PORTAL MENU</span>
+                            <span class="text-[9px] text-cyan-300 font-mono">ISRO SIH #26176</span>
+                        </div>
+                    </div>
+                    <button onclick="window.closeMobileDrawer()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer shrink-0" aria-label="Close Menu">
+                        <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
+                </div>
+
+                <!-- Scrollable Body with Categorized Sections -->
+                <div class="flex-1 overflow-y-auto p-3.5 flex flex-col gap-4 smooth-scroll text-slate-100">
+                    
+                    <!-- 👤 SECTION 1: Active User Profile & Vessel Identity -->
+                    <div class="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[9px] font-mono font-bold uppercase tracking-wider text-cyan-300">User Identity</span>
+                            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono">Online</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 rounded-xl ${currentRole === 'officer' ? 'bg-blue-600' : 'bg-cyan-600'} text-white flex items-center justify-center text-base font-bold shadow-md shrink-0">
+                                <span class="material-symbols-outlined text-xl">${currentRole === 'officer' ? 'local_police' : 'sailing'}</span>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="text-xs font-bold text-white truncate">${currentUsername}</div>
+                                <div class="text-[10px] text-cyan-200/80 font-mono truncate">${currentVessel || (currentRole === 'officer' ? 'Coast Guard Official' : 'Registered Fisher')}</div>
+                                <div class="text-[9px] text-slate-400 capitalize mt-0.5 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span> Role: ${currentRole === 'officer' ? 'Coast Guard' : 'Fisherman'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ⚓ SECTION 2: Operational Base Harbor -->
+                    <div id="harbor-section" class="flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between px-1">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-200 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-xs text-cyan-400">anchor</span> Operational Harbor
+                            </span>
+                            <span class="text-[9px] font-mono text-cyan-300">${currentPort}</span>
+                        </div>
+                        <div class="relative">
+                            <select onchange="window.switchPort(this.value); window.closeMobileDrawer();" class="w-full px-3 py-2 bg-black/40 border border-white/20 rounded-xl text-xs text-cyan-100 font-semibold outline-none focus:border-cyan-400">
+                                ${portOptions}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 🧭 SECTION 3: Core Maritime Navigation Hub -->
+                    <div class="flex flex-col gap-1.5">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-200/70 px-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs text-cyan-400">explore</span> Core Navigation
+                        </span>
+                        <div class="flex flex-col gap-1">
+                            <a href="index.html" onclick="window.closeMobileDrawer()" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${currentPage === 'index.html' ? 'bg-cyan-600 text-white font-bold shadow-md' : 'bg-white/5 hover:bg-white/10 text-slate-200'}">
+                                <span class="material-symbols-outlined text-base text-cyan-300">home</span>
+                                <span>Operations Home</span>
+                            </a>
+                            <a href="advisor.html" onclick="window.closeMobileDrawer()" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${currentPage === 'advisor.html' ? 'bg-cyan-600 text-white font-bold shadow-md' : 'bg-white/5 hover:bg-white/10 text-slate-200'}">
+                                <span class="material-symbols-outlined text-base text-cyan-300">psychology</span>
+                                <span>AI Decision Assistant</span>
+                            </a>
+                            <a href="map.html" onclick="window.closeMobileDrawer()" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${currentPage === 'map.html' ? 'bg-cyan-600 text-white font-bold shadow-md' : 'bg-white/5 hover:bg-white/10 text-slate-200'}">
+                                <span class="material-symbols-outlined text-base text-cyan-300">map</span>
+                                <span>Ocean GIS &amp; PFZ Chart</span>
+                            </a>
+                            <a href="weather.html" onclick="window.closeMobileDrawer()" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${currentPage === 'weather.html' ? 'bg-cyan-600 text-white font-bold shadow-md' : 'bg-white/5 hover:bg-white/10 text-slate-200'}">
+                                <span class="material-symbols-outlined text-base text-cyan-300">air</span>
+                                <span>Marine Weather &amp; Waves</span>
+                            </a>
+                            <a href="sos.html" onclick="window.closeMobileDrawer()" class="flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all ${currentPage === 'sos.html' ? 'bg-rose-600 text-white shadow-md' : 'bg-rose-950/60 border border-rose-500/40 text-rose-200 hover:bg-rose-900'}">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="material-symbols-outlined text-base text-rose-400">emergency</span>
+                                    <span>Emergency SOS Beacon</span>
+                                </div>
+                                <span class="text-[9px] bg-rose-500 text-white px-1.5 py-0.5 rounded font-mono">1554</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 🎣 SECTION 4: Fisheries & Field Utilities -->
+                    <div class="flex flex-col gap-1.5">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-200/70 px-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-xs text-amber-400">sailing</span> Field &amp; Market Tools
+                        </span>
+                        <div class="flex flex-col gap-1">
+                            <a href="catch_log.html" onclick="window.closeMobileDrawer()" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${currentPage === 'catch_log.html' ? 'bg-cyan-600 text-white font-bold shadow-md' : 'bg-white/5 hover:bg-white/10 text-slate-200'}">
+                                <span class="material-symbols-outlined text-base text-cyan-300">menu_book</span>
+                                <span>Catch Diary &amp; Diesel Log</span>
+                            </a>
+                            <a href="market.html" onclick="window.closeMobileDrawer()" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${currentPage === 'market.html' ? 'bg-cyan-600 text-white font-bold shadow-md' : 'bg-white/5 hover:bg-white/10 text-slate-200'}">
+                                <span class="material-symbols-outlined text-base text-amber-300">storefront</span>
+                                <span>Daily Fish Mandi Rates</span>
+                            </a>
+                            <a href="regulations.html" onclick="window.closeMobileDrawer()" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${currentPage === 'regulations.html' ? 'bg-cyan-600 text-white font-bold shadow-md' : 'bg-white/5 hover:bg-white/10 text-slate-200'}">
+                                <span class="material-symbols-outlined text-base text-emerald-300">gavel</span>
+                                <span>Marine Laws &amp; Ban Dates</span>
+                            </a>
+                            <a href="command_center.html" onclick="window.closeMobileDrawer()" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${currentPage === 'command_center.html' ? 'bg-cyan-600 text-white font-bold shadow-md' : 'bg-white/5 hover:bg-white/10 text-slate-200'}">
+                                <span class="material-symbols-outlined text-base text-slate-300">monitoring</span>
+                                <span>Command Console</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- ⚙️ SECTION 5: Preferences & Telemetry -->
+                    <div class="flex flex-col gap-2 pt-1 border-t border-white/10">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-200/70 px-1">Settings &amp; Sensors</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="window.toggleSunlightMode()" class="px-2.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs flex items-center justify-center gap-1.5 text-yellow-300 cursor-pointer">
+                                <span class="material-symbols-outlined text-sm">wb_sunny</span>
+                                <span class="text-[11px] font-bold">Sunlight Mode</span>
+                            </button>
+                            <div class="px-2.5 py-2 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between text-xs">
+                                <span class="text-[10px] text-slate-300 font-mono">LANG:</span>
+                                <select onchange="window.setLanguage(this.value)" class="bg-transparent text-white font-bold text-xs outline-none cursor-pointer">
+                                    <option value="en" ${currentLanguage === 'en' ? 'selected' : ''} class="text-black">EN</option>
+                                    <option value="hi" ${currentLanguage === 'hi' ? 'selected' : ''} class="text-black">हिन्दी</option>
+                                    <option value="ta" ${currentLanguage === 'ta' ? 'selected' : ''} class="text-black">தமிழ்</option>
+                                    <option value="te" ${currentLanguage === 'te' ? 'selected' : ''} class="text-black">తెలుగు</option>
+                                    <option value="bn" ${currentLanguage === 'bn' ? 'selected' : ''} class="text-black">বাংলা</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- NavIC Satellites Status -->
+                        <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-2 flex items-center justify-between">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span class="text-[10px] text-emerald-200 font-mono">NavIC Constellation</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-emerald-300 font-bold">7 L5/S Locked</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 🚪 SECTION 6: Logout & Exit (Bottom Fixed) -->
+                <div class="p-3 bg-[#000d1a] border-t border-white/10 flex items-center justify-between shrink-0">
+                    <button onclick="window.orcaLogout()" class="w-full py-2.5 rounded-xl bg-rose-600/80 hover:bg-rose-600 active:scale-95 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md">
+                        <span class="material-symbols-outlined text-sm">logout</span>
+                        <span>Sign Out of ORCA</span>
+                    </button>
+                </div>
+
+            </aside>
         `;
 
         applySunlightMode();
     }
+
+    // Mobile Drawer Controls
+    window.toggleMobileDrawer = function(targetSectionId) {
+        const backdrop = document.getElementById('orca-drawer-backdrop');
+        const panel = document.getElementById('orca-drawer-panel');
+        if (!panel || !backdrop) return;
+
+        const isClosed = panel.classList.contains('translate-x-full');
+        if (isClosed) {
+            backdrop.classList.remove('opacity-0', 'pointer-events-none');
+            backdrop.classList.add('opacity-100');
+            panel.classList.remove('translate-x-full');
+            panel.classList.add('translate-x-0');
+            document.body.style.overflow = 'hidden';
+
+            if (targetSectionId) {
+                setTimeout(() => {
+                    const sec = document.getElementById(targetSectionId);
+                    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 200);
+            }
+        } else {
+            window.closeMobileDrawer();
+        }
+    };
+
+    window.closeMobileDrawer = function() {
+        const backdrop = document.getElementById('orca-drawer-backdrop');
+        const panel = document.getElementById('orca-drawer-panel');
+        if (!panel || !backdrop) return;
+
+        backdrop.classList.remove('opacity-100');
+        backdrop.classList.add('opacity-0', 'pointer-events-none');
+        panel.classList.remove('translate-x-0');
+        panel.classList.add('translate-x-full');
+        document.body.style.overflow = '';
+    };
 
     // 4. Render Mobile & Tablet Sticky 5-Tab Bottom Navigation Bar (< 768px)
     function renderMobileBottomNav() {

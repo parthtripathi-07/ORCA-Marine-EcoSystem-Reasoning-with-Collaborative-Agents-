@@ -115,8 +115,111 @@
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
                 <span class="hidden sm:inline">256-BIT </span><span>SSL</span>
             </div>
+            <!-- Mobile Top-Side Info & Demo Accounts Drawer Button -->
+            <button onclick="toggleLoginInfoDrawer()" class="sm:hidden w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-cyan-200 flex items-center justify-center cursor-pointer ml-1" aria-label="Open Mobile Info &amp; Demo Menu">
+                <span class="material-symbols-outlined text-lg">menu</span>
+            </button>
         </div>
     </header>
+
+    <!-- 📱 MOBILE SLIDING DRAWER: LOGIN & HELPLINE SECTIONS -->
+    <div id="login-drawer-backdrop" onclick="closeLoginInfoDrawer()" class="fixed inset-0 bg-black/65 backdrop-blur-xs z-50 transition-opacity duration-300 opacity-0 pointer-events-none"></div>
+
+    <aside id="login-drawer-panel" class="fixed top-0 right-0 bottom-0 w-[84%] max-w-[340px] bg-[#001428] text-white z-50 shadow-2xl flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-white/10 overflow-hidden">
+        <!-- Drawer Header -->
+        <div class="px-4 py-3 bg-[#001f3f] border-b border-white/10 flex items-center justify-between shrink-0">
+            <div class="flex items-center gap-2 min-w-0">
+                <img src="assets/orca_logo.jpg" alt="ORCA" class="w-7 h-7 rounded-lg object-cover ring-1 ring-cyan-400/50 shrink-0"/>
+                <div class="flex flex-col min-w-0">
+                    <span class="text-xs font-black tracking-wider text-white uppercase truncate">ORCA ACCESS INFO</span>
+                    <span class="text-[9px] text-cyan-300 font-mono">ISRO MOSDAC #26176</span>
+                </div>
+            </div>
+            <button onclick="closeLoginInfoDrawer()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center cursor-pointer shrink-0" aria-label="Close Info">
+                <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+        </div>
+
+        <!-- Categorized Sections -->
+        <div class="flex-1 overflow-y-auto p-3.5 flex flex-col gap-4 smooth-scroll text-slate-100">
+            <!-- SECTION 1: 1-Click Fast Demo Accounts -->
+            <div class="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col gap-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs text-amber-300">bolt</span> Fast 1-Click Demo Accounts
+                </span>
+                <p class="text-[11px] text-slate-300 leading-snug">Quickly sign in as verified persona without manual typing:</p>
+                <div class="flex flex-col gap-1.5 mt-1">
+                    <button onclick="closeLoginInfoDrawer(); fastFillAndLogin('fisher');" class="w-full py-2 px-3 rounded-xl bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/30 text-left text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors">
+                        <span class="material-symbols-outlined text-amber-400 text-sm">sailing</span>
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-white text-[11px] font-bold">Capt. Murugan (Fisherman)</span>
+                            <span class="text-[9px] text-cyan-200/80 font-mono">murugan.fisher@gmail.com · PIN 2026</span>
+                        </div>
+                    </button>
+                    <button onclick="closeLoginInfoDrawer(); fastFillAndLogin('officer');" class="w-full py-2 px-3 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/30 text-left text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors">
+                        <span class="material-symbols-outlined text-cyan-300 text-sm">local_police</span>
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-white text-[11px] font-bold">Duty Officer (Coast Guard)</span>
+                            <span class="text-[9px] text-blue-200/80 font-mono">duty.officer@gmail.com · PIN 2026</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SECTION 2: Security & Authentication Policy -->
+            <div class="flex flex-col gap-1.5">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-200/80 px-1 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs text-emerald-400">verified_user</span> Security Policy
+                </span>
+                <div class="bg-white/5 border border-white/10 rounded-xl p-2.5 text-[11px] text-slate-300 space-y-1.5">
+                    <div class="flex items-start gap-2">
+                        <span class="material-symbols-outlined text-emerald-400 text-xs mt-0.5 shrink-0">check_circle</span>
+                        <span>Strictly verified <strong>@gmail.com</strong> accounts only</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="material-symbols-outlined text-emerald-400 text-xs mt-0.5 shrink-0">check_circle</span>
+                        <span>Zero SMS delay: Direct instant authentication</span>
+                    </div>
+                    <div class="flex items-start gap-2">
+                        <span class="material-symbols-outlined text-emerald-400 text-xs mt-0.5 shrink-0">check_circle</span>
+                        <span>256-bit AES encrypted session state</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: Maritime Emergency Helplines -->
+            <div class="flex flex-col gap-1.5">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-rose-300 px-1 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs text-rose-400">emergency</span> Emergency Hotlines
+                </span>
+                <div class="grid grid-cols-2 gap-2">
+                    <a href="tel:1554" class="p-2.5 rounded-xl bg-rose-500/20 border border-rose-400/40 text-rose-200 flex flex-col items-center text-center">
+                        <span class="material-symbols-outlined text-base text-rose-400">sos</span>
+                        <span class="text-xs font-bold text-white mt-0.5">1554</span>
+                        <span class="text-[9px] text-rose-200/80">MRCC ICG Toll-Free</span>
+                    </a>
+                    <a href="tel:1093" class="p-2.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 flex flex-col items-center text-center">
+                        <span class="material-symbols-outlined text-base text-amber-400">shield</span>
+                        <span class="text-xs font-bold text-white mt-0.5">1093</span>
+                        <span class="text-[9px] text-amber-200/80">Coastal Police</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- SECTION 4: System Telemetry -->
+            <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-2.5 flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-[10px] text-emerald-200 font-mono">ISRO MOSDAC Uplink</span>
+                </div>
+                <span class="text-[10px] font-mono text-emerald-300 font-bold">Online</span>
+            </div>
+        </div>
+
+        <div class="p-3 bg-[#000d1a] border-t border-white/10 shrink-0">
+            <p class="text-[10px] text-cyan-200/60 text-center font-mono">ORCA v2.4 · SIH #26176</p>
+        </div>
+    </aside>
 
     <!-- 🔐 CENTERED AUTH CONTAINER (Touch-friendly & Strictly Centered Without Overflow) -->
     <main class="relative z-20 w-full flex-1 flex flex-col items-center justify-center px-3 py-4 sm:py-8 sm:px-6 my-auto smooth-scroll">
@@ -820,6 +923,34 @@
                 }, 280);
             });
         });
+
+        // Mobile Info Drawer Controls
+        window.toggleLoginInfoDrawer = function() {
+            const backdrop = document.getElementById('login-drawer-backdrop');
+            const panel = document.getElementById('login-drawer-panel');
+            if (!panel || !backdrop) return;
+            const isClosed = panel.classList.contains('translate-x-full');
+            if (isClosed) {
+                backdrop.classList.remove('opacity-0', 'pointer-events-none');
+                backdrop.classList.add('opacity-100');
+                panel.classList.remove('translate-x-full');
+                panel.classList.add('translate-x-0');
+                document.body.style.overflow = 'hidden';
+            } else {
+                window.closeLoginInfoDrawer();
+            }
+        };
+
+        window.closeLoginInfoDrawer = function() {
+            const backdrop = document.getElementById('login-drawer-backdrop');
+            const panel = document.getElementById('login-drawer-panel');
+            if (!panel || !backdrop) return;
+            backdrop.classList.remove('opacity-100');
+            backdrop.classList.add('opacity-0', 'pointer-events-none');
+            panel.classList.remove('translate-x-0');
+            panel.classList.add('translate-x-full');
+            document.body.style.overflow = '';
+        };
 
         // Initialize state on page load & Register PWA Service Worker
         window.addEventListener('DOMContentLoaded', () => {
