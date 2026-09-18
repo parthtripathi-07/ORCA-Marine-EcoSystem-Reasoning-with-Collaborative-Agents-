@@ -47,6 +47,10 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-2 self-start sm:self-auto">
+                    <button onclick="window.openHistoryModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-300 text-xs font-bold transition-colors cursor-pointer" title="View Past Queries">
+                        <span class="material-symbols-outlined text-sm">history</span>
+                        <span>My History</span>
+                    </button>
                     <span class="text-xs font-bold text-slate-400">Harbor:</span>
                     <span id="advisor-active-harbor" class="text-xs font-bold text-[#00264b] bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
                         Goa (Malim)
@@ -147,6 +151,11 @@
                 
                 <!-- Prompt Suggestion Chips -->
                 <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide text-xs" id="advisor-chips">
+                    <!-- My History Quick Button -->
+                    <button onclick="window.openHistoryModal()" class="bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-300 px-3 py-1 rounded-full whitespace-nowrap transition-colors font-bold flex items-center gap-1 cursor-pointer">
+                        <span class="material-symbols-outlined text-xs text-cyan-600">history</span>
+                        <span>My History</span>
+                    </button>
                     <button onclick="submitPrompt('Where is the nearest Potential Fishing Zone (PFZ) today?')" class="bg-slate-100 hover:bg-cyan-50 hover:text-cyan-800 hover:border-cyan-300 border border-slate-200 px-3 py-1 rounded-full whitespace-nowrap transition-colors font-medium">
                         🐟 Nearest PFZ?
                     </button>
@@ -474,6 +483,20 @@
 
                 conversationHistory.push({ role: 'user', text: query });
                 conversationHistory.push({ role: 'bot', text: data.answer || '' });
+
+                // Save query to persistent local history for instant retrieval in History Modal
+                try {
+                    let localHist = JSON.parse(localStorage.getItem('orca_query_history') || '[]');
+                    localHist.unshift({
+                        query_text: query,
+                        llm_response: data.answer || '',
+                        target_port: port.id || 'General',
+                        safety_status: (data.marine_weather && data.marine_weather.safety_status) || 'SAFE',
+                        created_at: new Date().toISOString()
+                    });
+                    if (localHist.length > 50) localHist = localHist.slice(0, 50);
+                    localStorage.setItem('orca_query_history', JSON.stringify(localHist));
+                } catch(e) {}
 
                 appendBotMessage(data);
 

@@ -403,6 +403,155 @@
             </a>
         </section>
 
+        <!-- 5. ABOUT ORCA & ISRO ARCHITECTURE SHOWCASE SECTION -->
+        <section id="about-orca-section" class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-8 shadow-xs flex flex-col gap-6">
+            
+            <!-- Section Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                <div class="flex flex-col gap-1.5">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-[10px] bg-[#00264b]/10 text-[#00264b] border border-[#00264b]/20 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                            Department of Space · ISRO
+                        </span>
+                        <span class="text-[10px] bg-cyan-50 text-cyan-800 border border-cyan-300 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                            Smart India Hackathon #26176
+                        </span>
+                        <span class="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                            Autonomous AI Platform
+                        </span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-[#00264b] tracking-tight">
+                        About ORCA — Marine Ecosystem Reasoning with Collaborative Agents
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-600 max-w-4xl leading-relaxed">
+                        ORCA is an agentic artificial intelligence platform designed for India's 4.5+ million coastal fisherfolk and maritime safety authorities. It synthesizes real-time ISRO Oceansat-3 satellite telemetry, INCOIS oceanographic advisories, and Open-Meteo marine wave spectra to provide zero-hallucination fisheries navigation, proactive hazard warnings, and sovereign geofencing.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <a href="advisor.html" class="px-3.5 py-2 rounded-xl bg-[#00264b] hover:bg-cyan-700 text-white font-bold text-xs shadow-xs flex items-center gap-1.5 transition-colors">
+                        <span class="material-symbols-outlined text-sm">psychology</span> Try AI Advisor
+                    </a>
+                    <a href="map.html" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs border border-slate-200 flex items-center gap-1.5 transition-colors">
+                        <span class="material-symbols-outlined text-sm">explore</span> Ocean GIS
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4 Core Pillars Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Pillar 1 -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-cyan-500/60 transition-all group">
+                    <div class="w-10 h-10 rounded-lg bg-cyan-100 text-cyan-800 flex items-center justify-center mb-3 group-hover:bg-[#00264b] group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-xl">satellite_alt</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-[#00264b] mb-1">ISRO Earth Observation</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Integrates Oceansat-3 Ocean Color Monitor (OCM-3), Scatterometer ocean wind vectors, and INSAT-3DR thermal channels for live marine telemetry.
+                    </p>
+                </div>
+
+                <!-- Pillar 2 -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-emerald-500/60 transition-all group">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-xl">radar</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-emerald-900 mb-1">INCOIS PFZ Intelligence</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Identifies high-density pelagic aggregation zones (Tuna, Mackerel, Sardine) using Sea Surface Temperature (SST) thermal fronts & Chlorophyll-a gradients.
+                    </p>
+                </div>
+
+                <!-- Pillar 3 -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-blue-500/60 transition-all group">
+                    <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center mb-3 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-xl">psychology</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-blue-900 mb-1">6-Agent Collaborative AI</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Specialized agents (Planner, PFZ, Weather, Geofence, Route, Synthesizer) powered by Groq LPU & Gemini for fast vernacular coastal reasoning.
+                    </p>
+                </div>
+
+                <!-- Pillar 4 -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 hover:border-rose-500/60 transition-all group">
+                    <div class="w-10 h-10 rounded-lg bg-rose-100 text-rose-800 flex items-center justify-center mb-3 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-xl">shield</span>
+                    </div>
+                    <h3 class="text-sm font-bold text-rose-900 mb-1">EEZ & MPA Geofencing</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        GeoPandas spatial indexing across India's 1.66M km² EEZ, Sri Lanka / Pakistan IMBL boundaries, and Marine Protected Areas under Wildlife Protection Act.
+                    </p>
+                </div>
+            </div>
+
+            <!-- How ORCA Works (4-Step Autonomous Pipeline) -->
+            <div class="bg-slate-50/80 rounded-xl p-4 sm:p-5 border border-slate-200">
+                <h3 class="text-xs font-bold text-[#00264b] uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-base text-cyan-600">account_tree</span>
+                    How ORCA Works: End-to-End Autonomous Pipeline
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-[#00264b] text-white text-xs font-bold flex items-center justify-center">1</span>
+                            <span class="text-xs font-bold text-[#00264b]">Data Ingestion</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 leading-relaxed">
+                            Continuous ingestion of Oceansat-3 satellite telemetry, Open-Meteo wave spectra, and IMD coastal observations.
+                        </p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-cyan-600 text-white text-xs font-bold flex items-center justify-center">2</span>
+                            <span class="text-xs font-bold text-cyan-900">Spatial Analysis</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 leading-relaxed">
+                            Haversine distance, true compass bearing (0–360°), and Shapely polygon containment evaluate boundary hazards and fuel.
+                        </p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">3</span>
+                            <span class="text-xs font-bold text-emerald-900">Agentic Reasoning</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 leading-relaxed">
+                            Collaborative AI sub-agents synthesize findings into structured, culturally-tuned advisories in Hindi, English, Tamil, Telugu, and Bengali.
+                        </p>
+                    </div>
+                    <div class="bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-amber-600 text-white text-xs font-bold flex items-center justify-center">4</span>
+                            <span class="text-xs font-bold text-amber-900">Proactive Telemetry</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 leading-relaxed">
+                            Delivers instant voice alerts, 7-day sea departure windows, fuel estimates, and emergency MRCC distress beacons.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key System Impact Metrics -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="text-lg sm:text-xl font-black text-[#00264b] font-mono">9 States</div>
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">Coastal Coverage</div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="text-lg sm:text-xl font-black text-cyan-700 font-mono">1.66M km²</div>
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">Indian Sovereign EEZ</div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="text-lg sm:text-xl font-black text-emerald-700 font-mono">2.5L+ Boats</div>
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">Fleet Scaling Capacity</div>
+                </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="text-lg sm:text-xl font-black text-rose-700 font-mono">24/7 MRCC</div>
+                    <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">Emergency Protocol</div>
+                </div>
+            </div>
+
+        </section>
+
     </main>
 
     <!-- Mobile Sticky 5-Tab Bottom Navigation Mount -->

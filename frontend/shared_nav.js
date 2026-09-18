@@ -228,7 +228,9 @@
             { href: 'catch_log.html', label: 'Catch Diary & Diesel', icon: 'menu_book' },
             { href: 'market.html', label: 'Daily Fish Mandi Rates', icon: 'storefront' },
             { href: 'regulations.html', label: 'Marine Protected Laws', icon: 'gavel' },
-            { href: 'command_center.html', label: 'Coast Guard Command Console', icon: 'monitoring' }
+            { href: 'command_center.html', label: 'Coast Guard Command Console', icon: 'monitoring' },
+            { href: 'javascript:window.openHistoryModal()', label: 'My Query History', icon: 'history' },
+            { href: 'index.html#about-orca-section', label: 'About ORCA (ISRO Architecture)', icon: 'info' }
         ];
 
         const navPillsHtml = mainNavItems.map(item => {
@@ -275,7 +277,7 @@
                 >
                     <div class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 mb-1 flex items-center justify-between">
                         <span>Fisheries &amp; Maritime Tools</span>
-                        <span class="text-[9px] text-cyan-600 font-mono font-bold">4 Sections</span>
+                        <span class="text-[9px] text-cyan-600 font-mono font-bold">6 Sections</span>
                     </div>
                     ${moreNavItems.map(m => `
                         <a href="${m.href}" class="flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors ${currentPage === m.href ? 'bg-cyan-50 text-cyan-800 font-bold border-l-2 border-cyan-600' : ''}">
@@ -374,6 +376,12 @@
 
                         <!-- Desktop: User Profile & Logout -->
                         <div class="hidden md:flex items-center gap-1.5 shrink-0">
+                            <!-- Quick History Button -->
+                            <button onclick="window.openHistoryModal()" title="View Your Past Query History" class="flex items-center gap-1 bg-slate-100 hover:bg-cyan-50 hover:text-cyan-800 text-slate-700 text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200 transition-colors cursor-pointer shrink-0">
+                                <span class="material-symbols-outlined text-sm text-cyan-600">history</span>
+                                <span class="hidden lg:inline text-[11px]">History</span>
+                            </button>
+
                             <div class="flex items-center gap-1.5 bg-slate-100 text-[#00264b] text-xs font-bold px-2.5 py-1.5 rounded-lg border border-slate-200">
                                 <span class="w-5 h-5 rounded-full ${currentRole === 'officer' ? 'bg-blue-700' : 'bg-[#00264b]'} text-white flex items-center justify-center text-[10px] shrink-0">
                                     <span class="material-symbols-outlined text-xs">${currentRole === 'officer' ? 'local_police' : 'sailing'}</span>
@@ -606,6 +614,14 @@
                             <a href="command_center.html" onclick="window.closeMobileDrawer()" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${currentPage === 'command_center.html' ? 'bg-cyan-600 text-white font-bold shadow-md' : 'bg-white/5 hover:bg-white/10 text-slate-200'}">
                                 <span class="material-symbols-outlined text-base text-slate-300">monitoring</span>
                                 <span>Command Console</span>
+                            </a>
+                            <button onclick="window.closeMobileDrawer(); window.openHistoryModal();" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-200 text-left cursor-pointer transition-all">
+                                <span class="material-symbols-outlined text-base text-cyan-400">history</span>
+                                <span>My Query History</span>
+                            </button>
+                            <a href="index.html#about-orca-section" onclick="window.closeMobileDrawer()" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white/5 hover:bg-white/10 text-slate-200 transition-all">
+                                <span class="material-symbols-outlined text-base text-emerald-400">info</span>
+                                <span>About ORCA (ISRO Architecture)</span>
                             </a>
                         </div>
                     </div>
@@ -932,6 +948,180 @@
         }
     }
 
+    // 6. User Query & Advisory History Management
+    function escapeHtmlNav(str) {
+        if (!str) return '';
+        return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function injectHistoryModal() {
+        if (document.getElementById('orca-history-modal')) return;
+        
+        const modal = document.createElement('div');
+        modal.id = 'orca-history-modal';
+        modal.className = 'fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 hidden animate-fadeIn';
+        modal.innerHTML = `
+            <div class="bg-white border border-slate-200 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-scaleUp">
+                <!-- Modal Header -->
+                <div class="bg-[#001f3f] text-white px-4 sm:px-6 py-3.5 flex items-center justify-between border-b border-white/10 shrink-0">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-xl">history</span>
+                        </div>
+                        <div class="min-w-0">
+                            <h3 class="font-bold text-sm sm:text-base text-white truncate">
+                                Meri Purani Queries (My Query History)
+                            </h3>
+                            <p class="text-[10px] text-cyan-200/80 font-mono truncate" id="history-modal-user-label">Logged queries for ${currentUsername}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button onclick="window.clearUserHistory()" title="Clear All Query History" class="text-[11px] font-bold text-rose-300 hover:text-rose-100 bg-rose-950/60 hover:bg-rose-900/80 px-2.5 py-1 rounded-lg border border-rose-500/30 transition-colors flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-outlined text-xs">delete_sweep</span>
+                            <span class="hidden xs:inline">Clear</span>
+                        </button>
+                        <button onclick="window.closeHistoryModal()" class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer" aria-label="Close">
+                            <span class="material-symbols-outlined text-base">close</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal Sub-bar / Search & Count -->
+                <div class="bg-slate-50 px-4 sm:px-6 py-2 border-b border-slate-200 flex items-center justify-between text-xs text-slate-600 shrink-0">
+                    <span id="history-count-label" class="font-semibold text-[11px]">Loading query history...</span>
+                    <a href="advisor.html" onclick="window.closeHistoryModal()" class="text-cyan-700 hover:text-cyan-900 font-bold flex items-center gap-1 text-[11px]">
+                        <span>Open AI Advisor</span>
+                        <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                    </a>
+                </div>
+
+                <!-- History Items List Container -->
+                <div id="history-items-container" class="p-4 overflow-y-auto flex-1 flex flex-col gap-3 smooth-scroll bg-slate-50/50 min-h-[220px]">
+                    <div class="p-8 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-3xl animate-spin text-cyan-600">sync</span>
+                        <span class="text-xs">Loading query history...</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    window.openHistoryModal = function() {
+        injectHistoryModal();
+        const modal = document.getElementById('orca-history-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            window.loadUserHistory();
+        }
+    };
+
+    window.closeHistoryModal = function() {
+        const modal = document.getElementById('orca-history-modal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    window.clearUserHistory = function() {
+        if (!confirm("Kya aap sach me apni saari purani queries delete karna chahte hain?")) return;
+        try {
+            localStorage.removeItem('orca_query_history');
+        } catch(e) {}
+        window.loadUserHistory();
+    };
+
+    window.loadUserHistory = async function() {
+        const container = document.getElementById('history-items-container');
+        const countLabel = document.getElementById('history-count-label');
+        if (!container) return;
+
+        // 1. Get Local Storage history
+        let localQueries = [];
+        try {
+            localQueries = JSON.parse(localStorage.getItem('orca_query_history') || '[]');
+        } catch(e) {}
+
+        // 2. Fetch from backend API
+        const BASE_URL = window.ORCA_BASE_URL || 'http://127.0.0.1:8000';
+        const user = localStorage.getItem('orca_username') || 'Guest';
+        let serverQueries = [];
+
+        try {
+            const res = await fetch(`${BASE_URL}/api/my-history?username=${encodeURIComponent(user)}`);
+            if (res.ok) {
+                const data = await res.json();
+                serverQueries = data.history || [];
+            }
+        } catch(err) {
+            console.warn("[ORCA History] Server history fetch notice:", err);
+        }
+
+        // Merge & deduplicate by query_text
+        const seen = new Set();
+        const combined = [];
+
+        [...localQueries, ...serverQueries].forEach(item => {
+            const text = (item.query_text || item.query || '').trim();
+            if (text && !seen.has(text.toLowerCase())) {
+                seen.add(text.toLowerCase());
+                combined.push(item);
+            }
+        });
+
+        if (countLabel) {
+            countLabel.textContent = `${combined.length} past ${combined.length === 1 ? 'query' : 'queries'} recorded`;
+        }
+
+        if (combined.length === 0) {
+            container.innerHTML = `
+                <div class="py-12 px-4 text-center flex flex-col items-center justify-center gap-2.5">
+                    <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-2xl">history_toggle_off</span>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-700">Koi Purani Query Nahi Mili</h4>
+                    <p class="text-xs text-slate-500 max-w-sm leading-relaxed">
+                        Aapne abhi tak koi query nahi puchi hai. AI Advisor par jakar koi bhi sawal puchein, wo yahan save ho jayega.
+                    </p>
+                    <a href="advisor.html" onclick="window.closeHistoryModal()" class="mt-2 px-4 py-2 rounded-xl bg-[#00264b] hover:bg-cyan-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-sm">psychology</span> Ask AI Advisor
+                    </a>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = combined.map(item => {
+            const queryText = item.query_text || item.query || '';
+            const answer = item.llm_response || item.answer || 'Response recorded.';
+            const port = item.target_port || 'General';
+            const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('en-IN', {
+                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            }) : 'Recent';
+            const safeQuery = encodeURIComponent(queryText);
+
+            return `
+                <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs hover:border-cyan-500/50 transition-all flex flex-col gap-2">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="px-2 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200 text-[10px] font-bold uppercase font-mono">
+                                ⚓ ${port.toUpperCase()}
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-mono">${dateStr}</span>
+                        </div>
+                        <a href="advisor.html?q=${safeQuery}" onclick="window.closeHistoryModal()" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-cyan-50 hover:text-cyan-800 text-slate-700 text-[11px] font-bold flex items-center gap-1 transition-colors shrink-0">
+                            <span class="material-symbols-outlined text-xs text-cyan-600">reply</span> Re-Ask
+                        </a>
+                    </div>
+                    <div class="text-xs sm:text-sm font-bold text-[#00264b] leading-snug">
+                        "${escapeHtmlNav(queryText)}"
+                    </div>
+                    <div class="text-[11px] sm:text-xs text-slate-600 line-clamp-2 bg-slate-50 p-2 rounded-lg border border-slate-100 leading-relaxed">
+                        ${escapeHtmlNav(answer)}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
+
     // Auto-Mount on DOM Load
     document.addEventListener('DOMContentLoaded', () => {
         injectSunlightStyles();
@@ -940,6 +1130,7 @@
         registerServiceWorker();
         updateLiveClock();
         fetchDrawerRealTimeTelemetry();
+        injectHistoryModal();
     });
 
 })();
