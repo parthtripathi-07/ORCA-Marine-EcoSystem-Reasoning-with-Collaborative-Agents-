@@ -338,7 +338,7 @@ def generate_gemini_response(prompt: str) -> str:
         except Exception as ex:
             logger.warning(f"Gemini 2.5 Flash request error: {ex}")
 
-    return "हाँ, वर्तमान समुद्री डेटा के अनुसार लहरों की ऊंचाई 1.5 मीटर से कम है और समुद्र में जाना सामान्यतः सुरक्षित है। अपनी सुरक्षा के लिए आवश्यक लाइफ जैकेट और संचार उपकरण साथ रखें।"
+    return "ORCA AI सहायक में आपका स्वागत है। आप मुझसे समुद्री मौसम, संभावित मत्स्य पालन क्षेत्र (PFZ), नेविगेशन रूट या सुरक्षा नियमों के बारे में पूछ सकते हैं।"
 
 def resolve_port_from_name(name_or_key: str):
     if not name_or_key:
@@ -389,10 +389,37 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
         )
 
     try:
-        # 2. Detect Coastal Locations from User Query Text (Multi-Location & Routing Support)
+        # 2. Detect Coastal Locations & User Query Intent (User-Friendly Conversational Flow)
         extracted_locs = extract_locations_from_query(user_query)
         route_data = None
         route_info_str = ""
+        q_lower = user_query.lower().strip()
+
+        # Specific user intent classification
+        route_keywords = ["route", "rasta", "navigation", "distance", "door", "nm", "nautical", "fuel", "diesel"]
+        is_route_query = bool((len(extracted_locs) >= 2) or any(k in q_lower for k in route_keywords))
+
+        loc_pfz_keywords = [
+            "kahan", "kaha", "where", "location", "position", "coordinate", "coordinates",
+            "lat", "lon", "latitude", "longitude", "pfz", "fishing spot", "spot", "machli kahan",
+            "machhli kahan", "fish kahan", "zone", "bearing", "direction", "compass", "heading"
+        ]
+        is_loc_pfz_query = bool(
+            is_route_query or
+            any(k in q_lower for k in loc_pfz_keywords) or
+            (len(extracted_locs) >= 1 and any(k in q_lower for k in ["pfz", "spot", "machli", "fish", "jaana", "kahan", "zone"]))
+        )
+
+        weather_keywords = [
+            "weather", "mausam", "wave", "lehar", "lehare", "hawa", "wind", "storm",
+            "toofan", "rain", "barish", "cyclone", "sea state", "safe", "surakshit",
+            "kal", "today", "tomorrow", "forecast", "samundar", "paani"
+        ]
+        is_weather_query = any(k in q_lower for k in weather_keywords)
+
+        greetings = ["hi", "hello", "hey", "namaste", "namaskar", "pranam", "vanakkam", "kaise ho", "kya haal", "good morning", "good evening"]
+        query_words = [w.strip("?,.!") for w in q_lower.split()]
+        is_pure_greeting = len(query_words) <= 3 and any(w in greetings for w in query_words) and not (is_loc_pfz_query or is_weather_query)
 
         if len(extracted_locs) >= 2:
             # Origin and Destination both specified in query (e.g. "Mumbai se Goa")
@@ -512,7 +539,7 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
 
         # 6. Build live oceanographic context string
         pfz_info = ""
-        if nearest_pfz:
+        if nearest_pfz and is_loc_pfz_query:
             pfz_info = (
                 f"Nearest INCOIS PFZ Zone: '{nearest_pfz['name']}' at Lat {nearest_pfz['lat']}, Lon {nearest_pfz['lon']}, "
                 f"Distance: {nearest_pfz['distance_nm']} NM, Bearing: {nearest_pfz['bearing_deg']}° ({nearest_pfz['bearing_dir']}), "
@@ -521,7 +548,7 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
             )
 
         context = (
-            f"Harbor/Base Port: {current_port['name']} ({current_port['state']}) (Lat {lat}, Lon {lon}).\n"
+            f"Active Harbor Reference: {current_port['name']} ({current_port['state']}).\n"
             f"Today's Live Ocean Telemetry: Wave Height {wave_h}m, Wind Wave {wind_wave_h}m, Swell {swell_h}m, SST {sst}°C.\n"
             f"Tomorrow (+24h) Ocean Forecast: Wave Height {tomorrow_wave_h}m, Wind Wave {tomorrow_wind_wave_h}m, SST {tomorrow_sst}°C.\n"
             f"Marine Geofencing & Protected Area Status:\n{mpa_status['alert_message']}\n"
@@ -530,19 +557,19 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
             f"{pfz_info}"
         )
 
-        # 6. Formulate Prompt & Generate Content with Gemini
+        # 6. Formulate Prompt & Generate Content with Gemini/Groq
         prompt = (
-            f"You are ORCA, an official marine safety and fisheries advisory AI assistant for Indian fishermen (ISRO SIH #26176).\n\n"
-            f"Real-Time Oceanographic & Navigation Data:\n{context}\n\n"
+            f"You are ORCA, a polite, conversational, and expert marine safety & fisheries AI advisor for Indian coastal fishermen (ISRO SIH #26176).\n\n"
+            f"Background Telemetry Context (FOR REFERENCE ONLY - Do NOT dump unless specifically asked):\n{context}\n\n"
             f"{history_context}"
             f"Current User Question: {user_query}\n\n"
-            f"Instructions:\n"
-            f"- Answer in the same language as asked (Hindi, English, Tamil, Telugu, or Bengali).\n"
-            f"- If the question asks for a route/navigation between two places (e.g. Mumbai se Goa), clearly state the exact departure & destination coordinates, nautical distance (NM), compass heading, estimated duration at 8 knots, and diesel fuel estimate in Liters.\n"
-            f"- If the coordinates are INSIDE or NEAR a Marine Protected Area (MPA) or ecological reserve, clearly WARN the fisherman about the legal restrictions (e.g. No-Trawling / Wildlife Protection Act 1972).\n"
-            f"- If this is a follow-up refinement (e.g. 'aur kal ka?', 'wahan kaunsi machhli milegi?'), use the previous conversation history context.\n"
-            f"- If the question asks about PFZ / fishing spots, give the exact bearing direction, distance, and target fish species without guessing.\n"
-            f"- Keep the response complete, well-structured in 2-3 concise bullet points with essential safety tips."
+            f"CRITICAL USER-FRIENDLINESS RULES (MUST FOLLOW STRICTLY):\n"
+            f"1. DO NOT UNNECESSARILY RECITE COORDINATES (Lat/Lon) OR HARBOR NAMES unless the user explicitly asks about their location, coordinates, or navigation route! Keep answers natural, warm, conversational, and focused ONLY on what the user asked.\n"
+            f"2. GREETINGS: If the user says 'hi', 'namaste', 'hello' or similar, warmly greet them back as ORCA AI assistant and ask how you can help them today with sea weather, fishing advice, or safety. DO NOT dump any coordinates, weather numbers, or location stats on greetings.\n"
+            f"3. WEATHER/SEA SAFETY: If the user asks about weather, waves, or sea conditions (e.g. 'kal jaana safe hai kya?'), provide a direct, reassuring answer in simple everyday language (e.g. wave height in meters, calm/rough sea, safe sailing advice) without giving GPS coordinates.\n"
+            f"4. FISHING / SPECIES / GEAR: If the user asks about fish varieties, nets, market prices, or diesel saving, answer their specific question directly.\n"
+            f"5. LOCATION / NAVIGATION / PFZ: ONLY provide exact coordinates, compass bearing (e.g. 294° WNW), nautical distance (NM), and fuel routes IF the user explicitly asked WHERE to fish, asked for routes between ports, or asked for location/coordinates.\n"
+            f"6. LANGUAGE: Respond in the exact same language/dialect as the user's question (Hindi, English, Hinglish, Tamil, Telugu, etc.). Keep it clear, polite, structured in 2-3 concise bullet points where appropriate, and easy to understand for a fisherman."
         )
 
         ai_answer = generate_gemini_response(prompt)
@@ -554,7 +581,7 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
             "ISRO Oceansat-3 / INCOIS PFZ Model",
             "Open-Meteo Marine Weather API"
         ]
-        if route_data:
+        if route_data and is_route_query:
             sources_list.append("Marine Safe Navigation & Fuel Estimation Engine")
 
         response_payload = {
@@ -563,11 +590,14 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
             "query": user_query,
             "sources": sources_list,
             "port": current_port,
-            "pfz": nearest_pfz,
+            "pfz": nearest_pfz if is_loc_pfz_query else None,
+            "show_pfz": is_loc_pfz_query,
+            "show_route": is_route_query and bool(route_data),
+            "show_chart": is_weather_query,
             "all_pfz": pfz_list,
-            "route": route_data,
+            "route": route_data if is_route_query else None,
             "geofence": mpa_status,
-            "chart_data": chart_data,
+            "chart_data": chart_data if is_weather_query else [],
             "marine_weather": {
                 "wave_height_m": float(wave_h) if wave_h.replace('.','',1).isdigit() else 0.86,
                 "wave_period_s": 8.4,
