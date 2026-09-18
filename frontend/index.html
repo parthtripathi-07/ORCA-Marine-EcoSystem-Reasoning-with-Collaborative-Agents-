@@ -49,6 +49,10 @@
                             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                             <span id="hero-safety-text">SEA: SAFE (FAVOURABLE)</span>
                         </span>
+                        <button onclick="window.openDangerZonesModal()" class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-0.5 rounded-full bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-400/40 transition-colors cursor-pointer shadow-xs" title="View Coastal Danger Zones & 100 KM Proximity Scanner">
+                            <span class="material-symbols-outlined text-xs text-rose-400">warning</span>
+                            <span>State Danger Zones (100 KM)</span>
+                        </button>
                     </div>
                     <h1 id="hero-harbor-name" class="text-xl sm:text-2xl font-extrabold tracking-tight text-white flex items-center gap-2 mt-1">
                         Goa (Malim / Panaji) Fishing Jetty
@@ -330,54 +334,70 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Card A: Catch Diary & Diesel Calculator -->
-                <a href="catch_log.html" class="bg-white border border-slate-200 hover:border-emerald-500 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition-all flex items-start gap-3.5 group">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                <a href="catch_log.html" class="bg-white border border-slate-200 hover:border-emerald-500 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all flex items-start gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                         <span class="material-symbols-outlined text-2xl">menu_book</span>
                     </div>
                     <div class="flex flex-col flex-1">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-bold text-[#00264b] group-hover:text-emerald-700 transition-colors">Catch Diary & Diesel</h3>
+                            <h3 class="text-xs sm:text-sm font-bold text-[#00264b] group-hover:text-emerald-700 transition-colors">Catch Diary & Diesel</h3>
                             <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-emerald-600 transition-colors">arrow_forward</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                            Log daily landed catch, diesel consumed, and track net profits — saved 100% offline.
+                        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                            Log daily landed catch, diesel consumed, and track net profits offline.
                         </p>
                     </div>
                 </a>
 
                 <!-- Card B: Daily Fish Mandi Rates -->
-                <a href="market.html" class="bg-white border border-slate-200 hover:border-amber-500 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition-all flex items-start gap-3.5 group">
-                    <div class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                <a href="market.html" class="bg-white border border-slate-200 hover:border-amber-500 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all flex items-start gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                         <span class="material-symbols-outlined text-2xl">storefront</span>
                     </div>
                     <div class="flex flex-col flex-1">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-bold text-[#00264b] group-hover:text-amber-700 transition-colors">Daily Mandi Rates</h3>
+                            <h3 class="text-xs sm:text-sm font-bold text-[#00264b] group-hover:text-amber-700 transition-colors">Daily Mandi Rates</h3>
                             <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-amber-600 transition-colors">arrow_forward</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
                             Wholesale fish auction rates across Kasimedu, Sassoon Docks, Kochi, and Goa.
                         </p>
                     </div>
                 </a>
 
                 <!-- Card C: Protected Species & Regulations -->
-                <a href="regulations.html" class="bg-white border border-slate-200 hover:border-cyan-500 rounded-2xl p-4 sm:p-5 shadow-xs hover:shadow-md transition-all flex items-start gap-3.5 group">
-                    <div class="w-12 h-12 rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                <a href="regulations.html" class="bg-white border border-slate-200 hover:border-cyan-500 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all flex items-start gap-3 group">
+                    <div class="w-11 h-11 rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                         <span class="material-symbols-outlined text-2xl">gavel</span>
                     </div>
                     <div class="flex flex-col flex-1">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-bold text-[#00264b] group-hover:text-cyan-700 transition-colors">Protected Marine Laws</h3>
+                            <h3 class="text-xs sm:text-sm font-bold text-[#00264b] group-hover:text-cyan-700 transition-colors">Protected Marine Laws</h3>
                             <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-cyan-600 transition-colors">arrow_forward</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                            Schedule-I endangered species catalog, net mesh regulations, and 61-day monsoon ban dates.
+                        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                            Schedule-I species catalog, net mesh rules, and monsoon trawl ban dates.
                         </p>
                     </div>
                 </a>
+
+                <!-- Card D: State Danger Zones & 100 KM Radar -->
+                <button onclick="window.openDangerZonesModal()" class="bg-white border border-slate-200 hover:border-rose-500 rounded-2xl p-4 shadow-xs hover:shadow-md transition-all flex items-start gap-3 group text-left cursor-pointer">
+                    <div class="w-11 h-11 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                        <span class="material-symbols-outlined text-2xl">warning</span>
+                    </div>
+                    <div class="flex flex-col flex-1">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs sm:text-sm font-bold text-[#00264b] group-hover:text-rose-700 transition-colors">State Danger Zones</h3>
+                            <span class="material-symbols-outlined text-sm text-slate-400 group-hover:text-rose-600 transition-colors">arrow_forward</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                            9 coastal states risk assessments, IMBL buffers, and 100 km safety scan.
+                        </p>
+                    </div>
+                </button>
             </div>
         </section>
 

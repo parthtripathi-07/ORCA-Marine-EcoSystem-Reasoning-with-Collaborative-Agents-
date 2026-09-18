@@ -91,7 +91,21 @@
                     </span>
                     <input type="checkbox" id="toggle-route" checked onchange="toggleLayer('route', this.checked)" class="accent-indigo-600 cursor-pointer"/>
                 </label>
+
+                <label class="flex items-center justify-between cursor-pointer group">
+                    <span class="flex items-center gap-2 text-slate-700 font-medium">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500" id="legend-radar-dot"></span>
+                        100 KM Safety Shield (कवच)
+                    </span>
+                    <input type="checkbox" id="toggle-radar" checked onchange="toggleLayer('radar', this.checked)" class="accent-emerald-600 cursor-pointer"/>
+                </label>
             </div>
+
+            <!-- Danger Zones Modal Quick Launcher inside Drawer -->
+            <button onclick="window.openDangerZonesModal()" class="w-full mt-2.5 py-1.5 px-2 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs">
+                <span class="material-symbols-outlined text-sm text-rose-600">warning</span>
+                <span>State Danger Zones (डेंजर ज़ोन)</span>
+            </button>
         </div>
 
         <!-- 2. Floating PFZ Inspector Card (Bottom-Right on Desktop, Bottom Center on Mobile) -->
@@ -144,8 +158,13 @@
         </div>
 
         <!-- 3. Floating Quick Port Fly-To Bar (Top-Left under Leaflet Zoom) -->
-        <div class="absolute top-3 left-14 z-20 hidden sm:flex items-center gap-1 bg-white/90 backdrop-blur-md px-2 py-1.5 rounded-xl border border-slate-200 shadow-sm text-xs overflow-x-auto max-w-[50vw] scrollbar-hide">
-            <span class="text-[10px] font-bold text-slate-400 uppercase mr-1">FLY:</span>
+        <div class="absolute top-3 left-14 z-20 hidden sm:flex items-center gap-1.5 bg-white/90 backdrop-blur-md px-2.5 py-1.5 rounded-xl border border-slate-200 shadow-sm text-xs overflow-x-auto max-w-[55vw] scrollbar-hide">
+            <button onclick="window.openDangerZonesModal()" class="px-2 py-0.5 bg-rose-600 hover:bg-rose-700 text-white rounded font-bold text-[11px] flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs" title="View Indian Coastal State Danger Zones">
+                <span class="material-symbols-outlined text-xs">warning</span>
+                <span>Danger Zones</span>
+            </button>
+            <span class="text-slate-300">|</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase mr-0.5">FLY:</span>
             <button onclick="flyToHarbor('chennai')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Chennai</button>
             <button onclick="flyToHarbor('rameswaram')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Rameswaram</button>
             <button onclick="flyToHarbor('kochi')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Kochi</button>
@@ -154,6 +173,14 @@
             <button onclick="flyToHarbor('veraval')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Veraval</button>
             <button onclick="flyToHarbor('visakhapatnam')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Vizag</button>
             <button onclick="flyToHarbor('port_blair')" class="px-2 py-0.5 rounded font-medium text-slate-700 hover:bg-cyan-50 hover:text-cyan-800 transition-colors">Port Blair</button>
+        </div>
+
+        <!-- 3.5 Floating 100 KM Safety Shield Radar Status Pill -->
+        <div id="hud-100km-radar" onclick="window.openDangerZonesModal()" class="absolute top-14 left-3 sm:left-14 z-20 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 shadow-md flex items-center gap-2 text-xs cursor-pointer hover:bg-slate-50 transition-all select-none">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" id="hud-radar-dot"></span>
+            <span class="font-bold text-[#00264b] truncate max-w-[140px] xs:max-w-none" id="hud-radar-title">100 KM SHIELD: ALL CLEAR</span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 font-mono font-bold px-1.5 py-0.5 rounded shrink-0" id="hud-radar-incidents">0 Incidents</span>
+            <span class="text-cyan-700 font-bold text-[11px] hidden xs:inline shrink-0">Details ➔</span>
         </div>
 
         <!-- 4. Live Cursor Lat/Lon HUD (Bottom-Left) -->
@@ -181,7 +208,8 @@
             imbl: L.layerGroup(),
             mpa: L.layerGroup(),
             route: L.layerGroup(),
-            ports: L.layerGroup()
+            ports: L.layerGroup(),
+            radar: L.layerGroup()
         };
 
         // Initialize Leaflet Map
@@ -286,6 +314,94 @@
                 }
             } catch (err) {
                 console.warn("[ORCA Map] PFZ fetch warning:", err);
+            }
+
+            // 4. Fetch 100 KM Proximity Safety Radar & Incident History
+            try {
+                const scanRes = await fetch(`${BASE_URL}/api/safety-scan-100km?lat=${port.lat}&lon=${port.lon}`);
+                if (scanRes.ok) {
+                    const scanData = await scanRes.json();
+                    render100KmRadarLayer(scanData, port);
+                }
+            } catch (err) {
+                console.warn("[ORCA Map] 100km scan fetch warning:", err);
+            }
+        }
+
+        function render100KmRadarLayer(scanData, port) {
+            layerGroups.radar.clearLayers();
+            if (!scanData) return;
+
+            const isCritical = scanData.shield_status === 'CRITICAL_BORDER_PROXIMITY';
+            const isCaution = scanData.shield_status === 'CAUTION_RESTRICTIONS_NEARBY';
+            const shieldColor = scanData.shield_color || (isCritical ? '#ef4444' : (isCaution ? '#f59e0b' : '#10b981'));
+
+            // 1. Draw 100 KM Proximity Safety Circle
+            const circle = L.circle([port.lat, port.lon], {
+                radius: 100000, // 100 km (approx 54 Nautical Miles)
+                color: shieldColor,
+                weight: 2.5,
+                fillColor: shieldColor,
+                fillOpacity: 0.08,
+                dashArray: '6, 8'
+            }).addTo(layerGroups.radar);
+
+            circle.bindPopup(`
+                <div class="text-xs p-1.5 font-sans min-w-[220px]">
+                    <div class="font-bold flex items-center justify-between text-sm pb-1 border-b border-slate-100" style="color: ${shieldColor};">
+                        <span>🛡️ 100 KM Safety Shield</span>
+                        <span class="text-[9px] bg-slate-100 text-slate-800 px-2 py-0.5 rounded font-mono font-bold">${scanData.shield_badge}</span>
+                    </div>
+                    <p class="text-slate-700 mt-2 text-[11px] leading-relaxed font-medium">
+                        ${scanData.verdict_hi}
+                    </p>
+                    <p class="text-slate-500 mt-1 text-[10px] italic">
+                        ${scanData.verdict_en}
+                    </p>
+                    <div class="mt-2.5 pt-1.5 border-t border-slate-200 text-[10px] text-slate-500 font-mono flex items-center justify-between">
+                        <span>Center: ${port.name}</span>
+                        <button onclick="window.openDangerZonesModal()" class="text-cyan-700 font-bold underline font-sans cursor-pointer">State Danger Zones ➔</button>
+                    </div>
+                </div>
+            `);
+
+            // 2. Draw Distress Incident Markers within 100 KM
+            (scanData.incidents_in_100km || []).forEach(inc => {
+                const incMarker = L.circleMarker([inc.lat, inc.lon], {
+                    radius: 7,
+                    color: '#dc2626',
+                    fillColor: '#f87171',
+                    fillOpacity: 0.95,
+                    weight: 2
+                }).addTo(layerGroups.radar);
+
+                incMarker.bindPopup(`
+                    <div class="text-xs p-1 font-sans min-w-[210px]">
+                        <div class="font-bold text-rose-700 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">report_problem</span>
+                            <span>${inc.title}</span>
+                        </div>
+                        <div class="text-[10px] text-slate-500 font-mono mt-0.5">${inc.date} · Base: ${inc.port}</div>
+                        <p class="text-slate-700 mt-1.5 text-[11px] leading-relaxed">${inc.description}</p>
+                        <div class="mt-2 pt-1 border-t border-slate-100 text-[10px] text-slate-500 font-mono">
+                            Distance from Harbor: <b>~${inc.distance_km} km</b> (${inc.distance_nm} NM)
+                        </div>
+                    </div>
+                `);
+            });
+
+            // 3. Update Floating 100 KM Radar HUD Pill
+            const hudDot = document.getElementById('hud-radar-dot');
+            const hudTitle = document.getElementById('hud-radar-title');
+            const hudIncidents = document.getElementById('hud-radar-incidents');
+            const legendDot = document.getElementById('legend-radar-dot');
+
+            if (hudTitle) hudTitle.textContent = `100 KM SHIELD: ${scanData.shield_badge}`;
+            if (hudDot) hudDot.style.backgroundColor = shieldColor;
+            if (legendDot) legendDot.style.backgroundColor = shieldColor;
+            if (hudIncidents) {
+                const count = (scanData.incidents_in_100km || []).length;
+                hudIncidents.textContent = `${count} ${count === 1 ? 'Incident' : 'Incidents'}`;
             }
         }
 

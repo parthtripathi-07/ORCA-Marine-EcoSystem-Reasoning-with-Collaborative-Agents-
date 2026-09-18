@@ -39,6 +39,7 @@ from services.auth_service import (
     find_user_by_email, create_user_with_gmail,
     create_user_session, get_session_user, delete_user_session
 )
+from services.danger_zone_service import scan_100km_radius, get_all_state_danger_zones
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -530,6 +531,9 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
         # 4. Perform Real-Time MPA Geofencing & Ecological Check (GeoPandas + Shapely)
         mpa_status = check_near_protected_area(lat, lon, radius_km=15.0)
 
+        # 4.5 Scan 100 KM Safety Shield (IMBL Borders, Active Incidents, MPAs)
+        safety_scan = scan_100km_radius(lat, lon)
+
         # 5. Search Maritime Regulations Knowledge Base (RAG)
         matched_regs = search_marine_regulations(user_query)
         regs_context = ""
@@ -552,6 +556,13 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
             f"Today's Live Ocean Telemetry: Wave Height {wave_h}m, Wind Wave {wind_wave_h}m, Swell {swell_h}m, SST {sst}°C.\n"
             f"Tomorrow (+24h) Ocean Forecast: Wave Height {tomorrow_wave_h}m, Wind Wave {tomorrow_wind_wave_h}m, SST {tomorrow_sst}°C.\n"
             f"Marine Geofencing & Protected Area Status:\n{mpa_status['alert_message']}\n"
+            f"100 KM Radius Safety Radar Scan:\n"
+            f"- Overall Shield Status: {safety_scan['shield_status']} ({safety_scan['shield_badge']})\n"
+            f"- Hindi Advisory: {safety_scan['verdict_hi']}\n"
+            f"- English Advisory: {safety_scan['verdict_en']}\n"
+            f"- IMBL Border Points within 100km: {len(safety_scan['borders_in_100km'])}\n"
+            f"- Coastal Distress Incidents Logged within 100km: {len(safety_scan['incidents_in_100km'])}\n"
+            f"- Marine Protected Sanctuaries within 100km: {len(safety_scan['mpas_in_100km'])}\n"
             f"{regs_context}"
             f"{route_info_str}"
             f"{pfz_info}"
@@ -569,7 +580,8 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
             f"3. WEATHER/SEA SAFETY: If the user asks about weather, waves, or sea conditions (e.g. 'kal jaana safe hai kya?'), provide a direct, reassuring answer in simple everyday language (e.g. wave height in meters, calm/rough sea, safe sailing advice) without giving GPS coordinates.\n"
             f"4. FISHING / SPECIES / GEAR: If the user asks about fish varieties, nets, market prices, or diesel saving, answer their specific question directly.\n"
             f"5. LOCATION / NAVIGATION / PFZ: ONLY provide exact coordinates, compass bearing (e.g. 294° WNW), nautical distance (NM), and fuel routes IF the user explicitly asked WHERE to fish, asked for routes between ports, or asked for location/coordinates.\n"
-            f"6. LANGUAGE: Respond in the exact same language/dialect as the user's question (Hindi, English, Hinglish, Tamil, Telugu, etc.). Keep it clear, polite, structured in 2-3 concise bullet points where appropriate, and easy to understand for a fisherman."
+            f"6. DANGER ZONES & 100 KM SAFETY: If the user asks about danger zones, state risks, borders (IMBL), or whether there are any issues/incidents/dikkat within 100 km, give them clear, bold safety guidance referencing the 100 KM Proximity Safety Radar findings (status, distance to border, or any recent incidents).\n"
+            f"7. LANGUAGE: Respond in the exact same language/dialect as the user's question (Hindi, English, Hinglish, Tamil, Telugu, etc.). Keep it clear, polite, structured in 2-3 concise bullet points where appropriate, and easy to understand for a fisherman."
         )
 
         ai_answer = generate_gemini_response(prompt)
@@ -579,10 +591,18 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
             "Groq LPU Ultra-Fast AI (GPT-OSS-120B)",
             "WDPA / Protected Planet Indian Marine Protected Areas",
             "ISRO Oceansat-3 / INCOIS PFZ Model",
-            "Open-Meteo Marine Weather API"
+            "Open-Meteo Marine Weather API",
+            "100 KM Coastal Incident & IMBL Radar"
         ]
         if route_data and is_route_query:
             sources_list.append("Marine Safe Navigation & Fuel Estimation Engine")
+
+        danger_keywords = [
+            "danger", "khatra", "risk", "hazard", "border", "imbl", "suraksha",
+            "dikkat", "100 km", "100km", "range", "incident", "haadsa", "accident",
+            "state", "rajya", "zone"
+        ]
+        is_danger_query = any(k in q_lower for k in danger_keywords)
 
         response_payload = {
             "status": "success",
@@ -594,6 +614,8 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
             "show_pfz": is_loc_pfz_query,
             "show_route": is_route_query and bool(route_data),
             "show_chart": is_weather_query,
+            "show_safety_scan": is_danger_query or (safety_scan["shield_status"] != "ALL_CLEAR_SAFE") or (len(safety_scan["incidents_in_100km"]) > 0),
+            "safety_scan_100km": safety_scan,
             "all_pfz": pfz_list,
             "route": route_data if is_route_query else None,
             "geofence": mpa_status,
@@ -866,6 +888,35 @@ def get_geofence_layers():
 def get_ports_list():
     """List supported Indian coastal ports and landing centers."""
     return {"ports": COASTAL_PORTS}
+
+@app.get("/api/coastal-danger-zones")
+def get_coastal_danger_zones():
+    """
+    Returns official state-wise coastal maritime danger and caution zone assessments 
+    for all Indian coastal states and union territories.
+    """
+    return {
+        "status": "success",
+        "total_states": len(get_all_state_danger_zones()),
+        "zones": get_all_state_danger_zones()
+    }
+
+@app.get("/api/safety-scan-100km")
+def get_safety_scan_100km(
+    lat: float = Query(..., description="Latitude to scan around (-90 to 90)"),
+    lon: float = Query(..., description="Longitude to scan around (-180 to 180)")
+):
+    """
+    100 KM Proximity Incident & Hazard Radar Scanner.
+    Scans a 100 km radius (~54 NM) for maritime distress incidents, 
+    IMBL border proximity, and Marine Protected Areas (MPAs).
+    """
+    if not (-90.0 <= lat <= 90.0) or not (-180.0 <= lon <= 180.0):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid coordinates for 100km scan."
+        )
+    return scan_100km_radius(lat, lon)
 
 @app.post("/api/incidents")
 def report_incident(report: IncidentReportRequest):
