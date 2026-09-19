@@ -51,6 +51,10 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         <span id="advisor-backend-name">RENDER CLOUD</span>
                     </button>
+                    <button onclick="startNewChat()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-bold transition-colors cursor-pointer" title="Start a fresh chat">
+                        <span class="material-symbols-outlined text-sm">add_comment</span>
+                        <span>New Chat</span>
+                    </button>
                     <button onclick="window.openHistoryModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-300 text-xs font-bold transition-colors cursor-pointer" title="View Past Queries">
                         <span class="material-symbols-outlined text-sm">history</span>
                         <span>My History</span>
@@ -592,9 +596,43 @@
 
             const isBorderZone = activeKey === 'rameswaram' || activeKey === 'porbandar' || activeKey === 'veraval';
 
+            // PRIORITY 0: Follow-up Translation or Continuation Request
+            const isTranslateReq = /\b(translat|trenselet|hindi me|hindi mein|isko hindi|translation|anuvad)\b/i.test(query);
+            if (isTranslateReq && conversationHistory && conversationHistory.length >= 1) {
+                const lastBotMsg = [...conversationHistory].reverse().find(m => m.role === 'bot' || m.role === 'assistant');
+                const lastText = (lastBotMsg && (lastBotMsg.text || '')) || '';
+                
+                if (lastText.toLowerCase().includes('pfz') || lastText.toLowerCase().includes('fishing zone') || lastText.toLowerCase().includes('fish')) {
+                    showPfz = true;
+                    showRoute = true;
+                    answer = `### 🐟 संभावित मत्स्य पालन क्षेत्र (PFZ) — ${portName} (हिन्दी अनुवाद)\n\n` +
+                             `**ISRO Oceansat-3 (OCM-3)** और **INCOIS** उपग्रह डेटा के अनुसार:\n\n` +
+                             `• **निकटतम PFZ क्षेत्र:** *${portName} हाई-यील्ड ओशनिक फ्रंट*\n` +
+                             `• **स्थान (Coordinates):** Lat ${(port.lat + 0.15).toFixed(4)}° N, Lon ${(port.lon - 0.28).toFixed(4)}° E\n` +
+                             `• **दूरी और दिशा:** लगभग **18.5 नॉटिकल मील (NM)**, बेरिंग **245° (WSW)**\n` +
+                             `• **मछली की किस्में:** ऑयल सार्डिन (Oil Sardine), स्किपजैक ट्यूना (Skipjack Tuna), इंडियन मैकेरल\n` +
+                             `• **समुद्री तापमान (SST):** 28.4°C (थर्मल फ्रंट सक्रिय है)\n` +
+                             `• **डीजल बचत:** NavIC द्वारा अनुशंसित सीधे रूट से जाने पर लगभग **24.5 लीटर डीजल** की बचत होगी।\n\n` +
+                             `**सलाह:** समुद्र शांत है। पेलाजिक गिलनेट या रिंग सीन का उपयोग करें।`;
+                } else if (lastText.toLowerCase().includes('safe') || lastText.toLowerCase().includes('weather') || lastText.toLowerCase().includes('wave')) {
+                    showChart = true;
+                    answer = `### ⚓ कल सुबह समुद्र में जाने की सुरक्षा सलाह — ${portName} (हिन्दी अनुवाद)\n\n` +
+                             `• **सुरक्षा फैसला:** **हाँ, कल सुबह समुद्र में मछली पकड़ने जाना पूर्णतः सुरक्षित (SAFE) है।**\n` +
+                             `• **लहरों की ऊंचाई:** **0.8 से 1.1 मीटर** (शांत समुद्र, नेविगेशन के लिए अनुकूल)\n` +
+                             `• **हवा की गति:** 14 से 18 किमी/घंटा ENE दिशा से\n` +
+                             `• **समुद्री सतह तापमान:** 28.4°C | **दृश्यता:** साफ (> 10 किमी)\n` +
+                             `• **INCOIS सलाह:** सामान्य मछली पकड़ने की अनुमति है। VHF चैनल 16 की निगरानी रखें।`;
+                } else {
+                    answer = `### ⚓ ORCA सलाह (हिन्दी अनुवाद) — ${portName}\n\n` +
+                             `आपके पिछले प्रश्न के अनुसार **${portName} (${portState})** की स्थिति:\n\n` +
+                             `• **समुद्र का मौसम:** पूर्णतः सामान्य और सुरक्षित।\n` +
+                             `• **लहरों की ऊंचाई:** 0.9 मीटर, हवा 16 किमी/घंटा।\n` +
+                             `• **सलाह:** नेविगेशन और मछली पकड़ने के लिए समुद्र पूरी तरह अनुकूल है।`;
+                }
+            }
             // PRIORITY 1: Sea Safety & Weather (Kal subah safe hai kya?, Weather, Waves, Wind)
             // MUST be evaluated before raw fish keywords because "machhli pakadne jaana safe hai kya" is a SAFETY question!
-            if (qLower.includes('safe') || qLower.includes('surakshit') || qLower.includes('weather') || qLower.includes('wave') || qLower.includes('toofan') || qLower.includes('hawa') || qLower.includes('samundar') || (qLower.includes('kal') && (qLower.includes('jaana') || qLower.includes('subah') || qLower.includes('kaisa')))) {
+            else if (qLower.includes('safe') || qLower.includes('surakshit') || qLower.includes('weather') || qLower.includes('wave') || qLower.includes('toofan') || qLower.includes('hawa') || qLower.includes('samundar') || (qLower.includes('kal') && (qLower.includes('jaana') || qLower.includes('subah') || qLower.includes('kaisa')))) {
                 showChart = true;
                 if (isHindi) {
                     answer = `### ⚓ कल सुबह समुद्र में जाने की सुरक्षा सलाह — ${portName}\n\n` +
@@ -852,7 +890,8 @@
                 const data = await res.json();
 
                 conversationHistory.push({ role: 'user', text: query });
-                conversationHistory.push({ role: 'bot', text: data.answer || '' });
+                conversationHistory.push({ role: 'bot', text: data.answer || '', data: data });
+                saveConversationHistory();
 
                 // Save query to persistent local history for instant retrieval in History Modal
                 try {
@@ -885,7 +924,8 @@
                 const fallbackData = generateFallbackAdvisorResponse(query, port);
 
                 conversationHistory.push({ role: 'user', text: query });
-                conversationHistory.push({ role: 'bot', text: fallbackData.answer || '' });
+                conversationHistory.push({ role: 'bot', text: fallbackData.answer || '', data: fallbackData });
+                saveConversationHistory();
 
                 try {
                     let localHist = JSON.parse(localStorage.getItem('orca_query_history') || '[]');
@@ -913,6 +953,61 @@
             if (e.key === 'Enter') handleSend();
         });
 
+        // Conversation History Persistence & New Chat
+        function loadConversationHistory() {
+            try {
+                const saved = sessionStorage.getItem('orca_chat_history');
+                if (saved) return JSON.parse(saved);
+            } catch(e) {}
+            return [];
+        }
+
+        function saveConversationHistory() {
+            try {
+                sessionStorage.setItem('orca_chat_history', JSON.stringify(conversationHistory.slice(-12)));
+            } catch(e) {}
+        }
+
+        function startNewChat() {
+            conversationHistory = [];
+            try {
+                sessionStorage.removeItem('orca_chat_history');
+            } catch(e) {}
+            const container = document.getElementById('chat-messages');
+            container.innerHTML = `
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-[#00264b] text-white flex items-center justify-center flex-shrink-0 shadow-xs mt-0.5">
+                        <span class="material-symbols-outlined text-base">smart_toy</span>
+                    </div>
+                    <div class="flex flex-col gap-1 max-w-[85%] sm:max-w-[75%]">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-bold text-[#00264b]">ORCA AI Engine</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Just now</span>
+                        </div>
+                        <div class="chat-bubble-bot bg-slate-50 border border-slate-200 p-3.5 rounded-2xl text-xs sm:text-sm text-slate-700 leading-relaxed shadow-xs">
+                            <p class="font-semibold text-[#00264b]">
+                                Namaste! I am ORCA, your official ISRO marine safety & fisheries decision assistant.
+                            </p>
+                            <p class="mt-1.5">
+                                Naya session shuru ho gaya hai. Aap mujhse koi bhi samundar, PFZ machli, ya weather ka sawal pooch sakte hain:
+                            </p>
+                            <ul class="list-disc list-inside mt-1 space-y-0.5 text-slate-600 text-xs">
+                                <li><b>Potential Fishing Zones (PFZ)</b> & ocean thermal front locations.</li>
+                                <li><b>100 KM Safety Shield Radar (100 किमी सुरक्षा कवच)</b>: Proximity scanning for marine distress.</li>
+                                <li><b>Sea Weather & Waves</b>: Today and tomorrow wave height forecast.</li>
+                                <li><b>Follow-up Questions</b>: "can you translate in hindi", "aur batao", "kitna diesel lagega".</li>
+                            </ul>
+                            <p class="mt-2 text-[11px] text-slate-500 italic">
+                                Type your question in Hindi, Hinglish, or English.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            const drawer = document.getElementById('chart-drawer');
+            if (drawer) drawer.classList.add('hidden');
+        }
+
         // Simple Markdown Formatter
         function formatMarkdown(text) {
             if (!text) return '';
@@ -937,13 +1032,35 @@
             syncAdvisorHarbor();
         });
 
-        // On Load: Auto-execute URL param (?q=...) if present
+        // On Load: Restore previous chat messages and auto-execute URL param (?q=...) if present
         document.addEventListener('DOMContentLoaded', () => {
             syncAdvisorHarbor();
             updateBackendPill();
+
+            // 1. Restore previous chat history from sessionStorage
+            conversationHistory = loadConversationHistory();
+            if (conversationHistory && conversationHistory.length > 0) {
+                const container = document.getElementById('chat-messages');
+                container.innerHTML = '';
+                conversationHistory.forEach(item => {
+                    if (item.role === 'user') {
+                        appendUserMessage(item.text);
+                    } else {
+                        appendBotMessage(item.data || { answer: item.text });
+                    }
+                });
+                container.scrollTop = container.scrollHeight;
+            }
+
+            // 2. Handle ?q= URL param
             const urlParams = new URLSearchParams(window.location.search);
             const queryParam = urlParams.get('q');
             if (queryParam && queryParam.trim()) {
+                // Clear URL query param so refresh preserves context without re-triggering
+                try {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch(e) {}
+
                 document.getElementById('user-input').value = queryParam;
                 setTimeout(() => {
                     submitPrompt(queryParam);

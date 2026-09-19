@@ -10,6 +10,10 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 
+from pathlib import Path
+_env_path = Path(__file__).resolve().parent / ".env"
+if _env_path.exists():
+    load_dotenv(dotenv_path=_env_path)
 load_dotenv()
 
 # Google Gemini Configuration
@@ -68,12 +72,32 @@ ALLOWED_ORIGINS = [
     "*"  # TODO: restrict in production to specific verified domains (e.g. ['https://orca.isro.gov.in'])
 ]
 
+@app.middleware("http")
+async def add_private_network_access_headers(request: Request, call_next):
+    origin = request.headers.get("origin") or "*"
+    if request.method == "OPTIONS":
+        from fastapi.responses import Response
+        response = Response(status_code=200)
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
+        return response
+
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = origin
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    response.headers["Access-Control-Allow-Private-Network"] = "true"
+    return response
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
+    allow_private_network=True,
 )
 
 class SimpleLoginRequest(BaseModel):
@@ -283,11 +307,15 @@ def get_marine_weather(lat: float = 13.05, lon: float = 80.28):
 
 http_session = requests.Session()
 
-def generate_gemini_response(prompt: str) -> str:
+def generate_gemini_response(prompt: str, messages: Optional[List[Dict[str, str]]] = None) -> str:
     """Generate instant reasoning answer using Groq LPU (GPT-OSS-120B) as Primary Engine, with Gemini fallback."""
     # 1. Groq LPU High-Speed Primary Engine (< 0.4s ultra-low latency)
     groq_key = os.getenv("GROQ_API_KEY")
     if groq_key:
+        groq_messages = messages if messages else [
+            {"role": "system", "content": "You are ORCA, an official marine safety and fisheries advisory AI assistant for Indian fishermen."},
+            {"role": "user", "content": prompt}
+        ]
         for model_name in ["openai/gpt-oss-120b", "qwen/qwen3.8-27b", "groq/compound"]:
             try:
                 url = "https://api.groq.com/openai/v1/chat/completions"
@@ -297,10 +325,7 @@ def generate_gemini_response(prompt: str) -> str:
                 }
                 payload = {
                     "model": model_name,
-                    "messages": [
-                        {"role": "system", "content": "You are ORCA, an official marine safety and fisheries advisory AI assistant for Indian fishermen."},
-                        {"role": "user", "content": prompt}
-                    ],
+                    "messages": groq_messages,
                     "max_tokens": 1024,
                     "temperature": 0.2
                 }
@@ -319,9 +344,19 @@ def generate_gemini_response(prompt: str) -> str:
     # 2. Google Gemini 2.5 Flash Fallback
     if GEMINI_API_KEY:
         try:
+            gemini_contents = []
+            if messages:
+                for m in messages:
+                    if m.get("role") == "system":
+                        continue
+                    gem_role = "model" if m.get("role") in ["assistant", "bot"] else "user"
+                    gemini_contents.append({"role": gem_role, "parts": [{"text": m.get("content", "")}]})
+            if not gemini_contents:
+                gemini_contents = [{"role": "user", "parts": [{"text": prompt}]}]
+
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
             payload = {
-                "contents": [{"parts": [{"text": prompt}]}],
+                "contents": gemini_contents,
                 "generationConfig": {
                     "maxOutputTokens": 2048,
                     "temperature": 0.2
@@ -570,25 +605,45 @@ def handle_query(request: Request, body: QueryRequest, background_tasks: Backgro
         )
 
         # 6. Formulate Prompt & Generate Content with Gemini/Groq
-        prompt = (
-            f"You are ORCA, an official expert marine safety & fisheries AI advisor for Indian coastal fishermen (ISRO SIH #26176).\n\n"
-            f"CORE RULES (STRICT):\n"
-            f"1. ANSWER ONLY AND EXACTLY WHAT IS ASKED. DO NOT DUMP ALL TELEMETRY OR UNRELATED SECTIONS.\n"
-            f"   - If the user asks about fish / PFZ / catching ('machhli', 'fish', 'pfz', 'kahan milegi'): Answer ONLY about where fish are located, target species, and bearing/distance using the PFZ data.\n"
-            f"   - If the user asks about weather / sea safety ('kal jaana safe hai kya?', 'weather', 'waves', 'toofan'): Answer ONLY about wave height, wind, and whether it is safe to sail.\n"
-            f"   - If the user asks about danger zones or 100km radius: Answer ONLY about danger zones and the 100km radar scan findings.\n"
-            f"   - If the user sends a greeting ('hi', 'namaste', 'hello'): Greet them warmly in 1-2 friendly sentences and ask how you can help. Do NOT dump any coordinates or weather numbers.\n"
-            f"2. LANGUAGE MATCHING: You MUST reply in the EXACT SAME LANGUAGE as the user's question:\n"
-            f"   - If asked in Hindi or Romanized Hinglish (e.g. 'machhli kahan milegi?', 'kal jaana safe hai kya?'), reply in natural, clear, polite Hindi.\n"
-            f"   - If asked in English, reply in English.\n"
-            f"   - If asked in Tamil, Telugu, or Bengali, reply in that language.\n"
-            f"3. REAL DATA ONLY: Always use the verified real numbers from the context below. Keep response concise (2-4 bullet points).\n\n"
-            f"Verified Real Ocean Telemetry for {current_port['name']} ({current_port['state']}):\n{context}\n\n"
-            f"{history_context}"
-            f"User Question: {user_query}\n"
+        system_instruction = (
+            "You are ORCA, an official expert marine safety & fisheries AI advisor for Indian coastal fishermen (ISRO SIH #26176).\n\n"
+            "CORE RULES (STRICT):\n"
+            "1. CONVERSATION CONTEXT & FOLLOW-UPS (CRITICAL):\n"
+            "   - You MUST read the previous conversation messages. Always maintain conversational continuity.\n"
+            "   - If the user asks a follow-up or translation request (e.g. 'can you translate in hindi', 'translate in hindi', 'hindi me batao', 'aur batao', 'wahan kaise jaye', 'is it safe?'):\n"
+            "     * Immediately refer to your previous answer!\n"
+            "     * If they ask to translate (e.g. 'can you translate in hindi', 'translate in hindi', 'hindi me batao', 'isko translate karo'), IMMEDIATELY translate your previous answer into the requested language (Hindi). NEVER ask them to repeat, share, or type the text again!\n"
+            "     * If they ask 'aur batao' or 'tell me more', give additional useful operational tips based on the same topic.\n"
+            "2. LANGUAGE MATCHING:\n"
+            "   - If asked in Hindi, Hinglish, OR if the user asks for Hindi translation (e.g. 'can you translate in hindi', 'machhli kahan milegi?', 'hindi me'), reply in natural, clear, polite Hindi.\n"
+            "   - If asked in English (without requesting translation to another language), reply in English.\n"
+            "   - If asked in Tamil, Telugu, or Bengali, reply in that language.\n"
+            "3. REAL DATA ONLY: Always use the verified real numbers from the context below. Keep response concise (2-4 bullet points).\n"
+            "4. ANSWER ONLY AND EXACTLY WHAT IS ASKED. DO NOT DUMP UNRELATED SECTIONS:\n"
+            "   - If asking about fish/PFZ: Answer only about fish coordinates, species, bearing, and distance.\n"
+            "   - If asking about weather/safety: Answer only about wave height, wind, and sailing safety.\n"
+            "   - If asking about danger/100km: Answer only about danger zones and the 100km radar scan findings.\n"
+            "   - If sending a greeting ('hi', 'namaste', 'hello'): Greet warmly in 1-2 friendly sentences and ask how you can help. Do NOT dump coordinates or weather numbers.\n\n"
+            f"Verified Real Ocean Telemetry for {current_port['name']} ({current_port['state']}):\n{context}\n"
         )
 
-        ai_answer = generate_gemini_response(prompt)
+        llm_messages = [
+            {"role": "system", "content": system_instruction}
+        ]
+        if history_tail:
+            for msg in history_tail:
+                r = msg.get("role", "user")
+                role = "assistant" if r in ["bot", "assistant"] else "user"
+                content = msg.get("text") or msg.get("content") or ""
+                if content:
+                    llm_messages.append({"role": role, "content": content})
+
+        llm_messages.append({"role": "user", "content": user_query})
+
+        # Backward-compatible single prompt string for fallback
+        prompt = f"{system_instruction}\n{history_context}User Question: {user_query}\n"
+
+        ai_answer = generate_gemini_response(prompt=prompt, messages=llm_messages)
 
         # 7. Formulate Response
         sources_list = [
