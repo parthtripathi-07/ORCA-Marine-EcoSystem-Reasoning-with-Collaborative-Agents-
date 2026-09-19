@@ -47,10 +47,6 @@
                     </p>
                 </div>
                 <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-                    <button id="advisor-backend-pill" onclick="toggleBackendTarget()" class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold font-mono transition-colors cursor-pointer" title="Active Backend. Click to switch between Cloud and Local">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span id="advisor-backend-name">RENDER CLOUD</span>
-                    </button>
                     <button onclick="startNewChat()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-bold transition-colors cursor-pointer" title="Start a fresh chat">
                         <span class="material-symbols-outlined text-sm">add_comment</span>
                         <span>New Chat</span>
@@ -546,35 +542,6 @@
             });
         }
 
-        // Backend Status Pill & Toggle Handlers
-        function updateBackendPill() {
-            const label = document.getElementById('advisor-backend-name');
-            const pill = document.getElementById('advisor-backend-pill');
-            if (!label || !pill) return;
-            const current = window.ORCA_BASE_URL || '';
-            if (current.includes('127.0.0.1') || current.includes('localhost')) {
-                label.textContent = 'LOCAL: 8000';
-                pill.className = 'flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-300 text-[10px] font-bold font-mono transition-colors cursor-pointer';
-            } else {
-                label.textContent = 'RENDER CLOUD';
-                pill.className = 'flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold font-mono transition-colors cursor-pointer';
-            }
-        }
-
-        function toggleBackendTarget() {
-            const current = window.ORCA_BASE_URL || '';
-            if (current.includes('127.0.0.1') || current.includes('localhost')) {
-                window.switchOrcaBackend('cloud');
-            } else {
-                window.switchOrcaBackend('local');
-            }
-            updateBackendPill();
-        }
-
-        window.addEventListener('orca:backend_changed', () => {
-            updateBackendPill();
-        });
-
         // Fail-Safe Client-Side Multi-Agent Reasoning Engine
         // GUARANTEE: The user will NEVER see a connection error, answers in exact language asked, using real data.
         function generateFallbackAdvisorResponse(query, port) {
@@ -1018,7 +985,6 @@
         // On Load: Reset chat to fresh state on reload
         document.addEventListener('DOMContentLoaded', () => {
             syncAdvisorHarbor();
-            updateBackendPill();
 
             // Clear chat history on page refresh so user gets a fresh clean chat
             conversationHistory = [];
