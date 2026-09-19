@@ -70,6 +70,18 @@ window.switchOrcaBackend = function(target) {
     };
 })();
 
+// 2.8 Automatic Keep-Alive & Background Warm-up for Render Backend:
+// Sends an immediate background handshake to ensure the Render instance stays warm and awake.
+(function warmUpRenderBackend() {
+    try {
+        const ping = () => {
+            fetch(RENDER_BACKEND_URL + "/", { method: "GET", mode: "no-cors" }).catch(() => {});
+        };
+        ping();
+        setInterval(ping, 4 * 60 * 1000); // Repeat every 4 minutes to prevent idle sleep
+    } catch(e) {}
+})();
+
 // 3. Indian Coastal Ports & Landing Centers Catalog
 window.PORT_COORDINATES = {
     chennai: { id: "chennai", name: "Chennai (Kasimedu)", state: "Tamil Nadu", lat: 13.1256, lon: 80.2974, region: "Coromandel Coast (Bay of Bengal)" },
