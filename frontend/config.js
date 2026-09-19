@@ -11,13 +11,14 @@ window.ORCA_RENDER_URL = RENDER_BACKEND_URL;
 window.ORCA_LOCAL_URL = LOCAL_BACKEND_URL;
 
 // 2. Environment Auto-detection:
-// If running on local dev server (http://localhost:5500 or http://127.0.0.1), try local backend first.
-// If opened directly as a file (file:///) or deployed on Vercel, connect to the live Render backend!
-const isLocalDevServer = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") && 
-                         window.location.protocol !== "file:";
+// If running on local dev server (http://localhost:5500 or http://127.0.0.1) OR opened as a file (file:///), connect to local backend (8000).
+// If deployed on Vercel, connect to the live Render backend!
+const isLocal = window.location.hostname === "127.0.0.1" || 
+                window.location.hostname === "localhost" || 
+                window.location.protocol === "file:";
 
 const savedBackend = window.localStorage.getItem("ORCA_BACKEND_URL");
-window.ORCA_BASE_URL = isLocalDevServer ? LOCAL_BACKEND_URL : (savedBackend || RENDER_BACKEND_URL);
+window.ORCA_BASE_URL = isLocal ? LOCAL_BACKEND_URL : (savedBackend || RENDER_BACKEND_URL);
 
 console.info("[ORCA Intelligence] API Base URL:", window.ORCA_BASE_URL);
 

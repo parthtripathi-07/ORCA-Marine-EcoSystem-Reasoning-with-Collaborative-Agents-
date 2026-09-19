@@ -592,8 +592,76 @@
 
             const isBorderZone = activeKey === 'rameswaram' || activeKey === 'porbandar' || activeKey === 'veraval';
 
-            // PRIORITY 1: Potential Fishing Zone (PFZ) / Fish / Species / Catch
-            if (qLower.includes('pfz') || qLower.includes('fish') || qLower.includes('machhli') || qLower.includes('machli') || qLower.includes('catch') || qLower.includes('pakar') || (qLower.includes('zone') && !qLower.includes('danger'))) {
+            // PRIORITY 1: Sea Safety & Weather (Kal subah safe hai kya?, Weather, Waves, Wind)
+            // MUST be evaluated before raw fish keywords because "machhli pakadne jaana safe hai kya" is a SAFETY question!
+            if (qLower.includes('safe') || qLower.includes('surakshit') || qLower.includes('weather') || qLower.includes('wave') || qLower.includes('toofan') || qLower.includes('hawa') || qLower.includes('samundar') || (qLower.includes('kal') && (qLower.includes('jaana') || qLower.includes('subah') || qLower.includes('kaisa')))) {
+                showChart = true;
+                if (isHindi) {
+                    answer = `### ⚓ कल सुबह समुद्र में जाने की सुरक्षा सलाह — ${portName}\n\n` +
+                             `• **सुरक्षा फैसला (Safety Verdict):** **हाँ, कल सुबह समुद्र में मछली पकड़ने जाना पूर्णतः सुरक्षित (SAFE) है।**\n` +
+                             `• **लहरों की ऊंचाई (Wave Height):** **0.8 से 1.1 मीटर** (शांत से हल्की लहरें, नेविगेशन के लिए अनुकूल)\n` +
+                             `• **हवा की गति और दिशा:** 14 से 18 किमी/घंटा (8 – 10 kts) ENE दिशा से\n` +
+                             `• **समुद्री सतह तापमान (SST):** 28.4°C\n` +
+                             `• **दृश्यता (Visibility):** साफ (> 10 किमी)\n` +
+                             `• **मछली पकड़ने का सर्वोत्तम समय:** कल सुबह 05:30 AM से 09:00 AM के बीच 18–22 NM offshore क्षेत्र में अनुकूल स्थिति रहेगी।\n\n` +
+                             `**INCOIS & तटरक्षक सलाह:** समुद्र की स्थिति सामान्य है। छोटी और मध्यम नावें सुरक्षित रूप से जा सकती हैं। आपातकालीन VHF चैनल 16 की निगरानी रखें।`;
+                } else {
+                    answer = `### ⚓ Sea Safety & Weather Advisory — ${portName}\n\n` +
+                             `• **Safety Verdict:** **YES, IT IS FULLY SAFE TO GO FISHING TOMORROW MORNING.**\n` +
+                             `• **Wave Height (Hs):** **0.8 m – 1.1 m** (Calm to slight sea state, favorable for sailing)\n` +
+                             `• **Wind Speed & Direction:** 14 – 18 km/h (8 – 10 kts) from ENE\n` +
+                             `• **Sea Surface Temperature (SST):** 28.4°C\n` +
+                             `• **Visibility:** Excellent (> 10 km)\n` +
+                             `• **Best Fishing Window:** Early morning 05:30 AM to 09:00 AM in the 18–22 NM offshore sector.\n\n` +
+                             `**INCOIS Recommendation:** Normal fishing operations permitted for motorized and mechanized crafts. Keep VHF Channel 16 active.`;
+                }
+            }
+            // PRIORITY 2: Border / IMBL / Danger Zone / 100 KM Safety Scan
+            else if (qLower.includes('border') || qLower.includes('imbl') || qLower.includes('sri lanka') || qLower.includes('pakistan') || qLower.includes('danger') || qLower.includes('100') || qLower.includes('kavach') || qLower.includes('radar') || qLower.includes('incident') || qLower.includes('dikkat')) {
+                showSafetyScan = true;
+                if (isHindi) {
+                    answer = `### 🚨 100 किमी सुरक्षा कवच रिपोर्ट — ${portName}\n\n` +
+                             (isCritical 
+                                ? `⚠️ **अंतरराष्ट्रीय समुद्री सीमा (IMBL) चेतावनी:**\n` +
+                                  `• आपका हार्बर अंतरराष्ट्रीय समुद्री सीमा रेखा (IMBL) के संवेदनशील क्षेत्र के पास है।\n` +
+                                  `• कृपया निर्धारित बफर ज़ोन पार न करें।\n` +
+                                  `• किसी भी अनजाने बहाव से बचने के लिए NavIC GPS चालू रखें।`
+                                : `✅ **100 किमी सुरक्षा कवच: कोई खतरा नहीं (ALL CLEAR)**\n` +
+                                  `• आपके 100 किमी के दायरे में कोई अंतरराष्ट्रीय सीमा विवाद या हालिया दुर्घटना नहीं है।\n` +
+                                  `• सामान्य मछली पकड़ने के लिए समुद्र पूर्णतः सुरक्षित है।`);
+                } else {
+                    answer = `### 🚨 100 KM Coastal Safety & Border Radar Report — ${portName}\n\n` +
+                             (isCritical 
+                                ? `⚠️ **CRITICAL BORDER PROXIMITY ALERT**: Your harbor is within proximity of the International Maritime Boundary Line (IMBL).\n` +
+                                  `• Do NOT cross the designated buffer corridor.\n` +
+                                  `• Keep NavIC GPS transponder active at all times to prevent accidental drift.`
+                                : `✅ **100 KM SAFETY SHIELD: ALL CLEAR**: No border restrictions, maritime boundary conflicts, or unresolved distress incidents detected within 100 km radius of ${portName}.\n` +
+                                  `• Status: Safe for normal coastal and deep-sea fishing.`);
+                }
+            }
+            // PRIORITY 3: Route / Fuel / Diesel / Navigation
+            else if (qLower.includes('route') || qLower.includes('fuel') || qLower.includes('diesel') || qLower.includes('navigation') || qLower.includes('waypoint') || qLower.includes('distance')) {
+                showRoute = true;
+                if (isHindi) {
+                    answer = `### 🧭 नेविगेशन मार्ग एवं डीजल खपत अनुमान\n\n` +
+                             `• **प्रस्थान:** ${portName} हार्बर (Lat ${port.lat.toFixed(4)}, Lon ${port.lon.toFixed(4)})\n` +
+                             `• **गंतव्य:** ISRO High-Confidence PFZ ज़ोन (Lat ${(port.lat + 0.15).toFixed(4)}, Lon ${(port.lon - 0.22).toFixed(4)})\n` +
+                             `• **कुल दूरी:** **18.5 नॉटिकल मील (34.2 किमी)**\n` +
+                             `• **अनुमानित समय (8 kts पर):** ~2 घंटे 18 मिनट\n` +
+                             `• **अनुमानित डीजल खपत:** **~24.5 लीटर** (40HP मोटर नाव)\n` +
+                             `• **नेविगेशन वेपॉइंट:** WP-1 (Lat ${(port.lat + 0.08).toFixed(4)}, Lon ${(port.lon - 0.11).toFixed(4)})`;
+                } else {
+                    answer = `### 🧭 Navigational Waypoints & Diesel Fuel Estimate\n\n` +
+                             `• **Departure:** ${portName} Harbor Basin (Lat ${port.lat.toFixed(4)}, Lon ${port.lon.toFixed(4)})\n` +
+                             `• **Destination:** ISRO High-Confidence PFZ (Lat ${(port.lat + 0.15).toFixed(4)}, Lon ${(port.lon - 0.22).toFixed(4)})\n` +
+                             `• **Total Distance:** **18.5 NM (34.2 km)**\n` +
+                             `• **Estimated Travel Time at 8 kts:** ~2 hours 18 minutes\n` +
+                             `• **Estimated Diesel Fuel Consumption:** **24.5 Liters** (Single-engine 40HP inboard/outboard)\n` +
+                             `• **Navigational Waypoint:** WP-1 (Lat ${(port.lat + 0.08).toFixed(4)}, Lon ${(port.lon - 0.11).toFixed(4)})`;
+                }
+            }
+            // PRIORITY 4: Potential Fishing Zone (PFZ) / Fish / Species / Catch / Where to Fish
+            else if (qLower.includes('pfz') || qLower.includes('fish') || qLower.includes('machhli') || qLower.includes('machli') || qLower.includes('catch') || qLower.includes('pakar') || (qLower.includes('zone') && !qLower.includes('danger'))) {
                 showPfz = true;
                 showRoute = true;
                 if (isHindi) {
@@ -618,71 +686,6 @@
                              `• **Chlorophyll-a Density:** 0.85 mg/m³ (High primary biological productivity)\n` +
                              `• **Diesel Fuel Conservation:** ~24.5 Liters saved using direct ISRO NavIC bearing route.\n\n` +
                              `**Operational Advisory:** Favorable sea state with calm swells. Deploy pelagic gillnets or ring seines along the thermal boundary for optimal catch.`;
-                }
-            }
-            // PRIORITY 2: Weather / Safe / Wave / Wind / Sea condition
-            else if (qLower.includes('weather') || qLower.includes('safe') || qLower.includes('kal') || qLower.includes('hawa') || qLower.includes('wave') || qLower.includes('toofan') || qLower.includes('samundar') || qLower.includes('barish')) {
-                showChart = true;
-                if (isHindi) {
-                    answer = `### 🌊 समुद्री मौसम और सुरक्षा सलाह — ${portName}\n\n` +
-                             `• **समुद्र की स्थिति:** **मछली पकड़ने जाने के लिए पूर्णतः सुरक्षित (SAFE)** है।\n` +
-                             `• **लहरों की ऊंचाई (Wave Height):** 0.8 से 1.1 मीटर (शांत समुद्र)\n` +
-                             `• **हवा की गति और दिशा:** 14 से 18 किमी/घंटा (8 – 10 kts) ENE दिशा से\n` +
-                             `• **दृश्यता (Visibility):** साफ (> 10 किमी)\n` +
-                             `• **ज्वार की स्थिति (Tides):** सामान्य खगोलीय ज्वार, कोई तूफानी चेतावनी नहीं है।\n\n` +
-                             `**INCOIS सलाह:** कल सुबह समुद्र में जाना सुरक्षित है। छोटी और मध्यम नावें 35 नॉटिकल मील तक बिना किसी चिंता के जा सकती हैं। VHF चैनल 16 चालू रखें।`;
-                } else {
-                    answer = `### 🌊 Marine Weather & Sea Safety Advisory — ${portName}\n\n` +
-                             `• **Sea Safety Status:** **SAFE FOR OPERATIONAL FISHING** (Clear to proceed)\n` +
-                             `• **Significant Wave Height (Hs):** 0.8 m – 1.1 m (Calm to Slight sea state)\n` +
-                             `• **Wind Speed & Direction:** 14 – 18 km/h (8 – 10 kts) from ENE\n` +
-                             `• **Visibility:** Excellent (> 10 km)\n` +
-                             `• **Tidal Trend:** Normal astronomical tide, no sea surge or swell warning.\n\n` +
-                             `**INCOIS Recommendation:** Small mechanized boats and FRP catamarans can safely venture out up to 35 NM offshore. Maintain VHF Channel 16 monitoring.`;
-                }
-            }
-            // PRIORITY 3: Border / IMBL / Danger Zone / 100 KM Safety Scan
-            else if (qLower.includes('border') || qLower.includes('imbl') || qLower.includes('sri lanka') || qLower.includes('pakistan') || qLower.includes('danger') || qLower.includes('100') || qLower.includes('kavach') || qLower.includes('radar') || qLower.includes('incident') || qLower.includes('dikkat')) {
-                showSafetyScan = true;
-                if (isHindi) {
-                    answer = `### 🚨 100 किमी सुरक्षा कवच रिपोर्ट — ${portName}\n\n` +
-                             (isCritical 
-                                ? `⚠️ **अंतरराष्ट्रीय समुद्री सीमा (IMBL) चेतावनी:**\n` +
-                                  `• आपका हार्बर अंतरराष्ट्रीय समुद्री सीमा रेखा (IMBL) के संवेदनशील क्षेत्र के पास है।\n` +
-                                  `• कृपया निर्धारित बफर ज़ोन पार न करें।\n` +
-                                  `• किसी भी अनजाने बहाव से बचने के लिए NavIC GPS चालू रखें।`
-                                : `✅ **100 किमी सुरक्षा कवच: कोई खतरा नहीं (ALL CLEAR)**\n` +
-                                  `• आपके 100 किमी के दायरे में कोई अंतरराष्ट्रीय सीमा विवाद या हालिया दुर्घटना नहीं है।\n` +
-                                  `• सामान्य मछली पकड़ने के लिए समुद्र पूर्णतः सुरक्षित है।`);
-                } else {
-                    answer = `### 🚨 100 KM Coastal Safety & Border Radar Report — ${portName}\n\n` +
-                             (isCritical 
-                                ? `⚠️ **CRITICAL BORDER PROXIMITY ALERT**: Your harbor is within proximity of the International Maritime Boundary Line (IMBL).\n` +
-                                  `• Do NOT cross the designated buffer corridor.\n` +
-                                  `• Keep NavIC GPS transponder active at all times to prevent accidental drift.`
-                                : `✅ **100 KM SAFETY SHIELD: ALL CLEAR**: No border restrictions, maritime boundary conflicts, or unresolved distress incidents detected within 100 km radius of ${portName}.\n` +
-                                  `• Status: Safe for normal coastal and deep-sea fishing.`);
-                }
-            }
-            // PRIORITY 4: Route / Fuel / Diesel / Navigation
-            else if (qLower.includes('route') || qLower.includes('fuel') || qLower.includes('diesel') || qLower.includes('navigation') || qLower.includes('waypoint') || qLower.includes('distance')) {
-                showRoute = true;
-                if (isHindi) {
-                    answer = `### 🧭 नेविगेशन मार्ग एवं डीजल खपत अनुमान\n\n` +
-                             `• **प्रस्थान:** ${portName} हार्बर (Lat ${port.lat.toFixed(4)}, Lon ${port.lon.toFixed(4)})\n` +
-                             `• **गंतव्य:** ISRO PFZ फिशिंग ज़ोन\n` +
-                             `• **कुल दूरी:** 18.5 नॉटिकल मील (34.2 किमी)\n` +
-                             `• **अनुमानित समय (8 kts पर):** ~2 घंटे 18 मिनट\n` +
-                             `• **अनुमानित डीजल खपत:** ~24.5 लीटर (40HP मोटर नाव)\n` +
-                             `• **नेविगेशन वेपॉइंट:** WP-1 (Lat ${(port.lat + 0.08).toFixed(4)}, Lon ${(port.lon - 0.11).toFixed(4)})`;
-                } else {
-                    answer = `### 🧭 Navigational Waypoints & Diesel Fuel Estimate\n\n` +
-                             `• **Departure:** ${portName} Harbor Basin (Lat ${port.lat.toFixed(4)}, Lon ${port.lon.toFixed(4)})\n` +
-                             `• **Destination:** ISRO High-Confidence PFZ (Lat ${(port.lat + 0.15).toFixed(4)}, Lon ${(port.lon - 0.22).toFixed(4)})\n` +
-                             `• **Total Distance:** 18.5 NM (34.2 km)\n` +
-                             `• **Estimated Travel Time at 8 kts:** ~2 hours 18 minutes\n` +
-                             `• **Estimated Diesel Fuel Consumption:** 24.5 Liters (Single-engine 40HP inboard/outboard)\n` +
-                             `• **Navigational Waypoint:** WP-1 (Lat ${(port.lat + 0.08).toFixed(4)}, Lon ${(port.lon - 0.11).toFixed(4)})`;
                 }
             }
             // PRIORITY 5: Pure Greetings (ONLY if no other maritime query matched)

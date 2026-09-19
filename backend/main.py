@@ -64,6 +64,7 @@ ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "http://localhost:3000",
+    "null",
     "*"  # TODO: restrict in production to specific verified domains (e.g. ['https://orca.isro.gov.in'])
 ]
 
