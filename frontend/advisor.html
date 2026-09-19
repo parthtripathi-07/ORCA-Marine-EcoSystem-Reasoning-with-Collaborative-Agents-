@@ -891,7 +891,6 @@
 
                 conversationHistory.push({ role: 'user', text: query });
                 conversationHistory.push({ role: 'bot', text: data.answer || '', data: data });
-                saveConversationHistory();
 
                 // Save query to persistent local history for instant retrieval in History Modal
                 try {
@@ -925,7 +924,6 @@
 
                 conversationHistory.push({ role: 'user', text: query });
                 conversationHistory.push({ role: 'bot', text: fallbackData.answer || '', data: fallbackData });
-                saveConversationHistory();
 
                 try {
                     let localHist = JSON.parse(localStorage.getItem('orca_query_history') || '[]');
@@ -952,21 +950,6 @@
         document.getElementById('user-input').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') handleSend();
         });
-
-        // Conversation History Persistence & New Chat
-        function loadConversationHistory() {
-            try {
-                const saved = sessionStorage.getItem('orca_chat_history');
-                if (saved) return JSON.parse(saved);
-            } catch(e) {}
-            return [];
-        }
-
-        function saveConversationHistory() {
-            try {
-                sessionStorage.setItem('orca_chat_history', JSON.stringify(conversationHistory.slice(-12)));
-            } catch(e) {}
-        }
 
         function startNewChat() {
             conversationHistory = [];
@@ -1032,31 +1015,21 @@
             syncAdvisorHarbor();
         });
 
-        // On Load: Restore previous chat messages and auto-execute URL param (?q=...) if present
+        // On Load: Reset chat to fresh state on reload
         document.addEventListener('DOMContentLoaded', () => {
             syncAdvisorHarbor();
             updateBackendPill();
 
-            // 1. Restore previous chat history from sessionStorage
-            conversationHistory = loadConversationHistory();
-            if (conversationHistory && conversationHistory.length > 0) {
-                const container = document.getElementById('chat-messages');
-                container.innerHTML = '';
-                conversationHistory.forEach(item => {
-                    if (item.role === 'user') {
-                        appendUserMessage(item.text);
-                    } else {
-                        appendBotMessage(item.data || { answer: item.text });
-                    }
-                });
-                container.scrollTop = container.scrollHeight;
-            }
+            // Clear chat history on page refresh so user gets a fresh clean chat
+            conversationHistory = [];
+            try {
+                sessionStorage.removeItem('orca_chat_history');
+            } catch(e) {}
 
-            // 2. Handle ?q= URL param
+            // Handle ?q= URL param if arriving from a quick link
             const urlParams = new URLSearchParams(window.location.search);
             const queryParam = urlParams.get('q');
             if (queryParam && queryParam.trim()) {
-                // Clear URL query param so refresh preserves context without re-triggering
                 try {
                     window.history.replaceState({}, document.title, window.location.pathname);
                 } catch(e) {}
