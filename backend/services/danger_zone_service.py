@@ -384,3 +384,4 @@ def scan_100km_radius(lat: float, lon: float) -> Dict[str, Any]:
 def get_all_state_danger_zones() -> List[Dict[str, Any]]:
     """Returns official danger zone summaries for all 9 Indian coastal states."""
     return STATE_DANGER_ZONES
+
