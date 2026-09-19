@@ -46,7 +46,11 @@
                         Ask questions in Hindi, English, Tamil, Telugu, or Bengali for real-time safety, PFZ, and navigation advice.
                     </p>
                 </div>
-                <div class="flex items-center gap-2 self-start sm:self-auto">
+                <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                    <button id="advisor-backend-pill" onclick="toggleBackendTarget()" class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold font-mono transition-colors cursor-pointer" title="Active Backend. Click to switch between Cloud and Local">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span id="advisor-backend-name">RENDER CLOUD</span>
+                    </button>
                     <button onclick="window.openHistoryModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-300 text-xs font-bold transition-colors cursor-pointer" title="View Past Queries">
                         <span class="material-symbols-outlined text-sm">history</span>
                         <span>My History</span>
@@ -538,6 +542,35 @@
             });
         }
 
+        // Backend Status Pill & Toggle Handlers
+        function updateBackendPill() {
+            const label = document.getElementById('advisor-backend-name');
+            const pill = document.getElementById('advisor-backend-pill');
+            if (!label || !pill) return;
+            const current = window.ORCA_BASE_URL || '';
+            if (current.includes('127.0.0.1') || current.includes('localhost')) {
+                label.textContent = 'LOCAL: 8000';
+                pill.className = 'flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-300 text-[10px] font-bold font-mono transition-colors cursor-pointer';
+            } else {
+                label.textContent = 'RENDER CLOUD';
+                pill.className = 'flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-bold font-mono transition-colors cursor-pointer';
+            }
+        }
+
+        function toggleBackendTarget() {
+            const current = window.ORCA_BASE_URL || '';
+            if (current.includes('127.0.0.1') || current.includes('localhost')) {
+                window.switchOrcaBackend('cloud');
+            } else {
+                window.switchOrcaBackend('local');
+            }
+            updateBackendPill();
+        }
+
+        window.addEventListener('orca:backend_changed', () => {
+            updateBackendPill();
+        });
+
         // Submit Prompt Function
         async function submitPrompt(query) {
             if (!query || !query.trim()) return;
@@ -547,6 +580,38 @@
             appendUserMessage(query);
             document.getElementById('user-input').value = '';
             setStepperState(true);
+
+            // Add Thinking Indicator in Chat
+            const thinkingId = 'thinking-' + Date.now();
+            const container = document.getElementById('chat-messages');
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.id = thinkingId;
+            thinkingDiv.className = 'flex items-start gap-3';
+            thinkingDiv.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-[#00264b] text-white flex items-center justify-center flex-shrink-0 shadow-xs mt-0.5 animate-pulse">
+                    <span class="material-symbols-outlined text-base">smart_toy</span>
+                </div>
+                <div class="flex flex-col gap-1 max-w-[85%]">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold text-[#00264b]">ORCA AI Engine</span>
+                        <span class="text-[10px] text-cyan-600 font-mono animate-pulse">Processing Multi-Agent Pipeline...</span>
+                    </div>
+                    <div class="bg-slate-50 border border-cyan-200 p-3 rounded-2xl text-xs text-slate-700 flex items-center gap-2.5 shadow-xs">
+                        <span class="w-2 h-2 rounded-full bg-cyan-600 animate-ping shrink-0"></span>
+                        <span id="${thinkingId}-text" class="font-medium text-slate-700">Analyzing ocean telemetry, ISRO PFZ coordinates & weather models...</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(thinkingDiv);
+            container.scrollTop = container.scrollHeight;
+
+            // If query takes > 4.5 seconds, inform user about potential Render cold start
+            const wakeNoticeTimer = setTimeout(() => {
+                const noticeText = document.getElementById(`${thinkingId}-text`);
+                if (noticeText) {
+                    noticeText.innerHTML = `Connecting to ORCA Cloud AI (<span class="text-amber-700 font-semibold">Render free tier server is waking up from idle sleep, please allow ~30-45s</span>)...`;
+                }
+            }, 4500);
 
             try {
                 const res = await fetch(`${BASE_URL}/api/query`, {
@@ -562,7 +627,10 @@
                     })
                 });
 
+                clearTimeout(wakeNoticeTimer);
                 setStepperState(false);
+                const activeThinking = document.getElementById(thinkingId);
+                if (activeThinking) activeThinking.remove();
 
                 if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
                 const data = await res.json();
@@ -587,13 +655,35 @@
                 appendBotMessage(data);
 
             } catch (err) {
+                clearTimeout(wakeNoticeTimer);
                 setStepperState(false);
-                const container = document.getElementById('chat-messages');
+                const activeThinking = document.getElementById(thinkingId);
+                if (activeThinking) activeThinking.remove();
+
+                const currentBase = window.ORCA_BASE_URL || BASE_URL;
                 const errDiv = document.createElement('div');
-                errDiv.className = 'p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between gap-2';
+                errDiv.className = 'p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex flex-col gap-2 shadow-xs';
                 errDiv.innerHTML = `
-                    <span><b>Server Connection Error:</b> Could not reach backend at ${BASE_URL}.</span>
-                    <button onclick="submitPrompt('${query.replace(/'/g, "\\'")}')" class="px-2.5 py-1 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 text-xs">Retry</button>
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold flex items-center gap-1.5 text-amber-900">
+                            <span class="material-symbols-outlined text-sm text-amber-600">cloud_sync</span>
+                            Server Connection Notice
+                        </span>
+                        <span class="font-mono text-[10px] text-slate-500">${currentBase}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-700 leading-relaxed">
+                        Could not reach backend service.
+                        <br/>• <b>Cloud Backend:</b> Render free-tier instances sleep when inactive and take 30–45 seconds to spin up on first request.
+                        <br/>• <b>Local Backend:</b> If developing locally on port 8000, run <code class="bg-white px-1 py-0.5 rounded border border-amber-200">start_backend.bat</code>.
+                    </p>
+                    <div class="flex items-center gap-2 pt-1">
+                        <button onclick="submitPrompt('${query.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-[#00264b] hover:bg-cyan-800 text-white font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer">
+                            <span class="material-symbols-outlined text-xs">refresh</span> Retry Now
+                        </button>
+                        <button onclick="window.switchOrcaBackend('cloud'); submitPrompt('${query.replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-cyan-100 hover:bg-cyan-200 text-cyan-900 font-bold rounded-lg text-xs cursor-pointer">
+                            Force Render Cloud
+                        </button>
+                    </div>
                 `;
                 container.appendChild(errDiv);
                 container.scrollTop = container.scrollHeight;
@@ -636,6 +726,7 @@
         // On Load: Auto-execute URL param (?q=...) if present
         document.addEventListener('DOMContentLoaded', () => {
             syncAdvisorHarbor();
+            updateBackendPill();
             const urlParams = new URLSearchParams(window.location.search);
             const queryParam = urlParams.get('q');
             if (queryParam && queryParam.trim()) {

@@ -5,18 +5,70 @@
 
 // 1. Set your deployed Render Web Service URL below:
 const RENDER_BACKEND_URL = "https://orca-marine-ecosystem-reasoning-with.onrender.com";
+const LOCAL_BACKEND_URL = "http://127.0.0.1:8000";
+
+window.ORCA_RENDER_URL = RENDER_BACKEND_URL;
+window.ORCA_LOCAL_URL = LOCAL_BACKEND_URL;
 
 // 2. Environment Auto-detection:
-// If running on local dev server (http://localhost:5500 or http://127.0.0.1), use local backend (8000).
+// If running on local dev server (http://localhost:5500 or http://127.0.0.1), try local backend first.
 // If opened directly as a file (file:///) or deployed on Vercel, connect to the live Render backend!
 const isLocalDevServer = (window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost") && 
                          window.location.protocol !== "file:";
 
-window.ORCA_BASE_URL = isLocalDevServer 
-    ? "http://127.0.0.1:8000" 
-    : (window.localStorage.getItem("ORCA_BACKEND_URL") || RENDER_BACKEND_URL);
+const savedBackend = window.localStorage.getItem("ORCA_BACKEND_URL");
+window.ORCA_BASE_URL = savedBackend || (isLocalDevServer ? LOCAL_BACKEND_URL : RENDER_BACKEND_URL);
 
 console.info("[ORCA Intelligence] API Base URL:", window.ORCA_BASE_URL);
+
+// Helper to switch backend between Cloud and Local
+window.switchOrcaBackend = function(target) {
+    if (target === 'cloud' || target === 'render') {
+        window.ORCA_BASE_URL = RENDER_BACKEND_URL;
+        localStorage.setItem("ORCA_BACKEND_URL", RENDER_BACKEND_URL);
+    } else if (target === 'local') {
+        window.ORCA_BASE_URL = LOCAL_BACKEND_URL;
+        localStorage.setItem("ORCA_BACKEND_URL", LOCAL_BACKEND_URL);
+    }
+    console.info("[ORCA Intelligence] Backend switched to:", window.ORCA_BASE_URL);
+    window.dispatchEvent(new CustomEvent('orca:backend_changed', { detail: { url: window.ORCA_BASE_URL } }));
+    return window.ORCA_BASE_URL;
+};
+
+// 2.5 Smart Transparent Fetch Failover:
+// If a local request to 127.0.0.1:8000 fails (e.g. backend not started locally),
+// automatically and seamlessly fallback to the live Render cloud backend!
+(function setupOrcaSmartFetch() {
+    const originalFetch = window.fetch;
+    window.fetch = async function(resource, init) {
+        let url = typeof resource === 'string' ? resource : (resource && resource.url ? resource.url : '');
+
+        const isLocalCall = url.includes('127.0.0.1:8000') || url.includes('localhost:8000');
+        if (isLocalCall) {
+            try {
+                const res = await originalFetch(resource, init);
+                if (res.status === 502 || res.status === 503 || res.status === 504) {
+                    throw new Error('Local server gateway error ' + res.status);
+                }
+                return res;
+            } catch (err) {
+                console.warn('[ORCA Intelligence] Local backend (127.0.0.1:8000) not responding. Seamlessly switching to live Render Cloud Backend:', window.ORCA_RENDER_URL);
+                window.ORCA_BASE_URL = window.ORCA_RENDER_URL;
+                window.dispatchEvent(new CustomEvent('orca:backend_changed', { detail: { url: window.ORCA_RENDER_URL } }));
+
+                const fallbackUrl = url.replace(/http:\/\/(127\.0\.0\.1|localhost):8000/, window.ORCA_RENDER_URL);
+                if (typeof resource === 'string') {
+                    return await originalFetch(fallbackUrl, init);
+                } else if (window.Request && resource instanceof Request) {
+                    return await originalFetch(new Request(fallbackUrl, init || resource));
+                }
+                return await originalFetch(fallbackUrl, init);
+            }
+        }
+
+        return originalFetch(resource, init);
+    };
+})();
 
 // 3. Indian Coastal Ports & Landing Centers Catalog
 window.PORT_COORDINATES = {
