@@ -17,7 +17,7 @@ const isLocalDevServer = (window.location.hostname === "127.0.0.1" || window.loc
                          window.location.protocol !== "file:";
 
 const savedBackend = window.localStorage.getItem("ORCA_BACKEND_URL");
-window.ORCA_BASE_URL = savedBackend || (isLocalDevServer ? LOCAL_BACKEND_URL : RENDER_BACKEND_URL);
+window.ORCA_BASE_URL = isLocalDevServer ? LOCAL_BACKEND_URL : (savedBackend || RENDER_BACKEND_URL);
 
 console.info("[ORCA Intelligence] API Base URL:", window.ORCA_BASE_URL);
 
